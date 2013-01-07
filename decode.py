@@ -45,7 +45,16 @@ class online_stats(object):
         self.__init__(self)
         
 
-def find_logic_levels(wf):
+
+def find_logic_levels(samples, max_samples):
+    # get a pool of samples 
+    # for now we will get everything up to max_samples
+    #FIX: we should do this more intelligently so the tee'd iterator in serial_decode()
+    # doesn't have to buffer so much data
+    wf = []
+    for i in xrange(max_samples):
+        wf.append(samples.next()[1])
+
     # build a histogram of the waveform
     hist, bin_edges = np.histogram(wf, bins=60)
     bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
@@ -55,6 +64,8 @@ def find_logic_levels(wf):
     
     # Split histogram in half so we can find the mode of the '0' and '1' portions
     # and evaluate the skewness as validation
+    
+    #FIX: implement a better peak finding algorithm
     mid_hist = len(hist) // 2
     low_hist = hist[0:mid_hist]
     low_bins = bin_centers[0:mid_hist]
@@ -83,54 +94,6 @@ def find_logic_levels(wf):
         else: # low data point
             os_l.accumulate(x)
 
-    
-    # # find the medians
-    # cf_limit_l = c_l / 2
-    # cf_l_bot = 0.0
-    # for x in low_hist:
-        # if cf_l_bot + x[1] < cf_limit_l:
-            # cf_l_bot += x[1]
-            # cf_l_bot_val = x[0]
-        # else:
-            # cf_l_top = cf_l_bot + x[1]
-            # cf_l_top_val = x[0]
-            # break
-    
-    # # get the linear approximation of the median from where the limit lies between the
-    # # top and bottom histogram bins    
-    # mr_l = (cf_limit_l - cf_l_bot) / (cf_l_top - cf_l_bot)
-    # med_l = cf_l_bot_val + (cf_l_top_val - cf_l_bot_val) * mr_l
-
-    # cf_limit_h = c_h / 2
-    # cf_h_bot = 0.0
-    # for x in high_hist:
-        # if cf_h_bot + x[1] < cf_limit_h:
-            # cf_h_bot += x[1]
-            # cf_h_bot_val = x[0]
-        # else:
-            # cf_h_top = cf_h_bot + x[1]
-            # cf_h_top_val = x[0]
-            # break
-    
-    # mr_h = (cf_limit_h - cf_h_bot) / (cf_h_top - cf_h_bot)
-    # med_h = cf_h_bot_val + (cf_h_top_val - cf_h_bot_val) * mr_h
-    
-    # print('median:', med_l, med_h)
-    # print(cf_l_top_val, cf_l_bot_val, cf_l_top, cf_l_bot, cf_limit_l)
-    
-    
-    # # take ratio of mode - mean to full range of each half of waveform
-    # q_l = abs(low_mode - m_l) / (threshold - low_mode)
-    # q_h = abs(high_mode - m_h) / (high_mode - threshold)
-
-    
-    # print('mean:', m_l, m_h)
-    # print('sd:', sd_l, sd_h)
-    # print('r:', sd_l / (threshold - low_mode), sd_h / (high_mode - threshold))
-    # print('cv:', sd_l / m_l, sd_h / m_h)
-    # print('r2:', q_l, q_h)
-    
-
     # Pearson skewness
     ps_l = (os_l.mean() - low_mode) / os_l.sd()
     ps_h = (os_h.mean() - high_mode) / os_h.sd()
@@ -145,55 +108,7 @@ def find_logic_levels(wf):
         return None
 
 
-
-def find_edges(wf, params, hysteresis=0.8):
-    span = params[1] - params[0]
-    thresh = (span / 2) + params[0]
-    hyst_top = span * ( 0.5 + hysteresis / 2) + params[0]
-    hyst_bot = span * (0.5 - hysteresis / 2) + params[0]
-
-    # states
-    ES_START = 0
-    ES_NEED_POS_EDGE = 1
-    ES_NEED_NEG_EDGE = 2
-    ES_NEED_HIGH = 3
-    ES_NEED_LOW = 4
-    
-    state = ES_START
-    # set initial state
-    edges = [(0,1 if wf[0] > thresh else 0)]
-    
-    for i, x in enumerate(wf):
-        if state == ES_START:
-            if x < hyst_bot:
-                state = ES_NEED_POS_EDGE
-            elif x > hyst_top:
-                state = ES_NEED_NEG_EDGE
-                
-        elif state == ES_NEED_POS_EDGE: # currently below the threshold
-            if x >= thresh:
-                edges.append((i,1))
-                
-                state = ES_NEED_NEG_EDGE if x > hyst_top else ES_NEED_HIGH
-
-        elif state == ES_NEED_NEG_EDGE: # currently above the the threshold
-            if x <= thresh:
-                edges.append((i,0))
-                
-                state = ES_NEED_POS_EDGE if x < hyst_bot else ES_NEED_LOW
-        
-        elif state == ES_NEED_HIGH:
-            if x > hyst_top:
-                state = ES_NEED_NEG_EDGE
-                
-        elif state == ES_NEED_LOW:
-            if x < hyst_bot:
-                state = ES_NEED_POS_EDGE
-    
-    return edges
-
-    
-def find_edges_2(wf, logic, time_axis=None, hysteresis=0.8):
+def find_edges(samples, logic, hysteresis=0.8):
     span = logic[1] - logic[0]
     thresh = (logic[1] + logic[0]) / 2.0
     hyst_top = span * (0.5 + hysteresis / 2.0) + logic[0]
@@ -209,12 +124,17 @@ def find_edges_2(wf, logic, time_axis=None, hysteresis=0.8):
     state = ES_START
     
     # set initial edge state
-    start_time = time_axis[0] if not time_axis is None else 0
-    initial_state = (start_time,1 if wf[0] > thresh else 0)
+    start_time, initial_sample = samples.next()
+    initial_state = (start_time, 1 if initial_sample > thresh else 0)
+    
+    #start_time = time_axis[0] if not time_axis is None else 0
+    #initial_state = (start_time,1 if wf[0] > thresh else 0)
     
     yield initial_state
     
-    for i, x in enumerate(wf):
+    #for i, x in enumerate(wf):
+    for t, x in samples:
+    
         if state == ES_START:
             if x < hyst_bot:
                 state = ES_NEED_POS_EDGE
@@ -223,13 +143,11 @@ def find_edges_2(wf, logic, time_axis=None, hysteresis=0.8):
                 
         elif state == ES_NEED_POS_EDGE: # currently below the threshold
             if x >= thresh:
-                t = time_axis[i] if not time_axis is None else i
                 state = ES_NEED_NEG_EDGE if x > hyst_top else ES_NEED_HIGH
                 yield (t,1)
 
         elif state == ES_NEED_NEG_EDGE: # currently above the the threshold
             if x <= thresh:
-                t = time_axis[i] if not time_axis is None else i
                 state = ES_NEED_POS_EDGE if x < hyst_bot else ES_NEED_LOW
                 yield (t,0)
         
@@ -241,36 +159,7 @@ def find_edges_2(wf, logic, time_axis=None, hysteresis=0.8):
             if x < hyst_bot:
                 state = ES_NEED_POS_EDGE
     
-    #return edges
     
-# def find_symbol_rate_2(edges):
-    # e = np.array(zip(*edges)[0]) # get the time indices of each edge
-    # spans = e[1:] - e[:-1] # time span between successive edges
-    
-    # # generate kernel density estimate of span histogram
-    # kde = sp.stats.gaussian_kde(spans)
-    # kde.covariance_factor = lambda: 0.05
-    # kde._compute_covariance()
-    
-    # # Compute the harmonic product spectrum from the KDE
-    # # This should leave us with one strong peak for the span corresponding to the
-    # # fundamental symbol rate
-    # mv = max(spans) * 1.1 # leave some extra room for the rightmost peak of the KDE
-    # step = mv / 500
-    # xs = np.arange(0, mv, step)
-    # s1 = kde(xs)
-    # s2 = kde(np.arange(0, mv*2, step*2))[:len(s1)]
-    # s3 = kde(np.arange(0, mv*3, step*3))[:len(s1)]
-    # s4 = kde(np.arange(0, mv*4, step*4))[:len(s1)]
-
-     # # isolate the findamental span width by using the product
-    # s = s1 * s2 * s3 * s4
-
-    # peak_span = xs[np.argmax(s)] # largest peak from the HPS
-    # symbol_rate = int(1.0 / peak_span)
-    
-    # return symbol_rate
-
 def find_symbol_rate(edges, sample_rate=1.0):
     '''
     The edges sequence is a series of 2-tuples containing edge positions and post-edge logic levels.
@@ -305,51 +194,8 @@ def find_symbol_rate(edges, sample_rate=1.0):
     
     return symbol_rate
     
+
 class edge_sequence(object):
-    def __init__(self, edges, time_step, start_time=0.0):
-        self.edges = edges
-        self.time_step = time_step
-        self.start_time = start_time
-        
-        
-        self.cur_time = start_time
-        self.cur_state = edges[0][1]
-        self.next_edge_ix = 1
-        self.next_edge = edges[self.next_edge_ix][0]
-        
-    def advance(self, time_step=None):
-        if time_step == None:
-            time_step = self.time_step
-        
-        if self.next_edge_ix < len(self.edges)-1:
-            self.cur_time += time_step
-            # find our current state
-            while self.cur_time > self.next_edge:
-                self.next_edge_ix += 1
-                self.next_edge = self.edges[self.next_edge_ix][0]
-                if self.next_edge_ix == len(self.edges)-1:
-                    break
-                
-            self.cur_state = self.edges[self.next_edge_ix-1][1]
-
-    def advance_to_edge(self):
-        if self.next_edge_ix < len(self.edges)-1:
-            time_step = self.next_edge - self.cur_time
-            
-            self.cur_time = self.next_edge
-            self.next_edge_ix += 1
-            self.next_edge = self.edges[self.next_edge_ix][0]
-            self.cur_state = self.edges[self.next_edge_ix-1][1]
-        
-            return time_step
-        else:
-            return 0.0
-            
-    def at_end(self):
-        return self.next_edge_ix == len(self.edges)-1
-
-        
-class edge_sequence_2(object):
     def __init__(self, edges, time_step, start_time=None):
         self.edges = edges
         self.time_step = time_step
@@ -448,110 +294,23 @@ class decoder(object):
     pass
         
     
-def serial_decode(wf, sample_rate, bits=8, parity=None, stop_bits=1, lsb_first=True, baud_rate=None, use_std_baud=True):
-    params = find_logic_levels(wf)
-    if params is None:
-        raise RuntimeError('Unable to find avg. min and max values of waveform')
-    sample_edges = list(find_edges_2(wf, params))
-    print('##', len(sample_edges), len(find_edges(wf, params)))
+def serial_decode(samples, bits=8, parity=None, stop_bits=1, lsb_first=True, inverted=False, baud_rate=None, use_std_baud=True):
 
-    # tee off an independent iterator to determine baud rate
-    se, bre = itertools.tee(find_edges_2(wf, params))
-    symbol_rate_edges = itertools.islice(bre, 50) # get first 50 edge records for symbol rate estimation
+    # tee off an iterator to determine logic thresholds
+    samp_it, thresh_it = itertools.tee(samples)
     
-    if baud_rate is None:
-        raw_symbol_rate = find_symbol_rate(sample_edges, sample_rate)
-        
-        std_bauds = [110, 300, 600, 1200, 2400, 4800, 9600, 14400, 19200, 28800, 38400, 5600, 57600, 115200, \
-            128000, 153600, 230400, 256000, 460800, 921600]
-
-        if use_std_baud:
-            baud_rate = min(std_bauds, key=lambda x: abs(x - raw_symbol_rate))
-        else:
-            baud_rate = raw_symbol_rate
-    
-    # convert edges from sample indices to absolute time
-    e_samples, levels = zip(*sample_edges)
-    time_edges = zip([float(s) / sample_rate for s in e_samples], levels)
-
-    bit_period = 1.0 / float(baud_rate)
-    es = edge_sequence(time_edges, bit_period)
-    
-    # initialize to point where state is '1' --> time before first start bit
-    while es.cur_state == 0:
-        es.advance_to_edge()
-        
-    #print(time_edges)
-    #print('start bit', es.cur_time)
-    
-    data = []
-    frames = []
-    while not es.at_end():
-        # look for start bit falling edge
-        es.advance_to_edge()
-        start_time = es.cur_time
-        data_time = es.cur_time + bit_period
-        es.advance(bit_period * 1.5) # move to middle of first data bit
-        
-        byte = 0
-        cur_bit = 0
-        while cur_bit < bits:
-            if lsb_first:
-                byte = byte >> 1 | (es.cur_state << (bits-1))
-            else:
-                byte = byte << 1 | es.cur_state
-                
-            cur_bit += 1
-            es.advance()
-            #print(es.cur_time)
-            
-        data_end_time = es.cur_time - bit_period * 0.5
-        if not parity is None:
-            parity_time = data_end_time
-            #FIX: check parity
-            es.advance()
-        
-        stop_time = es.cur_time - bit_period * 0.5
-        # FIX: verify stop bit
-        
-        end_time = es.cur_time + bit_period * (stop_bits - 0.5)
-        
-        # construct frame objects
-        nf = serial_frame((start_time, end_time), byte)
-        
-        nf.subframes.append(frame((start_time, data_time), name='start bit'))
-        nf.subframes.append(frame((data_time, data_end_time), byte, name='data bits'))
-        if not parity is None:
-            nf.subframe.append(frame((parity_time, stop_time), name='parity'))
-            
-        nf.subframes.append(frame((stop_time, end_time), name='stop bit'))
-        
-            
-        print(byte, bin(byte), chr(byte))
-        #print(ord('h'), bin(ord('h')), 'h')
-        data.append(byte)
-        frames.append(nf)
-        
-    #print(frames)
-
-    return frames
-
-def serial_decode_2(wf, time_axis, sample_rate, bits=8, parity=None, stop_bits=1, lsb_first=True, inverted=False, baud_rate=None, use_std_baud=True):
-    logic = find_logic_levels(wf)
+    logic = find_logic_levels(thresh_it, max_samples=5000)
     if logic is None:
         raise RuntimeError('Unable to find avg. logic levels of waveform')
-    time_edges = list(find_edges_2(wf, logic, time_axis))
-    print('##', len(time_edges), len(find_edges(wf, logic)))
 
     # tee off an independent iterator to determine baud rate
-    edges_it, sre_it = itertools.tee(find_edges_2(wf, logic, time_axis))
+    edges_it, sre_it = itertools.tee(find_edges(samp_it, logic))
     
-    edges_it = list(edges_it)
-    print(time_axis[0])
-    print(edges_it[:10])
-    edges_it = iter(edges_it)
+    # edges_it = list(edges_it)
+    # print(time_axis[0])
+    # print(edges_it[:10])
+    # edges_it = iter(edges_it)
     
-    # FIX: check number of edges retrieved and warn if not enough
     
     if baud_rate is None:
         # Find the baud rate
@@ -561,6 +320,7 @@ def serial_decode_2(wf, time_axis, sample_rate, bits=8, parity=None, stop_bits=1
         # It seems to be a guarantee after 50 edges.
         symbol_rate_edges = itertools.islice(sre_it, 50)
         
+        # FIX: check number of edges retrieved and warn if not enough
         raw_symbol_rate = find_symbol_rate(symbol_rate_edges)
         print('## raw baud', raw_symbol_rate)
         
@@ -578,7 +338,7 @@ def serial_decode_2(wf, time_axis, sample_rate, bits=8, parity=None, stop_bits=1
             baud_rate = raw_symbol_rate
     
     bit_period = 1.0 / float(baud_rate)
-    es = edge_sequence_2(edges_it, bit_period)
+    es = edge_sequence(edges_it, bit_period)
     
     # Now we start the actual decode process
     
