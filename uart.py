@@ -39,7 +39,56 @@ class UartFrame(StreamSegment):
     def __str__(self):
         return chr(self.data)
 
-def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, inverted=False, baud_rate=None, use_std_baud=True, stream_type=StreamType.Samples):
+def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, inverted=False, \
+    baud_rate=None, use_std_baud=True, stream_type=StreamType.Samples):
+    
+    '''Decode a UART data stream
+
+    This is a generator function that can be used in a pipeline of waveform
+    procesing operations.
+    
+    stream
+        A stream of 2-tuples of (time, value) pairs. The type of stream is identified
+        by the stream_type parameter. Either a series of real valued samples that will
+        be analyzed to find edge transitions or a set of pre-processed edge transitions
+        representing the 0 and 1 logic states of the UART waveform. When this is a sample
+        stream, an initial block of data is consumed to determine the most likely logic
+        levels in the signal.
+    
+    bits
+        The number of bits in each word. Typically 5, 7, 8, or 9.
+    
+    parity
+        The type of parity to use. One of None, 'even', or 'odd'
+    
+    stop_bits
+        The number of stop bits. Typically 1, 1.5, or 2
+    
+    lsb_first
+        Boolean indicating whether the Least Significant Bit is transmitted first.
+    
+    inverted
+        Boolean indicating if the signal levels have been inverted from their logical
+        meaning. Use this when the input stream derives from an inverting driver such
+        as those used for RS-232.
+    
+    baud_rate
+        The baud rate of the stream. If None, the first 50 edges will be analyzed to
+        automatically determine the most likely baud rate for the stream
+    
+    use_std_baud
+        Boolean that forces coercion of automatically detected baud rate to the set of
+        standard rates
+    
+    stream_type
+        A StreamType value indicating that the stream parameter represents either Samples
+        or Edges
+
+        
+    Yields a series of UartFrame objects. Each frame contains subrecords marking the location
+      of sub-elements within the frame (start, data, parity, stop). Parity errors are recorded
+      as an error status in the parity subrecord.
+    '''
 
     if stream_type == StreamType.Samples:
         # tee off an iterator to determine logic thresholds
@@ -173,37 +222,43 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, inve
         yield nf
         
     
-def uart_synth(data, baud=115200, stop_bits=1.0, byte_spacing=100.0e-7):
-    bit_period = 1.0 / baud
-    
-    #print('min sample rate: {0}'.format(4 / bit_period))
-    
-    cur_time = 0.0
-    cur_level = 1
-    
-    yield (cur_time, cur_level) # set initial conditions
-    cur_time += byte_spacing
-    
-    for c in data:
-        cur_level = 0
-        yield (cur_time, cur_level) # falling edge of start bit
-        cur_time += bit_period
-        bits = [int(b) for b in bin(ord(c))[2:].zfill(8)]
-        for b in bits[::-1]:
-            if b != cur_level:
-                cur_level = b
-                yield (cur_time, cur_level)
-            cur_time += bit_period
-            
-        if cur_level == 0: 
-            cur_level = 1
-            yield (cur_time, cur_level)
-        cur_time += stop_bits * bit_period # add stop bit
-        cur_time += byte_spacing
-        
-    yield (cur_time, cur_level)
 
-def uart_synth_2(data, bits = 8, baud=115200, parity=None, stop_bits=1.0, idle_start=0.0, word_interval=100.0e-7):
+def uart_synth(data, bits = 8, baud=115200, parity=None, stop_bits=1.0, idle_start=0.0, word_interval=100.0e-7):
+    '''Generate synthesized UART waveform
+    
+    This function simulates a single, unidirectional channel of a UART serial
+    connection. Its output is analagous to txd.
+    
+    This is a generator function that can be used in a pipeline of waveform
+    procesing operations.
+    
+    data
+        A sequence of words that will be transmitted serially
+    
+    bits
+        The number of bits in each word. Typically 5, 7, 8, or 9.
+    
+    baud
+        The baud rate
+        
+    parity
+        The type of parity to use. One of None, 'even', or 'odd'
+    
+    stop_bits
+        The number of stop bits. Typically 1, 1.5, or 2
+    
+    idle_start
+        The amount of idle time before the transmission of data begins
+    
+    word_interval
+        The amount of time between data words
+
+    Yields a series of 2-tuples (time, value) representing the time and
+      logic value (0 or 1) for each edge transition on txd. The first tuple
+      yielded is the initial state of the waveform. All remaining
+      tuples are edges where the txd state changes.
+        
+    '''
     bit_period = 1.0 / baud
     
     t = 0.0
