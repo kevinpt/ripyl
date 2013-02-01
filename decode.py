@@ -36,9 +36,9 @@ import itertools
 from stats import OnlineStats
 from streaming import *
 
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
-def find_bot_top_hist_peaks(samples, bins):
+def find_bot_top_hist_peaks(samples, bins, use_kde=False):
     '''Find the bottom and top peaks in a histogram of data sample magnitudes.
     These are the left-most and right-most of the two largest peaks in the histogram.
     
@@ -48,20 +48,40 @@ def find_bot_top_hist_peaks(samples, bins):
     
     bins
         The number of bins to use for the histogram
-        
+
+    use_kde
+        Boolean indicating whether to construct the histogram from a Kernel Density
+        Estimate. This is useful for approximating normally distributed peaks on
+        synthetic data sets lacking noise.
         
     Returns a 2-tuple (bot, top) representing the bottom and top peaks. The value for
       each peak is the center of the histogram bin that represents the midpoint of the
       population for that peak.
     Returns None if less than two peaks are found in the histogram
     '''
-    hist, bin_edges = np.histogram(samples, bins=bins)
-    bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
     
+    if not use_kde:
+        hist, bin_edges = np.histogram(samples, bins=bins)
+        bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
+    else:
+    
+        kde = sp.stats.gaussian_kde(samples, bw_method=0.05)
+        
+        mxv = max(samples)
+        mnv = min(samples)
+        r = mxv - mnv
+        # Expand the upper and lower bounds by 10% to allow room for gaussian tails at the extremes
+        mnv -= r * 0.1
+        mxv += r * 0.1
+        
+        step = (mxv - mnv) / bins
+        bin_centers = np.arange(mnv, mxv, step)
+        hist = kde(bin_centers)
+        
     # plt.plot(bin_centers, hist)
     # plt.show()
     peaks = find_hist_peaks(hist)
-    #print('@@@@@ peaks', peaks)
+
     # make sure we have at least two peaks
     if len(peaks) < 2:
         return None
@@ -100,20 +120,21 @@ def find_hist_peaks(hist):
     LeCroy digital oscilloscopes. The original algorithm is described in various manuals
     such as the 9300 WP03 manual or WavePro manual RevC 2002 (p16-14).
     
-    The original algorithm works well for real world data sets where the histogram
-    peaks are normally distributed (i.e. there is some noise present in the data set).
+    This algorithm works well for real world data sets where the histogram peaks are
+    normally distributed (i.e. there is some noise present in the data set).
     For synthetic waveforms lacking noise or any intermediate samples between discrete
     logic levels, the statistical measures used to determine the threshold for a peak
     are not valid. The threshold t2 ends up being too large and valid peaks may be
-    excluded.
+    excluded. To avoid this problem the histogram can be samples from a KDE instead.
     
     hist
         A sequence representing the histogram bin counts. Typically the first parameter
-        returned by numpy.histogram().
+        returned by numpy.histogram() or a KDE from scipy.stats.gaussian_kde().
         
     Returns a list of peaks where each peak is a 2-tuple representing the
       start and end indices of the peak in hist.
     '''
+    
     
     # get mean of all populated bins
     os = OnlineStats()
@@ -225,63 +246,8 @@ def find_logic_levels(samples, max_samples):
         except StopIteration:
             break
 
-    return find_bot_top_hist_peaks(wf, 60)
+    return find_bot_top_hist_peaks(wf, 100, use_kde=True)
         
-
-    # # build a histogram of the waveform
-    # hist, bin_edges = np.histogram(wf, bins=60)
-    # bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
-
-    # # We expect a digital waveform to have a strongly bimodal distribution with most
-    # # samples clustered around the '0' and '1' voltage values
-    
-    # # Split histogram in half so we can find the mode of the '0' and '1' portions
-    # # and evaluate the skewness as validation
-    
-    # #FIX: implement a better peak finding algorithm
-    # mid_hist = len(hist) // 2
-    # low_hist = hist[0:mid_hist]
-    # low_bins = bin_centers[0:mid_hist]
-    # high_hist = hist[mid_hist:]
-    # high_bins = bin_centers[mid_hist:]
-    
-    # # find modes
-    # #low_mode = max(low_hist, key=lambda tup: tup[1])[0]
-    # #high_mode = max(high_hist, key=lambda tup: tup[1])[0]
-    # low_mode = max(zip(low_bins, low_hist), key=lambda tup: tup[1])[0]
-    # high_mode = max(zip(high_bins, high_hist), key=lambda tup: tup[1])[0]
-    
-    # threshold = (high_mode + low_mode) / 2.0
-    
-    # #print(low_mode, high_mode, threshold)
-    
-    # # Find standard deviation of high and low thresholded data using Welford's method
-    # os_h = online_stats()
-    # os_l = online_stats()
-    
-    # #FIX: consider finding a way to avoid iterating over entire waveform once the std. dev.'s have converged
-    # for i, x in enumerate(wf):
-        # if x >= threshold: # high data point
-            # os_h.accumulate(x)
-
-        # else: # low data point
-            # os_l.accumulate(x)
-
-    # # Pearson skewness
-    # ps_l = (os_l.mean() - low_mode) / os_l.std()
-    # ps_h = (os_h.mean() - high_mode) / os_h.std()
-    
-    # #print('Pearson:', ps_l, ps_h)
-    # # print('p2:', 3 *(m_l - med_l) / sd_l, 3 * (m_h - med_h) / sd_h)
-    
-    # # We will accept any skewness measure below 0.6 as a sign of a digital waveform
-    # print('## Pearson', ps_l, ps_h)
-    # if abs(ps_l) < 0.6 and abs(ps_h) < 0.6:
-        # return (low_mode, high_mode)
-    # else:
-        # return (low_mode, high_mode)
-
-        # #return None
 
 
 def find_edges(samples, logic, hysteresis=0.4):
@@ -359,8 +325,15 @@ def find_edges(samples, logic, hysteresis=0.4):
                 state = ES_NEED_POS_EDGE
     
     
-def find_symbol_rate(edges, sample_rate=1.0):
+def find_symbol_rate(edges, sample_rate=1.0, spectra=4):
     '''Determine the base symbol rate from a set of edges
+    
+    This function depends on the edge data containing a variety of spans between
+    edges all related to the fundamental symbol rate. The Harmonic Product Spectrum
+    (HPS) of the edge span values is calculated and used to isolate the fundamental
+    symbol rate. This function will not work properly on a clock signal containing
+    a single time span between edges due to the lack of higher fundementals needed
+    by the HPS unless spectra=1 which effectively disables the HPS operation.
     
     edges
         An iterable of 2-tuples representing each edge transition.
@@ -375,6 +348,11 @@ def find_symbol_rate(edges, sample_rate=1.0):
         An adjustment to convert the raw symbol rate from samples to time.
         If the edges parameter is based on absolute time units then this
         should remain the default value of 1.0.
+        
+    spectra
+        The number of spectra to include in the calculation of the HPS. This
+        number should not larger than the highest harmonic in the edge span
+        data.
     
     Returns the estimated symbol rate of the edge data set as an int
     '''
@@ -382,9 +360,7 @@ def find_symbol_rate(edges, sample_rate=1.0):
     spans = e[1:] - e[:-1] # time span (in samples) between successive edges
     
     # generate kernel density estimate of span histogram
-    kde = sp.stats.gaussian_kde(spans)
-    kde.covariance_factor = lambda: 0.05
-    kde._compute_covariance()
+    kde = sp.stats.gaussian_kde(spans, bw_method=0.05)
     
     # Compute the harmonic product spectrum from the KDE
     # This should leave us with one strong peak for the span corresponding to the
@@ -392,16 +368,14 @@ def find_symbol_rate(edges, sample_rate=1.0):
     mv = max(spans) * 1.1 # leave some extra room for the rightmost peak of the KDE
     step = mv / 500
     xs = np.arange(0, mv, step)
-    s1 = kde(xs)
-    s2 = kde(np.arange(0, mv*2, step*2))[:len(s1)]
-    s3 = kde(np.arange(0, mv*3, step*3))[:len(s1)]
-    s4 = kde(np.arange(0, mv*4, step*4))[:len(s1)]
-
-     # isolate the findamental span width by using the product
-    s = s1 * s2 * s3 * s4
+    s = kde(xs) # fundamental spectrum
+    
+    # isolate the fundamental span width by multiplying downshifted spectra
+    for i in xrange(2,spectra+1):
+        s *= kde(np.arange(0, mv*i, step*i))[:len(s)]
 
     # largest peak from the HPS. This is approximately the length of one bit period
-    peak_span = xs[np.argmax(s)] 
+    peak_span = xs[np.argmax(s)]
     symbol_rate = int(sample_rate / peak_span)
     
     return symbol_rate
@@ -468,15 +442,38 @@ class EdgeSequence(object):
         
         Returns the amount of time advanced as a float.
         '''
-        time_step = self.next_states[0] - self.cur_time
-        self.cur_time = self.next_states[0]
-        self.cur_states = self.next_states
-        try:
-            # FIX: check if next edge sample actually has a different state
-            self.next_states = next(self.edges)
-        except StopIteration:
-            self.it_end = True
+        
+        if self.it_end:
             return 0.0
+            
+        time_step = 0.0
+        start_state = self.cur_states[1]
+        while self.cur_states[1] == start_state:
+            time_step += self.next_states[0] - self.cur_time
+            self.cur_time = self.next_states[0]
+            self.cur_states = self.next_states
+            
+            try:
+                self.next_states = next(self.edges)
+            except StopIteration:
+                # flag end of sequence if the state remains the same (no final edge)
+                if self.cur_states[1] == start_state:
+                    self.it_end = True
+                break
+                #return 0.0
+                
+            
+        
+        # time_step = self.next_states[0] - self.cur_time
+        # self.cur_time = self.next_states[0]
+        # self.cur_states = self.next_states
+        
+        # try:
+            # # FIX: check if next edge sample actually has a different state
+            # self.next_states = next(self.edges)
+        # except StopIteration:
+            # self.it_end = True
+            # #return 0.0
             
         return time_step
     
@@ -529,7 +526,6 @@ class MultiEdgeSequence(object):
         
         ctb = edge_s.cur_time
         time_step = edge_s.advance_to_edge()
-        print(' >>    ct b a', channel_name, ctb, edge_s.cur_time)
         
         # advance the other channels to the same time
         if time_step > 0.0:
