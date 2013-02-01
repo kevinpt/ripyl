@@ -103,10 +103,12 @@ def i2c_decode(scl, sda, stream_type=StreamType.Samples):
     
     S_DATA = 0
     S_ADDR = 1
+    S_ADDR_10B = 2
     
     state = S_DATA
     addr_recs = []
     ten_bit_addr = False
+    first_addr = None
     
     for r in rec_it:
         if state == S_DATA:
@@ -116,31 +118,29 @@ def i2c_decode(scl, sda, stream_type=StreamType.Samples):
                 ten_bit_addr = False
                 
             yield r
-
-        else: # address
-            # save this record in case we have a 10-bit address
-            addr_recs.append(r)
             
-            if ten_bit_addr: # this is the second byte of address
-                addr = (((addr_recs[0].data >> 1) & 0x03) << 8) | r.data
-                r_wn = addr_recs[0].data & 0x01
-                na = I2cAddress((addr_recs[0].start_time, r.end_time), addr, r_wn)
-                na.subrecords.extend(addr_recs)
+        elif state == S_ADDR:
+            if r.data > 0x77: # first 2 bits of 10-bit address
+                first_addr = r
+                state = S_ADDR_10B
+                
+            else: # 7-bit address
+                r_wn = r.data & 0x01
+                na = I2cAddress((r.start_time, r.end_time), r.data >> 1, r_wn)
+                na.subrecords.append(r)
                 yield na
 
-                state = S_DATA
+                state = S_DATA           
+        
+        else: # S_ADDR_10B
+            addr = (((first_addr.data >> 1) & 0x03) << 8) | r.data
+            r_wn = first_addr.data & 0x01
+            na = I2cAddress((first_addr.start_time, r.end_time), addr, r_wn)
+            na.subrecords.append(first_addr)
+            na.subrecords.append(r)
+            yield na
 
-            else:
-                if r.data > 0x77: # first 2 bits of 10-bit address
-                    ten_bit_addr = True
-
-                else: # 7-bit address
-                    r_wn = r.data & 0x01
-                    na = I2cAddress((r.start_time, r.end_time), r.data >> 1, r_wn)
-                    na.subrecords.append(r)
-                    yield na
-
-                    state = S_DATA
+            state = S_DATA          
 
 
 
