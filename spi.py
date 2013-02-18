@@ -31,6 +31,7 @@ from __future__ import print_function, division
 from decode import *
 
 class SpiFrame(StreamSegment):
+    '''Frame object for SPI data'''
     def __init__(self, bounds, data=None):
         StreamSegment.__init__(self, bounds, data)
         self.kind = 'SPI frame'
@@ -39,12 +40,51 @@ class SpiFrame(StreamSegment):
         return str(self.data)
 
 def spi_decode(clk, mosi, cs=None, cpol=0, cpha=0, lsb_first=True, stream_type=StreamType.Samples):
+    '''Decode an SPI data stream
+    
+    This is a generator function that can be used in a pipeline of waveform
+    processing operations.
+    
+    The clk, mosi, and cs parameters are edge streams.
+    Each is a stream of 2-tuples of (time, value) pairs. The type of stream is identified
+    by the stream_type parameter. Either a series of real valued samples that will be
+    analyzed to find edge transitions or a set of pre-processed edge transitions
+    representing the 0 and 1 logic states of the waveforms. When this is a sample
+    stream, an initial block of data on the clk stream is consumed to determine the most
+    likely logic levels in the signal.
+    
+    clk
+        SPI clk edge stream
+    
+    mosi
+        SPI MOSI edge stream. The MISO signal can also be substituted here.
+    
+    cs
+        SPI chip select edge stream. Can be None if cs is not available.
+    
+    cpol
+        Clock polarity: 0 or 1
+    
+    cpha
+        Clock phase: 0 or 1
+    
+    lsb_first
+        Boolean indicating whether the Least Significant Bit is transmitted first.
+    
+    stream_type
+        A StreamType value indicating that the clk, mosi, and cs parameters represent either Samples
+        or Edges
+
+    Yields a series of SpiFrame objects.
+      
+    Raises StreamError if stream_type = Samples and the logic levels cannot
+      be determined.
+    '''
     if stream_type == StreamType.Samples:
         # tee off an iterator to determine logic thresholds
         s_clk_it, thresh_it = itertools.tee(clk)
         
         logic = find_logic_levels(thresh_it, max_samples=5000)
-        #print('     LOGIC>>>> ', logic)
         if logic is None:
             raise StreamError('Unable to find avg. logic levels of waveform')
         del thresh_it
@@ -128,7 +168,6 @@ def spi_decode(clk, mosi, cs=None, cpol=0, cpha=0, lsb_first=True, stream_type=S
                 
         
     if len(bits) > 0:
-        #print('  >>> bits:', len(bits))
         word = 0
         for b in bits[::step]:
             word = word << 1 | b
@@ -142,73 +181,107 @@ def spi_decode(clk, mosi, cs=None, cpol=0, cpha=0, lsb_first=True, stream_type=S
     
         
 def spi_synth(data, word_size, clock_freq, cpol=0, cpha=0, lsb_first=True, idle_start=0.0, word_interval=0.0):
-        t = 0.0
-        clk = cpol
-        mosi = 0
-        cs = 1
+    '''Generate synthesized SPI waveform
+    
+    This function simulates a transmission of data over SPI.
+    
+    This is a generator function that can be used in a pipeline of waveform
+    procesing operations.
+    
+    data
+        A sequence of words that will be transmitted serially
+    
+    word_size
+        The number of bits in each word
+    
+    clock_freq
+        The SPI clock frequency
+    
+    cpol
+        Clock polarity: 0 or 1
+    
+    cpha
+        Clock phase: 0 or 1
+    
+    lsb_first
+        Boolean indicating whether the Least Significant Bit is transmitted first.
+    
+    idle_start
+        The amount of idle time before the transmission of data begins
+    
+    word_interval
+        The amount of time between data words
         
-        half_bit_period = 1.0 / (2.0 * clock_freq)
-        
-        
-        yield ((t, clk),(t, mosi),(t, cs)) # initial conditions
-        t += idle_start
-         
-        for i, d in enumerate(data):
-            bits_remaining = word_size
-            bits = [0] * word_size
-            for j in xrange(word_size):
-                b = d & 0x01
-                d = d >> 1
-                
-                # first bit transmitted will be at the end of the list
-                if lsb_first:
-                    bits[word_size - 1 - j] = b
-                else:
-                    bits[j] = b
-            
-            if cpha == 0: # data goes valid a half cycle before the first clock edge
-                t += half_bit_period
-                mosi = bits[bits_remaining-1]
-                bits_remaining -= 1
-                cs = 0
-                yield ((t, clk),(t, mosi),(t, cs))
-                t += half_bit_period
-                clk = 1 - clk # initial half clock period
-                yield ((t, clk),(t, mosi),(t, cs))
-            else:
-                t += half_bit_period
-                cs = 0
-                yield ((t, clk),(t, mosi),(t, cs))
-                
-            while bits_remaining:
-                t += half_bit_period
-                clk = 1 - clk
-                mosi = bits[bits_remaining-1]
-                bits_remaining -= 1
-                yield ((t, clk),(t, mosi),(t, cs))
 
-                t += half_bit_period
-                clk = 1 - clk
-                yield ((t, clk),(t, mosi),(t, cs))
-                
+    
+    '''
+    t = 0.0
+    clk = cpol
+    mosi = 0
+    cs = 1
+    
+    half_bit_period = 1.0 / (2.0 * clock_freq)
+    
+    
+    yield ((t, clk),(t, mosi),(t, cs)) # initial conditions
+    t += idle_start
+     
+    for i, d in enumerate(data):
+        bits_remaining = word_size
+        bits = [0] * word_size
+        for j in xrange(word_size):
+            b = d & 0x01
+            d = d >> 1
+            
+            # first bit transmitted will be at the end of the list
+            if lsb_first:
+                bits[word_size - 1 - j] = b
+            else:
+                bits[j] = b
+        
+        if cpha == 0: # data goes valid a half cycle before the first clock edge
             t += half_bit_period
-            if cpha == 0: # final half clock period
-                clk = 1 - clk
-            else: # cpha == 1
-                if i == len(data) - 1:  # deassert CS at end of data sequence
-                    cs = 1
-            mosi = 0
+            mosi = bits[bits_remaining-1]
+            bits_remaining -= 1
+            cs = 0
+            yield ((t, clk),(t, mosi),(t, cs))
+            t += half_bit_period
+            clk = 1 - clk # initial half clock period
+            yield ((t, clk),(t, mosi),(t, cs))
+        else:
+            t += half_bit_period
+            cs = 0
             yield ((t, clk),(t, mosi),(t, cs))
             
-            if cpha == 0:
-                t += half_bit_period
-                if i == len(data) - 1: # deassert CS at end of data sequence
-                    cs = 1
-                yield ((t, clk),(t, mosi),(t, cs))
-            
-                
-            t += word_interval
+        while bits_remaining:
+            t += half_bit_period
+            clk = 1 - clk
+            mosi = bits[bits_remaining-1]
+            bits_remaining -= 1
+            yield ((t, clk),(t, mosi),(t, cs))
+
+            t += half_bit_period
+            clk = 1 - clk
+            yield ((t, clk),(t, mosi),(t, cs))
             
         t += half_bit_period
+        if cpha == 0: # final half clock period
+            clk = 1 - clk
+        else: # cpha == 1
+            if i == len(data) - 1:  # deassert CS at end of data sequence
+                cs = 1
+        mosi = 0
+        yield ((t, clk),(t, mosi),(t, cs))
+        
+        if cpha == 0:
+            t += half_bit_period
+            if i == len(data) - 1: # deassert CS at end of data sequence
+                cs = 1
+            yield ((t, clk),(t, mosi),(t, cs))
+        
             
-        yield ((t, clk),(t, mosi),(t, cs)) # final state
+        t += word_interval
+        
+    t += half_bit_period
+        
+    yield ((t, clk),(t, mosi),(t, cs)) # final state
