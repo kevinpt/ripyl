@@ -32,6 +32,7 @@ from decode import *
 from streaming import *
 
 class UartFrame(StreamSegment):
+    '''Frame object for UART data'''
     def __init__(self, bounds, data=None):
         StreamSegment.__init__(self, bounds, data)
         self.kind = 'UART frame'
@@ -88,13 +89,19 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, inve
     Yields a series of UartFrame objects. Each frame contains subrecords marking the location
       of sub-elements within the frame (start, data, parity, stop). Parity errors are recorded
       as an error status in the parity subrecord.
+      
+    Raises StreamError if stream_type = Samples and the logic levels cannot
+      be determined. Also if auto-baud is active and the baud rate cannot
+      be determined.
+      
+    Raises ValueError is the parity argument is invalid.
     '''
 
     if stream_type == StreamType.Samples:
         # tee off an iterator to determine logic thresholds
         samp_it, thresh_it = itertools.tee(stream)
         
-        logic = find_logic_levels(thresh_it, max_samples=5000)
+        logic = find_logic_levels(thresh_it, max_samples=5000, buf_size=2000)
         if logic is None:
             raise StreamError('Unable to find avg. logic levels of waveform')
         del thresh_it
@@ -196,7 +203,7 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, inve
             parity_val = es.cur_state()
             if not inverted:
                 parity_val = 1 - parity_val
-            print('PB:', p, parity_val)
+            #print('PB:', p, parity_val)
             # check the parity
             if parity_val != p:
                 parity_error = True
@@ -304,4 +311,4 @@ def uart_synth(data, bits = 8, baud=115200, parity=None, stop_bits=1.0, idle_sta
         t += stop_bits * bit_period # add stop bit
         t += word_interval
         
-    yield (t, txd)    
+    yield (t, txd)
