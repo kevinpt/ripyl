@@ -15,9 +15,41 @@ import numpy as np
 from decode import *
 from streaming import *
 from sigproc import *
-from spi import *
-from uart import *
-from i2c import *
+from protocol.spi import *
+from protocol.uart import *
+from protocol.i2c import *
+from protocol.usb import *
+from stats import OnlineStats
+
+
+def test_usb():
+    p = USBTokenPacket(USBPID.TokenIn, 123, 1)
+    p2 = USBTokenPacket(USBPID.TokenIn, 124, 1, delay=2.0e-7)
+    
+    #print(p.GetEdges()[1])
+    
+    packets = [p, p2]
+    
+    dp, dm = zip(*list(usb_synth(packets, 1.0e-7, 3.0e-7)))
+    
+    dp = list(remove_excess_edges(iter(dp)))
+    dm = list(remove_excess_edges(iter(dm)))
+    
+    sr = 1.0 / (12.0e6 * 20.0)
+    dm_t, dm_wf = zip(*list(sample_edge_list(iter(dm), sr)))
+    dp_t, dp_wf = zip(*list(amplify(sample_edge_list(iter(dp), sr), 1.0, 1.1)))
+    
+    # create differential signal
+    d_diff = list(sum(iter(zip(dp_t, dp_wf)), invert(iter(zip(dm_t, dm_wf))) ))
+    d_diff_t, d_diff_wf = zip(*list(amplify(iter(d_diff), 0.2, 0.5)))
+    
+    
+    plt.clf()
+    plt.plot(dp_t, dp_wf)
+    plt.plot(dm_t, dm_wf)
+    plt.plot(d_diff_t, d_diff_wf)
+    plt.ylim(-0.05, 2.25)
+    plt.show()
 
 
 def test_i2c():
@@ -25,7 +57,7 @@ def test_i2c():
 
     transfers = []
     transfers.append(I2CTransfer(I2C.Write, 0x23, [1,2,3, 4]))
-    transfers.append(I2CTransfer(I2C.Write, 0x83, [5, 6, 7]))
+    transfers.append(I2CTransfer(I2C.Write, 0x183, [5, 6, 240]))
     scl, sda = zip(*list(i2c_synth(transfers, clk_freq, idle_start=3.0e-5, idle_end=3.0e-5)))
     
     scl = list(remove_excess_edges(iter(scl)))
@@ -65,7 +97,7 @@ def test_spi():
     
 
     if use_edges:
-        records = spi_decode_2(iter(clk), iter(mosi), iter(cs), cpol=cpol, cpha=cpha, lsb_first=True, stream_type=StreamType.Edges)
+        records = spi_decode(iter(clk), iter(mosi), iter(cs), cpol=cpol, cpha=cpha, lsb_first=True, stream_type=StreamType.Edges)
         records = list(records)
         
         print('$$$ MOSI', mosi)
@@ -158,7 +190,7 @@ def test_uart():
     
     samples = synth_wave(edges, sample_rate, rise_time, ripple_db=60)
     
-    noisy = amplify(noisify(samples, snr_db=30.0), gain=-15.0)
+    noisy = amplify(noisify(samples, snr_db=20.0), gain=-15.0)
     
     #t = np.arange(len(noisy)) / sample_rate
     
@@ -179,6 +211,19 @@ def test_uart():
     
     waveform = list(noisy) #list(dropout(noisy,2.0e-3,2.1e-3))
     t, wf = zip(*waveform)
+    
+    # os = OnlineStats()
+    # sd_wf = []
+    # m_wf = []
+    # i = 0
+    # for s in wf:
+        # os.accumulate(s)
+        # sd_wf.append(3 * os.std())
+        # m_wf.append(s - os.mean())
+        # i += 1
+        # if i > 3 and abs(s - os.mean()) > (3 * os.std()):
+            # i = 0
+            # os.reset()
 
     
     frames = uart_decode(iter(waveform), inverted=False, parity='even', baud_rate=None)
@@ -186,17 +231,19 @@ def test_uart():
     print(''.join(str(d) for d in frames))
 
     plt.plot(t, wf)
+    # plt.plot(t, sd_wf)
+    # plt.plot(t, m_wf)
     ax = plt.axes()
     
     
-    logic = find_logic_levels(iter(waveform), 5000)
+    logic = find_logic_levels(iter(waveform), 5000, 2000)
     span = logic[1] - logic[0]
     rect_top = logic[1] + span * 0.15
     rect_bot = logic[0] - span * 0.05
     
     text_height = logic[1] + rect_top / 2.0
     
-    plt.ylim(rect_bot - span * 0.1, rect_top + span * 0.1)
+    #plt.ylim(rect_bot - span * 0.1, rect_top + span * 0.1)
     
     print('Logic levels:', logic)
     
@@ -433,6 +480,7 @@ if __name__ == '__main__':
     parser.add_option('-u', dest='uart', action='store_true', default=False, help='uart test')
     parser.add_option('-s', dest='spi', action='store_true', default=False, help='spi test')
     parser.add_option('-i', dest='i2c', action='store_true', default=False, help='i2c test')
+    parser.add_option('-b', dest='usb', action='store_true', default=False, help='usb test')
     
     options, args = parser.parse_args()
     
@@ -447,3 +495,7 @@ if __name__ == '__main__':
     if options.i2c:
         print('  Testing I2C')
         test_i2c()
+
+    if options.usb:
+        print('  Testing USB')
+        test_usb()
