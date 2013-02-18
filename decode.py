@@ -32,6 +32,7 @@ import numpy as np
 import scipy as sp
 import math
 import itertools
+import collections
 
 from stats import OnlineStats
 from streaming import *
@@ -76,11 +77,13 @@ def find_bot_top_hist_peaks(samples, bins, use_kde=False):
         
         step = (mxv - mnv) / bins
         bin_centers = np.arange(mnv, mxv, step)
-        hist = kde(bin_centers)
+        hist = 100 * kde(bin_centers)
         
-    # plt.plot(bin_centers, hist)
-    # plt.show()
+    #plt.plot(bin_centers, hist)
+    #plt.show()
     peaks = find_hist_peaks(hist)
+    
+    print('@@@@@@ len(peaks)', len(peaks), peaks)
 
     # make sure we have at least two peaks
     if len(peaks) < 2:
@@ -158,6 +161,14 @@ def find_hist_peaks(hist):
     
     print('@@@@@ t2', t2, pop_mean, os.std(ddof=1))
     
+    # plt.plot(hist)
+    # plt.axhline(t1, color='k')
+    # plt.axhline(t2, color='g')
+    # plt.axhline(pop_mean, color='r')
+    # plt.axhline(os.mean(), color='y')
+    # plt.show()
+    # plt.clf()
+    
     # t2 is the threshold we will use to classify a bin as part of a peak
     # Essentially it is saying that a peak is any bin more than 2 std. devs.
     # above the mean. t1 was used to prevent the most extreme outliers from biasing
@@ -221,8 +232,14 @@ def find_hist_peaks(hist):
     
     
 
-def find_logic_levels(samples, max_samples):
+def find_logic_levels(samples, max_samples, buf_size):
     '''Automatically determine the logic levels of a digital signal.
+    
+    This function consumes up to max_samples from samples in an attempt
+    to build a buffer containing a representative set of samples at high
+    and low logic levels. Less than max_samples may be consumed if an edge
+    is found and the remaining half of the buffer is filled before the
+    max_samples threshold is reached.
     
     samples
         An iterable representing a sequence of samples. Each sample is a
@@ -231,22 +248,63 @@ def find_logic_levels(samples, max_samples):
     max_samples
         The maximum number of samples to consume from the samples iterable.
         
+    buf_size
+        The maximum size of the sample buffer to analyze for logic levels.
+        This should be less than max_samples. 
+        
     Returns a 2-tuple (low, high) representing the logic levels of the samples
     Returns None if less than two peaks are found in the sample histogram.
     '''
 
-    # Get a pool of samples 
-    # For now we will get everything up to max_samples
-    #FIX: we should do this more intelligently so the tee'd iterator in uart_decode()
-    # doesn't have to buffer so much data
-    wf = []
-    for i in xrange(max_samples):
+    # Get a minimal pool of samples containing both logic levels
+    print('!!!!!! buf_size', buf_size)
+    buf = collections.deque(maxlen=buf_size)
+    os = OnlineStats()
+    os_init = 0
+    
+    S_FIND_EDGE = 0
+    S_FINISH_BUF = 1
+    
+    state = S_FIND_EDGE
+    sc = 0
+    while sc < max_samples:
         try:
-            wf.append(next(samples)[1])
+            ns = next(samples)[1]
+            buf.append(ns)
+            sc += 1
+            
+            if state == S_FIND_EDGE:
+                # build stats on the samples seen so far
+                os.accumulate(ns)
+                os_init += 1
+                if os_init > 3 and abs(ns - os.mean()) > (3 * os.std()):
+                    # The sample is more than 3 std. devs. from the mean
+                    # This is likely an edge event
+                    state = S_FINISH_BUF
+                    if len(buf) < buf_size // 2:
+                        buf_remaining = buf_size - len(buf)
+                    else:
+                        buf_remaining = buf_size // 2
+                        
+                    print('!!!!!!!!!! found edge', sc, buf_remaining)
+
+            else: # S_FINISH_BUF
+                # Accumulate samples until the edge event is in the middle of the
+                # buffer or the buffer is filled
+                #print('S_FINISH_BUF', buf_remaining, len(buf))
+                buf_remaining -= 1
+                if buf_remaining <= 0 and len(buf) >= buf_size:
+                    print('!!!!!!!!! buf FILLED')
+                    break
+
         except StopIteration:
             break
 
-    return find_bot_top_hist_peaks(wf, 100, use_kde=True)
+    print('$$$$$$$$ len(buf)', len(buf), sc)
+    #plt.plot(buf)
+    #plt.show()
+
+    return find_bot_top_hist_peaks(buf, 100, use_kde=True)
         
 
 
@@ -289,7 +347,7 @@ def find_edges(samples, logic, hysteresis=0.4):
     state = ES_START
     
     # set initial edge state
-    start_time, initial_sample = next(samples)
+    start_time, initial_sample = next(samples) # FIX: wrap in try block
     initial_state = (start_time, 1 if initial_sample > thresh else 0)
     
     #start_time = time_axis[0] if not time_axis is None else 0
@@ -460,20 +518,6 @@ class EdgeSequence(object):
                 if self.cur_states[1] == start_state:
                     self.it_end = True
                 break
-                #return 0.0
-                
-            
-        
-        # time_step = self.next_states[0] - self.cur_time
-        # self.cur_time = self.next_states[0]
-        # self.cur_states = self.next_states
-        
-        # try:
-            # # FIX: check if next edge sample actually has a different state
-            # self.next_states = next(self.edges)
-        # except StopIteration:
-            # self.it_end = True
-            # #return 0.0
             
         return time_step
     
@@ -487,7 +531,19 @@ class EdgeSequence(object):
 
 
 class MultiEdgeSequence(object):
+    '''Utility class to walk through a group of edge iterators in arbitrary time steps'''
     def __init__(self, edge_sets, time_step, start_time=None):
+        '''
+        edge_sets
+            A dict of edge sequence iterators keyed by the string name of the channel
+        
+        time_step
+            The default time step for advance() when it is called
+            without an argument.
+        
+        start_time
+            The initial starting time for the sequence.
+        '''
 
         self.channel_names, self.edge_chans = zip(*edge_sets.items())
         self.sequences = [EdgeSequence(e, time_step, start_time) for e in self.edge_chans]
@@ -498,10 +554,30 @@ class MultiEdgeSequence(object):
             self.channel_ids[cid] = i
 
     def advance(self, time_step=None):
+        '''Move forward through edges by a given amount of time.
+        
+        time_step
+            The amount of time to move forward. If None, the default
+            time_step from the constructor is used.
+        '''
         for s in self.sequences:
             s.advance(time_step)
             
     def advance_to_edge(self, channel_name=None):
+        '''Advance to the next edge among the edge sets or in a named channel
+        after the current time
+        
+        channel_name
+            If None, the edge sets are advanced to the closest edge after the current
+            time. if a valid channel name is provided the edge sets are advanced to
+            the closest edge on that channel.
+        
+        Returns a tuple (time, channel_name) representing the amount of time advanced
+          as a float and the name of the channel containing the edge. If there are no
+          unterminated edge sequences then the tuple (0,0, '') is returned.
+          
+        Raises ValueError if channel_name is invalid
+        '''
         # get the sequence for the channel
         if channel_name is None:
             # find the channel with the nearest edge after the current time
@@ -519,12 +595,15 @@ class MultiEdgeSequence(object):
                     if self.sequences[v] is edge_s:
                         channel_name = k
                         break
-            else:
+            else: # no active sequences left
                 return (0.0, '')
         else:
-            edge_s = self.sequences[self.channel_ids[channel_name]]
+            # check for channel_name in sets
+            if channel_name in self.channel_ids.iterkeys():
+                edge_s = self.sequences[self.channel_ids[channel_name]]
+            else:
+                raise ValueError("Invalid channel name '{0}'".format(channel_name))
         
-        ctb = edge_s.cur_time
         time_step = edge_s.advance_to_edge()
         
         # advance the other channels to the same time
@@ -536,22 +615,51 @@ class MultiEdgeSequence(object):
         return (time_step, channel_name)
 
     def cur_state(self, channel_name=None):
+        '''Get the current state of the edge sets
+        
+        channel_name
+            Name of the channel to retrieve state from
+            
+        Returns the value of the named channel's state. If channel_name is None
+          the state of all channels is returned as a list.
+          
+        Raises ValueError if channel_name is invalid
+        '''
+    
         if channel_name is None:
             return [s.cur_state() for s in self.sequences]
         else:
-            return self.sequences[self.channel_ids[channel_name]].cur_state()
-            
+            if channel_name in self.channel_ids.iterkeys():
+                return self.sequences[self.channel_ids[channel_name]].cur_state()
+            else:
+                raise ValueError("Invalid channel name '{0}'".format(channel_name))
             
     def cur_time(self):
+        '''Get the current time of the edge sets'''
         return self.sequences[0].cur_time
 
     def at_end(self, channel_name=None):
+        '''Test if the sequences have ended
+        
+        channel_name
+            The name of the channel to test for termination
+            
+        Returns True when the named edge iterator has terminated. If channel_name is
+          None, returns True then all channels in the set have terminated.
+          
+        Raises ValueError if channel_name is invalid
+        '''
         if channel_name is None:
             return all(s.at_end() for s in self.sequences)
         else:
-            return self.sequences[self.channel_ids[channel_name]].at_end()
-        
+            if channel_name in self.channel_ids.iterkeys():
+                return self.sequences[self.channel_ids[channel_name]].at_end()
+            else:
+                raise ValueError("Invalid channel name '{0}'".format(channel_name))
+
+
 class StreamStatus(object):
+    '''Enumeration for standard stream status codes'''
     Ok = 0
     Warning = 100
     Error = 200
@@ -599,10 +707,5 @@ class StreamEvent(StreamRecord):
         return 'StreamEvent({0}, {1}, \'{2}\')'.format(self.time, \
             repr(self.data), self.kind)        
 
-
-
-
-# class decoder(object):
-    # pass
         
     
