@@ -30,7 +30,8 @@ from __future__ import print_function, division
 
 from decode import *
 
-class I2C(object):        
+class I2C(object):
+    '''Enumeration for I2C r/w bit states'''
     Write = 0
     Read = 1
 
@@ -46,21 +47,31 @@ class I2cByte(StreamSegment):
 
         
 class I2cAddress(StreamSegment):
-    def __init__(self, bounds, data=None, r_wn=None):
+    def __init__(self, bounds, address=None, r_wn=None):
         '''
         r_wn
             Read (1) / Write (0) bit
         
         '''
-        StreamSegment.__init__(self, bounds, data)
+        StreamSegment.__init__(self, bounds, address)
         self.kind = 'I2C address'
         self.r_wn = r_wn
+        
+        @property
+        def address(self):
+            return self.data
+            
+        @address.setter
+        def address(self, value):
+            self.data = value
         
     def __str__(self):
         return str(hex(self.data))
 
+
+
 def i2c_decode(scl, sda, stream_type=StreamType.Samples):
-    '''Decode a I2C data stream
+    '''Decode an I2C data stream
     
     scl
         An iterable representing the I2C serial clock
@@ -83,7 +94,7 @@ def i2c_decode(scl, sda, stream_type=StreamType.Samples):
     
     Yields a series of StreamRecord-based objects. These will be one of three event types
     or two data types. The three events are represented by StreamEvent object with these
-    obj.kind attributes:
+    obj.kind attribute values:
         * 'I2C start'   The start of an I2C transfer
         * 'I2C restart' A start condition during a transfer
         * 'I2C stop'    The end of a transfer
@@ -98,54 +109,6 @@ def i2c_decode(scl, sda, stream_type=StreamType.Samples):
     Raises StreamError when the stream_type is Samples and the logic levels cannot
     be determined automatically.
     '''
-
-    rec_it = _i2c_decode_ll(scl, sda, stream_type)
-    
-    S_DATA = 0
-    S_ADDR = 1
-    S_ADDR_10B = 2
-    
-    state = S_DATA
-    addr_recs = []
-    ten_bit_addr = False
-    first_addr = None
-    
-    for r in rec_it:
-        if state == S_DATA:
-            if r.kind == 'I2C start' or r.kind == 'I2C restart':
-                state = S_ADDR
-                addr_recs = []
-                ten_bit_addr = False
-                
-            yield r
-            
-        elif state == S_ADDR:
-            if r.data > 0x77: # first 2 bits of 10-bit address
-                first_addr = r
-                state = S_ADDR_10B
-                
-            else: # 7-bit address
-                r_wn = r.data & 0x01
-                na = I2cAddress((r.start_time, r.end_time), r.data >> 1, r_wn)
-                na.subrecords.append(r)
-                yield na
-
-                state = S_DATA           
-        
-        else: # S_ADDR_10B
-            addr = (((first_addr.data >> 1) & 0x03) << 8) | r.data
-            r_wn = first_addr.data & 0x01
-            na = I2cAddress((first_addr.start_time, r.end_time), addr, r_wn)
-            na.subrecords.append(first_addr)
-            na.subrecords.append(r)
-            yield na
-
-            state = S_DATA          
-
-
-
-def _i2c_decode_ll(scl, sda, stream_type=StreamType.Samples):
-    ''' low level I2C decoder'''
     
     if stream_type == StreamType.Samples:
         # tee off an iterator to determine logic thresholds
@@ -173,41 +136,53 @@ def _i2c_decode_ll(scl, sda, stream_type=StreamType.Samples):
     es = MultiEdgeSequence(edge_sets, 0.0)
     
     S_IDLE = 0
-    S_IN_TRANSFER = 1
+    S_ADDR = 1
+    S_ADDR_10B = 2
+    S_DATA = 3
+
     state = S_IDLE
     
     start_time = None
     end_time = None
     bits = []
+    prev_10b_addr = None
     
     while not es.at_end():
     
         ts, cname = es.advance_to_edge()
         
         if state == S_IDLE:
+            bits = []
             if cname == 'sda' and not es.at_end('sda') \
             and es.cur_state('sda') == 0 and es.cur_state('scl') == 1:
                 # start condition met
                 se = StreamEvent(es.cur_time(), data=None, kind='I2C start')
                 yield se
-                state = S_IN_TRANSFER
-        
-        elif state == S_IN_TRANSFER:
+                state = S_ADDR
+                
+        else:
+            # check for stop and restart
             if cname == 'sda' and not es.at_end('sda'):
                 if es.cur_state('sda') == 1 and es.cur_state('scl') == 1:
                     # stop condition met
                     se = StreamEvent(es.cur_time(), data=None, kind='I2C stop')
                     yield se
                     state = S_IDLE
+                    continue
+                    
                 if es.cur_state('sda') == 0 and es.cur_state('scl') == 1:
                     # restart condition met
                     se = StreamEvent(es.cur_time(), data=None, kind='I2C restart')
                     yield se
                     bits = []
                     start_time = None
-                    
+                    state = S_ADDR
+                    continue
+
             if cname == 'scl' and not es.at_end('scl') and es.cur_state('scl') == 1:
                 # rising edge of SCL
+                
+                #FIX: Add detection of clock stretching
                 
                 # accumulate the bit
                 if start_time is None:
@@ -221,16 +196,71 @@ def _i2c_decode_ll(scl, sda, stream_type=StreamType.Samples):
                     word = 0
                     for b in bits[0:8]:
                         word = word << 1 | (b & 0x01)
+                        
+                    if state == S_ADDR:
+                        addr = word >> 1
+                        r_wn = word & 0x01
+                        if addr > 0x77: # first 2 bits of 10-bit address
+                            if r_wn: # 10-bit addressed read
+                                # We will not receive the second byte of the address
+                                # The 10-bit address being read should be the last one
+                                # written to.
+                                if not prev_10b_addr is None:
+                                    addr_10b = prev_10b_addr.data
+                                    
+                                    # Check that the upper bits match
+                                    ub = addr & 0x03
+                                    prev_ub = (addr_10b >> 8) & 0x03
+                                    if ub != prev_ub: # This shouldn't happen
+                                        addr_10b = 0xFFF # invalid address
+                                    
+                                else: # This shouldn't happen
+                                    addr_10b = 0xFFF # invalid address
+                                
+                                nb = I2cByte((start_time, end_time), word, ack_bit)
+                                na = I2cAddress((start_time, end_time), addr_10b, r_wn)
+                                na.subrecords.append(nb)
+                                yield na
+                                bits = []
+                                
+                                state = S_DATA
+                            
+                            else: # 10-bit addressed write
+                                first_addr = I2cByte((start_time, end_time), word, ack_bit)
+                                bits = []
+                                state = S_ADDR_10B
+                            
+                        else: # 7-bit address
+                            r_wn = word & 0x01
+                            nb = I2cByte((start_time, end_time), word, ack_bit)
+                            na = I2cAddress((start_time, end_time), addr, r_wn)
+                            na.subrecords.append(nb)
+                            yield na
+                            bits = []
 
-                    nb = I2cByte((start_time, end_time), word, ack_bit)
-                    yield nb
-                    bits = []
-                    start_time = None
-                    
-                    
-        
-        
+                            state = S_DATA
 
+                    elif state == S_ADDR_10B: # 10-bit address
+                        addr = (((first_addr.data >> 1) & 0x03) << 8) | word
+                        r_wn = first_addr.data & 0x01
+                        ab2 = I2cByte((start_time, end_time), word, ack_bit)
+                        na = I2cAddress((first_addr.start_time, end_time), addr, r_wn)
+                        na.subrecords.append(first_addr)
+                        na.subrecords.append(ab2)
+                        
+                        prev_10b_addr = na
+                        yield na
+                        bits = []
+
+                        state = S_DATA
+                                    
+
+                    else: # S_DATA
+                        nb = I2cByte((start_time, end_time), word, ack_bit)
+                        yield nb
+                        bits = []
+                        start_time = None               
+                
 
 class I2CTransfer(object):
     def __init__(self, r_wn, address, data):
@@ -248,8 +278,9 @@ class I2CTransfer(object):
             address_upper_bits = (self.address & 0x300) >> 8
             address_lower_bits = self.address & 0xFF
             
-            b.append(0x78 | (address_upper_bits << 1) | (self.r_wn & 0x01))
-            b.append(address_lower_bits)
+            b.append((0x78 | address_upper_bits) << 1 | (self.r_wn & 0x01))
+            if not self.r_wn: # write: send both bytes
+                b.append(address_lower_bits)
 
         b.extend(self.data)
         return b
