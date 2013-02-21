@@ -41,7 +41,7 @@ class UartFrame(StreamSegment):
         return chr(self.data)
 
 def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, inverted=False, \
-    baud_rate=None, use_std_baud=True, stream_type=StreamType.Samples):
+    baud_rate=None, use_std_baud=True, stream_type=StreamType.Samples, baud_deque=None):
     
     '''Decode a UART data stream
 
@@ -84,6 +84,11 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, inve
     stream_type
         A StreamType value indicating that the stream parameter represents either Samples
         or Edges
+        
+    baud_deque
+        An optional collections.deque object that is used to monitor the results of
+        automatic baud detection. A dict containing the internal variables baud_rate
+        and raw_symbol_rate is placed on the deque when uart_decode() is called.
 
         
     Yields a series of UartFrame objects. Each frame contains subrecords marking the location
@@ -110,12 +115,14 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, inve
     else: # the stream is already a list of edges
         edges = stream
         
-    # tee off an independent iterator to determine baud rate
-    edges_it, sre_it = itertools.tee(edges)
     
+    raw_symbol_rate = 0
     
     if baud_rate is None:
         # Find the baud rate
+        
+        # tee off an independent iterator to determine baud rate
+        edges_it, sre_it = itertools.tee(edges)
         
         # Experiments on random data indicate that find_symbol_rate() will almost
         # always converge to a close estimate of baud rate within the first 35 edges.
@@ -129,21 +136,37 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, inve
         if len(sre_list) < min_edges:
             raise StreamError('Unable to compute automatic baud rate.')
         
-        raw_symbol_rate = find_symbol_rate(iter(sre_list))
+        raw_symbol_rate = find_symbol_rate(iter(sre_list), spectra=2)
         
         # delete the tee'd iterators so that the internal buffer will not grow
         # as the edges_it is advanced later on
         del symbol_rate_edges
         del sre_it
         
-        std_bauds = [110, 300, 600, 1200, 2400, 4800, 9600, 14400, 19200, 28800, 38400, 5600, 57600, 115200, \
-            128000, 153600, 230400, 256000, 460800, 921600]
+        std_bauds = (110, 300, 600, 1200, 2400, 4800, 9600, 14400, 19200, 28800, 38400, \
+                     56000, 57600, 115200, 128000, 153600, 230400, 256000, 460800, 921600)
 
         if use_std_baud:
             # find the standard baud closest to the raw rate
             baud_rate = min(std_bauds, key=lambda x: abs(x - raw_symbol_rate))
         else:
             baud_rate = raw_symbol_rate
+            
+        #print('@@@@@@@@@@ baud rate:', baud_rate, raw_symbol_rate)
+        
+    else:
+        edges_it = edges
+        
+        
+    if not baud_deque is None:
+        bd_dict = {'baud_rate': baud_rate, 'raw_symbol_rate': raw_symbol_rate}
+        if stream_type == StreamType.Samples:
+            bd_dict['logic'] = logic
+            
+        edge_list = list(edges_it)
+        bd_dict['edges'] = edge_list
+        edges_it = iter(edge_list)
+        baud_deque.append(bd_dict)
     
     bit_period = 1.0 / float(baud_rate)
     es = EdgeSequence(edges_it, bit_period)
@@ -166,6 +189,12 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, inve
     while not es.at_end():
         # look for start bit falling edge
         es.advance_to_edge()
+        
+        # We could have an anamolous edge at the end of the edge list
+        # Check if edge sequence is complete after our advance
+        if es.at_end():
+            break
+        
         start_time = es.cur_time
         data_time = es.cur_time + bit_period
         es.advance(bit_period * 1.5) # move to middle of first data bit
@@ -173,6 +202,7 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, inve
         byte = 0
         cur_bit = 0
         
+        p = 0
         if not parity is None:
             if parity == 'even':
                 p = 0
@@ -280,6 +310,7 @@ def uart_synth(data, bits = 8, baud=115200, parity=None, stop_bits=1.0, idle_sta
         t += bit_period
         bits_remaining = bits
 
+        p = 0
         if not parity is None:
             if parity == 'even':
                 p = 0
