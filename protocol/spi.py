@@ -84,7 +84,7 @@ def spi_decode(clk, mosi, cs=None, cpol=0, cpha=0, lsb_first=True, stream_type=S
         # tee off an iterator to determine logic thresholds
         s_clk_it, thresh_it = itertools.tee(clk)
         
-        logic = find_logic_levels(thresh_it, max_samples=5000)
+        logic = find_logic_levels(thresh_it, max_samples=5000, buf_size=2000)
         if logic is None:
             raise StreamError('Unable to find avg. logic levels of waveform')
         del thresh_it
@@ -141,7 +141,7 @@ def spi_decode(clk, mosi, cs=None, cpol=0, cpha=0, lsb_first=True, stream_type=S
             if clk_val == active_edge: # capture data bit
                 # Check if the elapsed time is more than any previous cycle
                 # This indicates that a previous word was complete
-                if not prev_cycle is None and es.cur_time() - prev_edge > 1.05 * prev_cycle:
+                if not prev_cycle is None and es.cur_time() - prev_edge > 1.5 * prev_cycle:
                     word = 0
                     for b in bits[::step]:
                         word = word << 1 | b
