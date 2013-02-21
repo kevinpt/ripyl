@@ -30,6 +30,7 @@ from __future__ import print_function, division
 
 import numpy as np
 import scipy as sp
+import scipy.stats
 import math
 import itertools
 import collections
@@ -59,6 +60,8 @@ def find_bot_top_hist_peaks(samples, bins, use_kde=False):
       each peak is the center of the histogram bin that represents the midpoint of the
       population for that peak.
     Returns None if less than two peaks are found in the histogram
+    
+    Raises ValueError if a KDE cannot be constructed
     '''
     
     if not use_kde:
@@ -66,7 +69,13 @@ def find_bot_top_hist_peaks(samples, bins, use_kde=False):
         bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
     else:
     
-        kde = sp.stats.gaussian_kde(samples, bw_method=0.05)
+        try:
+            kde = sp.stats.gaussian_kde(samples, bw_method=0.05)
+        except np.linalg.linalg.LinAlgError:
+            # If the sample data set contains constant samples, gaussian_kde()
+            # will raise this exception.
+            raise ValueError('Cannot construct KDE for histogram approximation. No sample variation present')
+            
         
         mxv = max(samples)
         mnv = min(samples)
@@ -83,8 +92,6 @@ def find_bot_top_hist_peaks(samples, bins, use_kde=False):
     #plt.show()
     peaks = find_hist_peaks(hist)
     
-    print('@@@@@@ len(peaks)', len(peaks), peaks)
-
     # make sure we have at least two peaks
     if len(peaks) < 2:
         return None
@@ -149,7 +156,7 @@ def find_hist_peaks(hist):
     
     t1 = pop_mean + 2.0 * math.sqrt(pop_mean)
     
-    print('@@@@@ t1', t1, pop_mean)
+    #print('@@@@@ t1', t1, pop_mean)
     
     # find std. dev. of all bins under t1
     os.reset()
@@ -159,7 +166,7 @@ def find_hist_peaks(hist):
         
     t2 = pop_mean + 2.0 * os.std(ddof=1)
     
-    print('@@@@@ t2', t2, pop_mean, os.std(ddof=1))
+    #print('@@@@@ t2', t2, pop_mean, os.std(ddof=1))
     
     # plt.plot(hist)
     # plt.axhline(t1, color='k')
@@ -257,7 +264,6 @@ def find_logic_levels(samples, max_samples, buf_size):
     '''
 
     # Get a minimal pool of samples containing both logic levels
-    print('!!!!!! buf_size', buf_size)
     buf = collections.deque(maxlen=buf_size)
     os = OnlineStats()
     os_init = 0
@@ -267,6 +273,7 @@ def find_logic_levels(samples, max_samples, buf_size):
     
     state = S_FIND_EDGE
     sc = 0
+    
     while sc < max_samples:
         try:
             ns = next(samples)[1]
@@ -286,23 +293,24 @@ def find_logic_levels(samples, max_samples, buf_size):
                     else:
                         buf_remaining = buf_size // 2
                         
-                    print('!!!!!!!!!! found edge', sc, buf_remaining)
-
             else: # S_FINISH_BUF
                 # Accumulate samples until the edge event is in the middle of the
                 # buffer or the buffer is filled
                 #print('S_FINISH_BUF', buf_remaining, len(buf))
                 buf_remaining -= 1
                 if buf_remaining <= 0 and len(buf) >= buf_size:
-                    print('!!!!!!!!! buf FILLED')
                     break
 
         except StopIteration:
             break
 
-    print('$$$$$$$$ len(buf)', len(buf), sc)
     #plt.plot(buf)
     #plt.show()
+
+    # If we didn't see any edges in the buffered sample data then abort the
+    # histogram analysis
+    if state != S_FINISH_BUF:
+        return None
 
     return find_bot_top_hist_peaks(buf, 100, use_kde=True)
         
@@ -383,7 +391,7 @@ def find_edges(samples, logic, hysteresis=0.4):
                 state = ES_NEED_POS_EDGE
     
     
-def find_symbol_rate(edges, sample_rate=1.0, spectra=4):
+def find_symbol_rate(edges, sample_rate=1.0, spectra=2):
     '''Determine the base symbol rate from a set of edges
     
     This function depends on the edge data containing a variety of spans between
@@ -425,16 +433,33 @@ def find_symbol_rate(edges, sample_rate=1.0, spectra=4):
     # fundamental symbol rate
     mv = max(spans) * 1.1 # leave some extra room for the rightmost peak of the KDE
     step = mv / 500
-    xs = np.arange(0, mv, step)
-    s = kde(xs) # fundamental spectrum
+    xs = np.arange(0, mv, step)[:500]
+    s = kde(xs)[:500] # fundamental spectrum (slice needed because sometimes kde() returns 501 elements)
+    
+
+    #plt.plot(xs, s / s[np.argmax(s)])
     
     # isolate the fundamental span width by multiplying downshifted spectra
     for i in xrange(2,spectra+1):
         s *= kde(np.arange(0, mv*i, step*i))[:len(s)]
 
-    # largest peak from the HPS. This is approximately the length of one bit period
-    peak_span = xs[np.argmax(s)]
-    symbol_rate = int(sample_rate / peak_span)
+    #plt.plot(xs, s / s[np.argmax(s)])
+    #plt.show()
+
+    peaks = find_hist_peaks(s)
+    if len(peaks) < 1:
+        return 0
+    
+    # We want the leftmost (first) peak as the fundamental
+    # This is approximately the length of one bit period
+    hps = zip(xs, s)
+    peak_span = max(hps[peaks[0][0]:peaks[0][1]+1], key=lambda x: x[1])[0]
+    
+    
+    if peak_span != 0.0:
+        symbol_rate = int(sample_rate / peak_span)
+    else:
+        symbol_rate = 0
     
     return symbol_rate
     
