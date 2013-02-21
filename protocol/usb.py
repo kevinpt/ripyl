@@ -270,4 +270,196 @@ def usb_synth(packets, idle_start=0.0, idle_end=0.0):
     t += idle_end
     yield ((t, dp), (t, dm)) # final state
     
+
+def _crc_bits(crc, crc_len):
+    ''' Convert integer to an array of bits '''
+    bits = [0] * crc_len
+    for i in xrange(crc_len-1, -1, -1):
+        bits[i] = crc & 0x01
+        crc >>= 1
+        
+    return bits
+    
+            
+def usb_crc5(d):
+    ''' Calculate USB CRC-5 on data
+    d
+        Array of integers representing 0 or 1 bits
+        
+    Returns array of integers for each bit in the CRC with LSB first
+    '''
+    poly = 0x5   # USB CRC-5 polynomial
+    sreg = 0x1f  # prime register with 1's
+    mask = 0x1f
+    
+    for b in d:
+        leftbit = (sreg & 0x10) >> 4
+        sreg = (sreg << 1) & mask
+        if b != leftbit:
+            sreg ^= poly
+
+    crc = sreg ^ mask  # invert shift register contents
+    
+    return _crc_bits(crc, 5)
+
+def usb_crc16(d):
+    ''' Calculate USB CRC-16 on data
+    d
+        Array of integers representing 0 or 1 bits
+        
+    Returns array of integers for each bit in the CRC with LSB first
+    '''
+    poly = 0x8005  # USB CRC-16 polynomial
+    sreg = 0xffff  # prime register with 1's
+    mask = 0xffff
+    
+    for b in d:
+        leftbit = (sreg & 0x8000) >> 15
+        #print('## lb:', leftbit)
+        sreg = (sreg << 1) & mask
+        if b != leftbit:
+            sreg ^= poly
+
+    crc = sreg ^ mask  # invert shift register contents
+    return _crc_bits(crc, 16)
+
+    
+    
+def _crc16_table_gen():
+    poly = 0x8005 # USB CRC-16 polynomial
+    mask = 0xffff
+
+    tbl = [0] * 256
+        
+    for i in xrange(len(tbl)):
+        sreg = i
+        sreg = int('{:08b}'.format(sreg)[::-1], base=2) # reverse the bits
+
+        sreg <<= 8
+        for j in xrange(8):
+            if sreg & 0x8000 != 0:
+                sreg = (sreg << 1) ^ poly
+            else:
+                sreg = sreg << 1
+                
+        sreg = sreg & mask # remove shifted out bits
+        sreg = int('{:016b}'.format(sreg)[::-1], base=2) # reverse the bits
+        tbl[i] = sreg & mask
+        
+    return tbl
+    
+_crc16_table = _crc16_table_gen()
+
+def table_usb_crc16(d):
+    ''' Calculate USB CRC-16 on data
+    
+    This is a table-based byte-wise implementation
+    
+    d
+        Array of integers representing bytes
+        
+    Returns array of integers for each bit in the CRC with LSB first
+    '''
+    
+    sreg = 0xffff # prime register with 1's
+    mask = 0xffff
+    
+    tbl = _crc16_table
+
+    for byte in d:
+        tidx = (sreg ^ byte) & 0xff
+        sreg = ((sreg >> 8) ^ tbl[tidx]) & mask
+
+    sreg = int('{:016b}'.format(sreg)[::-1], base=2) # reverse the bits
+    
+    crc = sreg ^ mask
+    return _crc_bits(crc, 16)
+
+
+# def gen_table():
+    # """
+    # This function generates the CRC table used for the table_driven CRC
+    # algorithm.  The Python version cannot handle tables of an index width
+    # other than 8.  See the generated C code for tables with different sizes
+    # instead.
+    # """
+    
+    # CrcShift = 0
+    # # DirectInit = 0xffff
+    # ReflectIn = True
+    # MSB_Mask = 0x8000
+    # Poly = 0x8005
+    # Mask = 0xffff
+    # # ReflectOut = False
+    # Width = 16
+    # # XorOut = 0xffff
+    # TableIdxWidth = 8
+    
+    # DB = 2
+    
+    # table_length = 1 << TableIdxWidth
+    # #print('### tbl len', table_length)
+    # tbl = [0] * table_length
+    # for i in range(table_length):
+        # register = i
+        # if ReflectIn:
+            # register = reflect(register, TableIdxWidth)
+
+        # register = register << (Width - TableIdxWidth + CrcShift)
+        # if i == DB:
+            # print('## reflect init', hex(register))
+        # for j in range(TableIdxWidth):
+            # if register & (MSB_Mask << CrcShift) != 0:
+                # register = (register << 1) ^ (Poly << CrcShift)
+            # else:
+                # register = (register << 1)
+            # if i == DB: print('## sr:', hex(register))
+                
+        # if i == DB:
+            # print('##', hex(register))
+        # if ReflectIn:
+            # register = reflect(register >> CrcShift, Width) << CrcShift
+            
+        # if i == DB:
+            # print('## tbl[{}]:'.format(DB), register & (Mask << CrcShift), hex(register))
+        # tbl[i] = register & (Mask << CrcShift)
+    # return tbl
+    
+# def table_driven(in_str):
+    # """
+    # The Standard table_driven CRC algorithm.
+    # """
+    
+    # CrcShift = 0
+    # DirectInit = 0xffff
+    # ReflectIn = True
+    # MSB_Mask = 0x8000
+    # Poly = 0x8005
+    # Mask = 0xffff
+    # ReflectOut = False
+    # Width = 16
+    # XorOut = 0xffff
+    # TableIdxWidth = 8
+    
+    
+    # tbl = gen_table()
+    # print(tbl[:10])
+
+    # register = DirectInit << CrcShift
+    # if not ReflectIn:
+        # for c in in_str:
+            # tblidx = ((register >> (Width - TableIdxWidth + CrcShift)) ^ ord(c)) & 0xff
+            # register = ((register << (TableIdxWidth - CrcShift)) ^ tbl[tblidx]) & (Mask << CrcShift)
+        # register = register >> CrcShift
+    # else:
+        # register = reflect(register, Width + CrcShift) << CrcShift
+        # for c in in_str:
+            # tblidx = ((register >> CrcShift) ^ ord(c)) & 0xff
+            # register = ((register >> TableIdxWidth) ^ tbl[tblidx]) & (Mask << CrcShift)
+        # register = reflect(register, Width + CrcShift) & Mask
+
+    # if ReflectOut:
+        # register = reflect(register, Width)
+    # return register ^ XorOut
+    
     
