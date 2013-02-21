@@ -57,13 +57,13 @@ class I2cAddress(StreamSegment):
         self.kind = 'I2C address'
         self.r_wn = r_wn
         
-        @property
-        def address(self):
-            return self.data
-            
-        @address.setter
-        def address(self, value):
-            self.data = value
+    @property
+    def address(self):
+        return self.data
+        
+    @address.setter
+    def address(self, value):
+        self.data = value
         
     def __str__(self):
         return str(hex(self.data))
@@ -114,7 +114,7 @@ def i2c_decode(scl, sda, stream_type=StreamType.Samples):
         # tee off an iterator to determine logic thresholds
         s_scl_it, thresh_it = itertools.tee(scl)
         
-        logic = find_logic_levels(thresh_it, max_samples=5000)
+        logic = find_logic_levels(thresh_it, max_samples=5000, buf_size=2000)
         if logic is None:
             raise StreamError('Unable to find avg. logic levels of waveform')
         del thresh_it
@@ -298,6 +298,62 @@ class I2CTransfer(object):
             ack[-1] = 1 # Master nacks last byte of a read
             
         return ack
+        
+    def __repr__(self):
+        return 'I2CTransfer({0}, {1}, {2})'.format(self.r_wn, hex(self.address), self.data)
+        
+    def __eq__(self, other):
+        match = True
+        
+        if self.r_wn != other.r_wn:
+            match = False
+            
+        if self.address != other.address:
+            match = False
+            
+        if self.data != other.data:
+            match = False
+            
+        return match
+        
+    def __ne__(self, other):
+        return not self == other
+        
+def reconstruct_i2c_transfers(records):
+    S_ADDR = 0
+    S_DATA = 1
+    
+    state = S_ADDR
+    cur_addr = None
+    cur_data = []
+    while True:
+        try:
+            r = next(records)
+            
+            if state == S_ADDR:
+                if r.kind == 'I2C address':
+                    cur_addr = r
+                    state = S_DATA
+                   
+            elif state == S_DATA:
+                if r.kind == 'I2C byte':
+                    cur_data.append(r)
+                
+                if r.kind == 'I2C address':
+                    # reconstruct previous transfer
+                    tfer = I2CTransfer(cur_addr.r_wn, cur_addr.address, [b.data for b in cur_data])
+                    yield tfer
+                    
+                    cur_addr = r
+                    cur_data = []
+            
+        except StopIteration:
+            break
+            
+    if not cur_addr is None:
+        # reconstruct last transfer
+        tfer = I2CTransfer(cur_addr.r_wn, cur_addr.address, [b.data for b in cur_data])
+        yield tfer
 
 
 def i2c_synth(transfers, clock_freq, idle_start=0.0, idle_end=0.0):
