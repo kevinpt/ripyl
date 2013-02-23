@@ -62,7 +62,6 @@ class USBPID(object):
     STALL = 0b1110
     NYET  = 0b0110
     
-    
     # Special PIDs
     PRE   = 0b1100 # USBHandshakePacket()  (Low and Full speed only)
     ERR   = 0b1100 # USBHandshakePacket()  (Reused PREamble PID High speed only)
@@ -71,10 +70,10 @@ class USBPID(object):
     EXT   = 0b0000 # USBEXTPacket()  (extended token format from Link Power Management ECN)
 
 class USBPacketKind(object):
-    Token = 0b01
-    Data = 0b11
+    Token     = 0b01
+    Data      = 0b11
     Handshake = 0b10
-    Special = 0b00
+    Special   = 0b00
 
 def _get_packet_kind(pid):
     return pid & 0x03
@@ -82,9 +81,16 @@ def _get_packet_kind(pid):
 
 class USBState(object):
     SE0 = 0
-    J = 1
-    K = 2
+    J   = 1
+    K   = 2
     SE1 = 3 # error condition
+
+    
+class USBStreamStatus(object):
+    ShortPacketError = StreamStatus.Error + 1
+    MissingEOPError  = StreamStatus.Error + 2
+    BitStuffingError = StreamStatus.Error + 3
+    CRCError         = StreamStatus.Error + 4
 
     
 class USBStreamPacket(StreamSegment):
@@ -95,10 +101,23 @@ class USBStreamPacket(StreamSegment):
         self.packet = packet # USBPacket object
         self.crc = crc
         
-    def __str__(self):
+    def __str__(self): # FIX
         return chr(self.data)
 
+
+class USBStreamError(StreamSegment):
+    def __init__(self, bounds, error_data, pid=-1, status=StreamStatus.Error):
+        StreamSegment.__init__(self, bounds, data=error_data, status=status)
+        self.kind = 'USB error'
+        
+        self.pid = pid
+        
+    def __repr__(self):
+        return 'USBStreamError({}, {})'.format(self.data, hex(self.pid))
     
+
+    
+        
 class USBPacket(object):
     '''
 
@@ -116,7 +135,7 @@ class USBPacket(object):
     def get_bits(self):
         raise NotImplementedError('USBPacket must be sub-classed')
         
-    def init_bits(self):
+    def _init_bits(self):
         # sync and PID generation
         bits = []
         
@@ -137,7 +156,7 @@ class USBPacket(object):
         
         return bits
 
-    def bit_stuff(self, bits):
+    def _bit_stuff(self, bits):
         sbits = []
         ones = 0
         for b in bits:
@@ -154,7 +173,7 @@ class USBPacket(object):
                 ones = 0
         return sbits
         
-    def get_NRZI(self):
+    def _get_NRZI(self):
         ''' Apply bit stuffing and convert bits to J/K states '''
         period = USBClockPeriod[self.speed]
         t = 0.0
@@ -172,7 +191,7 @@ class USBPacket(object):
         t += period * 3 #FIX: arbitrary
         
         # bit stuff
-        stuffed_bits = self.bit_stuff(self.get_bits())
+        stuffed_bits = self._bit_stuff(self.get_bits())
         #stuffed_bits = self.get_bits()
 
         # High-speed EOP
@@ -226,7 +245,7 @@ class USBPacket(object):
         edges_dp = []
         edges_dm = []
         
-        for s in self.get_NRZI():
+        for s in self._get_NRZI():
             t = s[0] + self.delay + cur_time
             if s[1] == USBState.J:
                 dp = J_DP
@@ -276,21 +295,13 @@ class USBTokenPacket(USBPacket):
         # Token packet format:
         #  sync, PID, Addr, Endp, CRC5
         
-        start_bits = self.init_bits() # sync and PID
+        start_bits = self._init_bits() # sync and PID
             
         # generate address
         check_bits = []
-        # a = self.addr
-        # for _ in xrange(7):
-            # check_bits.append(a & 0x01)
-            # a >>= 1
         check_bits += reversed(_split_bits(self.addr, 7))
         
         # generate Endp
-        # e = self.endp
-        # for _ in xrange(4):
-            # check_bits.append(e & 0x01)
-            # e >>= 1
         check_bits += reversed(_split_bits(self.endp, 4))
         
         # generate CRC5
@@ -303,7 +314,6 @@ class USBTokenPacket(USBPacket):
         return 'USBTokenPacket({}, {}, {}, {}, {})'.format(hex(self.pid), hex(self.addr), \
             hex(self.endp), self.speed, self.delay)
 
-                
         
         
 class USBDataPacket(USBPacket):
@@ -315,22 +325,18 @@ class USBDataPacket(USBPacket):
         # Data packet format:
         #  sync, PID, Data, CRC16
         
-        bits = self.init_bits() # sync and PID
+        start_bits = self._init_bits() # sync and PID
         
         # calculate CRC16
         crc_bits = table_usb_crc16(self.data)
         print('$$$$ Data CRC16', crc_bits)
         
         # add data bits LSB first
+        data_bits = []
         for byte in self.data:
-            for _ in xrange(8):
-                bits.append(byte & 0x01)
-                byte >>= 1
+            data_bits += reversed(_split_bits(byte, 8))
                 
-        # add CRC
-        bits += crc_bits
-        
-        return bits
+        return start_bits + data_bits + crc_bits
 
     def __repr__(self):
         return 'USBDataPacket({}, {}, {}, {})'.format(hex(self.pid), self.data, \
@@ -345,12 +351,13 @@ class USBHandshakePacket(USBPacket):
         # Handshake packet format:
         #  sync, PID
         
-        bits = self.init_bits() # sync and PID
+        start_bits = self._init_bits() # sync and PID
         
-        return bits
+        return start_bits
 
     def __repr__(self):
         return 'USBHandshakePacket({}, {}, {})'.format(hex(self.pid), self.speed, self.delay)        
+
 
 class USBSOFPacket(USBPacket):
     def __init__(self, pid, frame_num, speed=USBSpeed.FullSpeed, delay=0.0):
@@ -362,25 +369,23 @@ class USBSOFPacket(USBPacket):
         # SOF packet format:
         #  sync, PID, Frame, CRC5
         
-        bits = self.init_bits() # sync and PID
+        start_bits = self._init_bits() # sync and PID
         
         # generate frame
         check_bits = []
-        f = self.frame_num
-        for _ in xrange(11):
-            check_bits.append(f & 0x01)
-            f >>= 1
+        check_bits += reversed(_split_bits(self.frame_num, 11))
         
         # generate CRC5
         crc_bits = usb_crc5(check_bits)
         print('$$$$ SOF CRC5', crc_bits)
-        bits += check_bits + crc_bits
         
-        return bits
+        return start_bits + check_bits + crc_bits
 
     def __repr__(self):
         return 'USBSOFPacket({}, {}, {}, {})'.format(hex(self.pid), hex(self.frame_num), \
             self.speed, self.delay)
+
+
 
 class USBSplitPacket(USBPacket):
     def __init__(self, pid, addr, sc, port, s, e, et, speed=USBSpeed.HighSpeed, delay=0.0):
@@ -389,19 +394,14 @@ class USBSplitPacket(USBPacket):
         self.sc = sc
         self.port = port
         self.s = s
-        
-        self.e = e
-        # e field is unused for CSPLIT tokens
-        if self.sc == 1:
-            self.e = 0
-        
+        self.e = e  # Snused for CSPLIT tokens. Should be 0
         self.et = et
         
     def get_bits(self):
         # Split packet format:
         #  sync, PID, Addr, SC, Port, S, E/U, ET, CRC5
         
-        start_bits = self.init_bits() # sync and PID
+        start_bits = self._init_bits() # sync and PID
             
         # generate address
         check_bits = []
@@ -446,23 +446,23 @@ class USBEXTPacket(USBPacket):
         self.variable = variable
 
     # Instead of defining the get_bits() method we "hack" the existing packet objects to
-    # synthesize an extended packet from two other packet types.
+    # synthesize an extended packet from two token packets.
     # This is necessary since we need to add an interpacket gap between the two parts
     # of the extended token which needs to be done after conversion to NRZI.
 
-    def get_NRZI(self):
+    def _get_NRZI(self):
         # Make some dummy packet objects
         
         tok_packet = USBTokenPacket(self.pid, self.addr, self.endp, speed=self.speed)
         
         # split the 11-bit variable into 7-bit and 4-bit parts so they
         # can be stuffed into another USBTokenPacket()
-        ext_addr = self.variable & 0x7FF
-        ext_endp = (self.variable >> 11) & 0x0F
+        ext_addr = self.variable & 0x7F
+        ext_endp = (self.variable >> 7) & 0x0F
         ext_packet = USBTokenPacket(self.sub_pid, ext_addr, ext_endp, speed=self.speed)
         
-        tok_nrzi = tok_packet.get_NRZI()
-        ext_nrzi = ext_packet.get_NRZI()
+        tok_nrzi = tok_packet._get_NRZI()
+        ext_nrzi = ext_packet._get_NRZI()
         
         # construct the interpacket gap
         if self.speed == USBSpeed.LowSpeed or self.speed == USBSpeed.FullSpeed:
@@ -489,7 +489,11 @@ class USBEXTPacket(USBPacket):
         return 'USBEXTPacket({}, {}, {}, {}, {}, {}, {})'.format(hex(self.pid), hex(self.addr), \
             hex(self.endp), hex(self.sub_pid), hex(self.variable), self.speed, self.delay)
             
-        
+
+
+
+
+            
 def usb_decode(dp, dm, stream_type=StreamType.Samples):
     
     if stream_type == StreamType.Samples:
@@ -508,9 +512,7 @@ def usb_decode(dp, dm, stream_type=StreamType.Samples):
     else: # the streams are already lists of edges
         dp_it = dp
         dm_it = dm
-        
-        
-        
+
     # tee off an iterator to determine speed class
     dp_it, speed_check_it = itertools.tee(dp_it)
     buf_edges = 50
@@ -536,9 +538,7 @@ def usb_decode(dp, dm, stream_type=StreamType.Samples):
     # find the bus speed closest to the raw rate
     bus_speed = min(std_bus_speeds, key=lambda x: abs(x[1] - raw_symbol_rate))[0]
     
-
     print('### raw symbol rate:', USBClockPeriod[bus_speed], raw_symbol_rate)
-    
 
     edge_sets = {
         'dp': dp_it,
@@ -553,11 +553,14 @@ def usb_decode(dp, dm, stream_type=StreamType.Samples):
     
     return records
 
+
 def _decode_usb_state(state_seq, bus_speed):
     SE0 = USBState.SE0
     J = USBState.J
     K = USBState.K
     SE1 = USBState.SE1
+    
+    ext_packet_bits = None
 
     cur_bus = state_seq.cur_state()
     while not state_seq.at_end():
@@ -663,6 +666,8 @@ def _decode_usb_state(state_seq, bus_speed):
             
         # We need at least 8 states/bits to retrieve the PID
         if len(packet_states) < 8:
+            status = USBStreamStatus.ShortPacketError
+            yield USBStreamError((packet_start, packet_end), packet_bits, status=status)
             continue
 
             
@@ -675,6 +680,8 @@ def _decode_usb_state(state_seq, bus_speed):
             packet_check[i] = 1 - b
             
         if packet_bits[0:4] != packet_check: # invalid PID
+            status = USBStreamStatus.InvalidPIDError
+            yield USBStreamError((packet_start, packet_end), packet_bits, status=status)
             continue
         
         pid = _join_bits(reversed(packet_bits[0:4]))
@@ -700,8 +707,10 @@ def _decode_usb_state(state_seq, bus_speed):
                     eop_bits = i + 8
                     
             if eop_bits == 0: # no EOP found
-                pass #FIX report packet error
                 print('######### ERROR NO EOP found in data packet', trailing_data)
+                
+                status = USBStreamStatus.MissingEOPError
+                yield USBStreamError((packet_start, packet_end), packet_bits, pid=pid, status=status)
                 continue
         
         
@@ -730,41 +739,89 @@ def _decode_usb_state(state_seq, bus_speed):
                         continue_decode = False # there was a stuffing error not in the EOP
                 
         if continue_decode:
-            print('@@@ UNSTUFFED:', unstuffed_bits, len(unstuffed_bits))
-            if (packet_kind == USBPacketKind.Token and pid != USBPID.SOF) or pid == USBPID.PING:
-                ### Token packet. We should have 8 + 16 bits of data
-                #if len(packet_bits) >= (8+16): #FIX: check lengths of packet data
-                
-                addr_bits = unstuffed_bits[8:8+7]
+            ####### Now we decode the different packet types based on kind and PID
+            short_packet = False
+            
+            
+            # Special case for the EXT token
+            if ext_packet_bits is not None:
+                ### EXT packet part 1. We should have 8 + 16 bits of data (already verified)
+                addr_bits = ext_packet_bits[8:8+7]
                 addr = _join_bits(reversed(addr_bits))
 
-                endp_bits = unstuffed_bits[8+7:8+11]
+                endp_bits = ext_packet_bits[8+7:8+11]
                 endp = _join_bits(reversed(endp_bits))
                 
-                crc5_bits = unstuffed_bits[8+11:8+11+5]
+                crc5_1_bits = ext_packet_bits[8+11:8+11+5]
                 # check the CRC
                 crc_check = usb_crc5(addr_bits + endp_bits)
-                status = StreamStatus.Error if crc_check != crc5_bits else StreamStatus.Ok
+                status1 = USBStreamStatus.CRCError if crc_check != crc5_1_bits else StreamStatus.Ok
                 
-                # Construct the stream record
-                raw_packet = USBTokenPacket(pid, addr, endp, bus_speed)
-                packet = USBStreamPacket((packet_start, packet_end), raw_packet, crc5_bits, status=status)
-                yield packet                  
+                # EXT packet part 2. We should have 8 + 16 bits of data
+                if len(unstuffed_bits) < (8 + 16):
+                    short_packet = True
+                else:
+                    sub_pid = pid
+                    
+                    variable_bits = unstuffed_bits[8:8+11]
+                    variable = _join_bits(reversed(variable_bits))
+                    crc5_2_bits = unstuffed_bits[8+11:8+11+5]
+                    # check the CRC
+                    crc_check = usb_crc5(variable_bits)
+                    status2 = USBStreamStatus.CRCError if crc_check != crc5_2_bits else StreamStatus.Ok
+                    
+                    # Construct the stream record
+                    raw_packet = USBEXTPacket(USBPID.EXT, addr, endp, sub_pid, variable, bus_speed)
+                    status = max(status1, status2)
+                    packet = USBStreamPacket((packet_start, packet_end), raw_packet, crc5_1_bits, status=status)
+                    packet.crc2 = crc5_2_bits
+                    yield packet
+
+                # Change the PID so we fall through the next section and hit the EXT
+                # termination code
+                pid = USBPID.EXT
+                packet_kind = USBPacketKind.Special
+
+        
+            #print('@@@ UNSTUFFED:', unstuffed_bits, len(unstuffed_bits))
+            if (packet_kind == USBPacketKind.Token and pid != USBPID.SOF) or pid == USBPID.PING:
+                ### Token packet. We should have 8 + 16 bits of data
+                if len(unstuffed_bits) < (8 + 16): # not enough bits for packet
+                    short_packet = True
+                else:
+                    addr_bits = unstuffed_bits[8:8+7]
+                    addr = _join_bits(reversed(addr_bits))
+
+                    endp_bits = unstuffed_bits[8+7:8+11]
+                    endp = _join_bits(reversed(endp_bits))
+                    
+                    crc5_bits = unstuffed_bits[8+11:8+11+5]
+                    # check the CRC
+                    crc_check = usb_crc5(addr_bits + endp_bits)
+                    status = USBStreamStatus.CRCError if crc_check != crc5_bits else StreamStatus.Ok
+                    
+                    # Construct the stream record
+                    raw_packet = USBTokenPacket(pid, addr, endp, bus_speed)
+                    packet = USBStreamPacket((packet_start, packet_end), raw_packet, crc5_bits, status=status)
+                    yield packet
 
                 
             elif pid == USBPID.SOF:
                 ### SOF packet. We should have 8 + 16 bits of data
-                frame_num_bits = unstuffed_bits[8:8+11]
-                frame_num = _join_bits(reversed(frame_num_bits))
-                crc5_bits = unstuffed_bits[8+11:8+11+5]
-                # check the CRC
-                crc_check = usb_crc5(frame_num_bits)
-                status = StreamStatus.Error if crc_check != crc5_bits else StreamStatus.Ok
-                
-                # Construct the stream record
-                raw_packet = USBSOFPacket(pid, frame_num, bus_speed)
-                packet = USBStreamPacket((packet_start, packet_end), raw_packet, crc5_bits, status=status)
-                yield packet               
+                if len(unstuffed_bits) < (8 + 16): # not enough bits for packet
+                    short_packet = True
+                else:
+                    frame_num_bits = unstuffed_bits[8:8+11]
+                    frame_num = _join_bits(reversed(frame_num_bits))
+                    crc5_bits = unstuffed_bits[8+11:8+11+5]
+                    # check the CRC
+                    crc_check = usb_crc5(frame_num_bits)
+                    status = USBStreamStatus.CRCError if crc_check != crc5_bits else StreamStatus.Ok
+                    
+                    # Construct the stream record
+                    raw_packet = USBSOFPacket(pid, frame_num, bus_speed)
+                    packet = USBStreamPacket((packet_start, packet_end), raw_packet, crc5_bits, status=status)
+                    yield packet
                 
             elif packet_kind == USBPacketKind.Data:
                 ### Data packet. Unknown length
@@ -775,32 +832,31 @@ def _decode_usb_state(state_seq, bus_speed):
                 
                 # Check for non-multiple of 8
                 if data_bytes * 8 != data_bits:
-                    pass #FIX report packet error
                     print('######## ERROR bits in data packet not multiple of 8')
-                    continue
+                    short_packet = True
+                else:
+                    data = []
+                    for i in xrange(data_bytes):
+                        byte = _join_bits(reversed(unstuffed_bits[8 + i*8: 8 + i*8 + 8]))
+                        data.append(byte)
                     
-                data = []
-                for i in xrange(data_bytes):
-                    byte = _join_bits(reversed(unstuffed_bits[8 + i*8: 8 + i*8 + 8]))
-                    data.append(byte)
-                
-                print('DECODED DATA:', data)
-                
-                crc16_bits = unstuffed_bits[-16:]
-                
-                # check the CRC
-                crc_check = table_usb_crc16(data)
-                status = StreamStatus.Error if crc_check != crc16_bits else StreamStatus.Ok
+                    print('DECODED DATA:', data)
+                    
+                    crc16_bits = unstuffed_bits[-16:]
+                    
+                    # check the CRC
+                    crc_check = table_usb_crc16(data)
+                    status = USBStreamStatus.CRCError if crc_check != crc16_bits else StreamStatus.Ok
 
-                # Construct the stream record
-                raw_packet = USBDataPacket(pid, data, bus_speed)
-                packet = USBStreamPacket((packet_start, packet_end), raw_packet, crc16_bits, status=status)
-                yield packet
+                    # Construct the stream record
+                    raw_packet = USBDataPacket(pid, data, bus_speed)
+                    packet = USBStreamPacket((packet_start, packet_end), raw_packet, crc16_bits, status=status)
+                    yield packet
 
                 
             elif packet_kind == USBPacketKind.Handshake or pid == USBPID.ERR:
-                ### Handshake packet. We should have 8-bits of data
-                # This also catches PREamble packets which use the same PID as ERR
+                ### Handshake packet. We should have 8-bits of data (already decoded into PID)
+                # This also catches PREamble and ERR packets which use the same PID
                 # PRE is only used in Low and Full speed USB
                 # ERR is only used in High speed USB
                 
@@ -812,41 +868,60 @@ def _decode_usb_state(state_seq, bus_speed):
             else: # One of the "special" packets
                 if pid == USBPID.SPLIT:
                     ### Split packet. We should have 8 + 24 bits of data
-                    #if len(packet_bits) >= (8+16): #FIX: check lengths of packet data
-                    
-                    addr_bits = unstuffed_bits[8:8+7]
-                    addr = _join_bits(reversed(addr_bits))
-                    
-                    sc = unstuffed_bits[8+7]
-                    
-                    port_bits = unstuffed_bits[8+8:8+8+7]
-                    port = _join_bits(reversed(port_bits))
-                    
-                    s = unstuffed_bits[8+7+1+7]
-                    
-                    e = unstuffed_bits[8+7+1+7+1]
-                    
-                    et_bits = unstuffed_bits[8+17:8+17+2]
-                    et = _join_bits(reversed(et_bits))
-                    
-                    crc5_bits = unstuffed_bits[8+17+2:8+17+2+5]
-                    # check the CRC
-                    crc_check = usb_crc5(addr_bits + [sc] + port_bits + [s, e] + et_bits)
-                    status = StreamStatus.Error if crc_check != crc5_bits else StreamStatus.Ok
-                    
-                    # Construct the stream record
-                    raw_packet = USBSplitPacket(pid, addr, sc, port, s, e, et, bus_speed)
-                    packet = USBStreamPacket((packet_start, packet_end), raw_packet, crc5_bits, status=status)
-                    yield packet  
+                    if len(unstuffed_bits) < (8 + 24): # not enough bits for packet
+                        short_packet = True
+                    else:
+                        addr_bits = unstuffed_bits[8:8+7]
+                        addr = _join_bits(reversed(addr_bits))
+                        
+                        sc = unstuffed_bits[8+7]
+                        
+                        port_bits = unstuffed_bits[8+8:8+8+7]
+                        port = _join_bits(reversed(port_bits))
+                        
+                        s = unstuffed_bits[8+7+1+7]
+                        
+                        e = unstuffed_bits[8+7+1+7+1]
+                        
+                        et_bits = unstuffed_bits[8+17:8+17+2]
+                        et = _join_bits(reversed(et_bits))
+                        
+                        crc5_bits = unstuffed_bits[8+17+2:8+17+2+5]
+                        # check the CRC
+                        crc_check = usb_crc5(addr_bits + [sc] + port_bits + [s, e] + et_bits)
+                        status = USBStreamStatus.CRCError if crc_check != crc5_bits else StreamStatus.Ok
+                        
+                        # Construct the stream record
+                        raw_packet = USBSplitPacket(pid, addr, sc, port, s, e, et, bus_speed)
+                        packet = USBStreamPacket((packet_start, packet_end), raw_packet, crc5_bits, status=status)
+                        yield packet  
                     
                 elif pid == USBPID.EXT:
                     ### Extended packet used by Link Power Management
-                    pass
+                    if ext_packet_bits is None:
+                        ### EXT packet part 1. We should have 8 + 16 bits of data
+                        if len(unstuffed_bits) < (8 + 16): # not enough bits for packet
+                            short_packet = True
+                        else:
+                            # Save the first packet of the EXT token
+                            ext_packet_bits = unstuffed_bits
+
+                        # The whole EXT packet is decoded above once we get the next half
+                    else:
+                        ext_packet_bits = None # Revert to normal processing of packets
+
+                    
+            if short_packet:
+                # We had a bad packet with insufficient bits
+                status = USBStreamStatus.ShortPacketError
+                yield USBStreamError((packet_start, packet_end), unstuffed_bits, pid=pid, status=status)
+                ext_packet_bits = None # Revert to normal processing of packets
                 
         else: # handle stuffing error
-            pass # FIX
+            status = USBStreamStatus.BitStuffingError
+            yield USBStreamError((packet_start, packet_end), packet_bits, pid=pid, status=status)
+            ext_packet_bits = None # Revert to normal processing of packets
 
-                
 
         
 def _unstuff(packet_bits):
@@ -959,11 +1034,11 @@ def usb_synth(packets, idle_start=0.0, idle_end=0.0):
     yield ((t, dp), (t, dm)) # final state
     
     
-            
+
 def usb_crc5(d):
     ''' Calculate USB CRC-5 on data
     d
-        Array of integers representing 0 or 1 bits
+        Array of integers representing 0 or 1 bits in transmission order
         
     Returns array of integers for each bit in the CRC with LSB first
     '''
@@ -981,10 +1056,11 @@ def usb_crc5(d):
     # Note: crc is in LSB-first order    
     return _split_bits(crc, 5)
 
+
 def usb_crc16(d):
     ''' Calculate USB CRC-16 on data
     d
-        Array of integers representing 0 or 1 bits
+        Array of integers representing 0 or 1 bits in transmission order
         
     Returns array of integers for each bit in the CRC with LSB first
     '''
@@ -994,7 +1070,6 @@ def usb_crc16(d):
     
     for b in d:
         leftbit = (sreg & 0x8000) >> 15
-        #print('## lb:', leftbit)
         sreg = (sreg << 1) & mask
         if b != leftbit:
             sreg ^= poly
@@ -1029,6 +1104,7 @@ def _crc16_table_gen():
     return tbl
     
 _crc16_table = _crc16_table_gen()
+
 
 def table_usb_crc16(d):
     ''' Calculate USB CRC-16 on data
