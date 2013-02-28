@@ -28,6 +28,8 @@
 
 from __future__ import print_function, division
 
+import itertools
+
 from decode import *
 from streaming import *
 
@@ -158,7 +160,7 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, inve
         edges_it = edges
         
         
-    if not baud_deque is None:
+    if baud_deque is not None:
         bd_dict = {'baud_rate': baud_rate, 'raw_symbol_rate': raw_symbol_rate}
         if stream_type == StreamType.Samples:
             bd_dict['logic'] = logic
@@ -203,7 +205,7 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, inve
         cur_bit = 0
         
         p = 0
-        if not parity is None:
+        if parity is not None:
             if parity == 'even':
                 p = 0
             elif parity == 'odd':
@@ -228,7 +230,7 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, inve
             
         data_end_time = es.cur_time - bit_period * 0.5
         parity_error = False
-        if not parity is None:
+        if parity is not None:
             parity_time = data_end_time
             parity_val = es.cur_state()
             if not inverted:
@@ -249,7 +251,7 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, inve
         
         nf.subrecords.append(StreamSegment((start_time, data_time), kind='start bit'))
         nf.subrecords.append(StreamSegment((data_time, data_end_time), byte, kind='data bits'))
-        if not parity is None:
+        if parity is not None:
             status = StreamStatus.Error if parity_error else StreamStatus.Ok
             nf.subrecords.append(StreamSegment((parity_time, stop_time), kind='parity', status=status))
             
@@ -311,7 +313,7 @@ def uart_synth(data, bits = 8, baud=115200, parity=None, stop_bits=1.0, idle_sta
         bits_remaining = bits
 
         p = 0
-        if not parity is None:
+        if parity is not None:
             if parity == 'even':
                 p = 0
             elif parity == 'odd':
@@ -330,7 +332,7 @@ def uart_synth(data, bits = 8, baud=115200, parity=None, stop_bits=1.0, idle_sta
                 yield (t, txd)
             t += bit_period
             
-        if not parity is None:
+        if parity is not None:
             txd = p
             yield (t, txd)
             t += bit_period
