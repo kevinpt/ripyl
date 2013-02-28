@@ -47,7 +47,7 @@ def remove_excess_edges(edges):
             else: # save last edge so we can yield it at the end
                 last_e = e
         
-    if not last_e is None:
+    if last_e is not None:
         yield last_e
 
 def sample_edge_list(edges, sample_period):
@@ -91,11 +91,11 @@ def filter_edges(samples, sample_rate, rise_time, ripple_db=60.0, pool_size=1000
     #print('cutoff', cutoff_hz, 'nyq', nyquist, cutoff_hz / nyquist)
     
     taps = signal.firwin(N, cutoff_hz / nyquist, window=('kaiser', beta))
-    print(len(taps), N)
+    #print(len(taps), N)
     
     # filter delay
     delay = 0.5 * (N-1) / sample_rate
-    print('DE', delay)
+    #print('DE', delay)
     
     if pool_size < 2*N:
         pool_size = 2*N
@@ -157,6 +157,8 @@ def synth_wave(edges, sample_rate, rise_time, ripple_db=60.0):
 
     
 def noisify(samples, snr_db=30.0):
+    # SNR = mean / std. dev.
+    # std. dev. = mean / SNR = 0.5 / SNR
     noise_sd = 0.5 / (10.0 ** (snr_db / 20.0))
     np_len = 1000
     np_ix = np_len
@@ -192,7 +194,7 @@ def invert(samples):
         yield (s[0], -s[1])
 
         
-def sum(s1, s2):
+def sum_streams(s1, s2):
     while True:
         try:
             ns1 = next(s1)
