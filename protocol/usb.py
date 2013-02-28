@@ -28,11 +28,14 @@
 
 from __future__ import print_function, division
 
+import itertools
+
 from decode import *
 from streaming import *
 
 
 class USBSpeed(object):
+    '''Enumeration for the USB bus speeds'''
     LowSpeed = 0
     FullSpeed = 1
     HighSpeed = 2
@@ -44,6 +47,9 @@ USBClockPeriod = {
 }
     
 class USBPID(object):
+    '''Enumeration for the packet PIDs'''
+    # The comments indicate the USBPacket() object that should be used with each PID
+    
     # Token PIDs
     TokenOut   = 0b0001  # USBTokenPacket()
     TokenIn    = 0b1001  # USBTokenPacket()
@@ -70,16 +76,19 @@ class USBPID(object):
     EXT   = 0b0000 # USBEXTPacket()  (extended token format from Link Power Management ECN)
 
 class USBPacketKind(object):
+    '''Enumeration for packet kind (lower two bits of PID)'''
     Token     = 0b01
     Data      = 0b11
     Handshake = 0b10
     Special   = 0b00
 
 def _get_packet_kind(pid):
+    '''Extract the packet kind from the PID'''
     return pid & 0x03
 
 
 class USBState(object):
+    '''Enumeration for logical bus states'''
     SE0 = 0
     J   = 1
     K   = 2
@@ -87,6 +96,7 @@ class USBState(object):
 
     
 class USBStreamStatus(object):
+    '''Enumeration for USBStreamPacket and USBStreamError status codes'''
     ShortPacketError = StreamStatus.Error + 1
     MissingEOPError  = StreamStatus.Error + 2
     BitStuffingError = StreamStatus.Error + 3
@@ -94,7 +104,21 @@ class USBStreamStatus(object):
 
     
 class USBStreamPacket(StreamSegment):
+    '''Encapsulates a USBPacket object (see below) into a StreamSegment'''
     def __init__(self, bounds, packet, crc=None, status=StreamStatus.Ok):
+        '''
+        bounds
+            2-tuple (start_time, end_time) for the packet
+            
+        packet
+            USBPacket object
+        crc
+            Optional CRC extracted from a decoded packet. Not used for encoding
+            with usb_synth().
+        
+        status
+            status code for the packet
+        '''
         StreamSegment.__init__(self, bounds, data=None, status=status)
         self.kind = 'USB packet'
         
@@ -106,7 +130,23 @@ class USBStreamPacket(StreamSegment):
 
 
 class USBStreamError(StreamSegment):
+    '''Contains partially decoded packet data after an error has been found
+    in the data stream'''
     def __init__(self, bounds, error_data, pid=-1, status=StreamStatus.Error):
+        '''
+        bounds
+            2-tuple (start_time, end_time) for the packet
+            
+        error_data
+            An array of bits (potentially unstuffed) for the packet
+
+        pid
+            The PID for the packet if it was successfully extracted. -1 if the
+            PID was invalid or unavailable.
+        
+        status
+            status code for the packet
+        '''    
         StreamSegment.__init__(self, bounds, data=error_data, status=status)
         self.kind = 'USB error'
         
@@ -119,11 +159,13 @@ class USBStreamError(StreamSegment):
     
         
 class USBPacket(object):
-    '''
-
-    Note: These objects have methods meant to be used by the usb_synth() routine. When
-    embedded in a USBStreamPacket object they are used for attribute access only.
+    '''Base class for USB packet objects
     
+    This class should not be instanced directly. Use the various subclasses instead.
+
+    These objects have methods meant to be used by the usb_synth() routine. When
+    these objects are embedded in a USBStreamPacket object they are used for attribute
+    access only.
     '''
     def __init__(self, pid, speed=USBSpeed.FullSpeed, delay=0.0 ):
         self.speed = speed
@@ -216,7 +258,7 @@ class USBPacket(object):
         
         # generate EOP
         if self.speed == USBSpeed.LowSpeed or self.speed == USBSpeed.FullSpeed:
-            states.append((t, 0)) # SE0 for two cycles
+            states.append((t, SE0)) # SE0 for two cycles
             t += 2 * period
         
             states.append((t, J))
@@ -232,15 +274,12 @@ class USBPacket(object):
         if self.speed == USBSpeed.LowSpeed:
             J_DP = 0
             J_DM = 1
-            
-            K_DP = 1
-            K_DM = 0
         else:
             J_DP = 1
             J_DM = 0
-            
-            K_DP = 0
-            K_DM = 1
+
+        K_DP = 1 - J_DP
+        K_DM = 1 - J_DM
             
         edges_dp = []
         edges_dm = []
@@ -257,17 +296,20 @@ class USBPacket(object):
                 dp = 0
                 dm = 0
 
-            # if self.delay > 0.0:
-                # print('^^^^^^^^^ ', s[1], self.delay)
-                
             edges_dp.append((t, dp))
             edges_dm.append((t, dm))
             
         return (edges_dp, edges_dm)
+        
+    def __eq__(self, other):
+        raise NotImplementedError('Must use from subclassed objects')
+        
+    def __ne__(self, other):
+        return not self == other
             
 
 def _split_bits(n, num_bits):
-    ''' Convert integer to an array of bits (MSB-first) '''
+    '''Convert integer to an array of bits (MSB-first)'''
     bits = [0] * num_bits
     for i in xrange(num_bits-1, -1, -1):
         bits[i] = n & 0x01
@@ -277,7 +319,7 @@ def _split_bits(n, num_bits):
     
    
 def _join_bits(bits):
-    ''' Convert an array of bits (MSB first) to an integer word '''
+    '''Convert an array of bits (MSB first) to an integer word'''
     word = 0
     for b in bits:
         word = (word << 1) | b
@@ -314,7 +356,19 @@ class USBTokenPacket(USBPacket):
         return 'USBTokenPacket({}, {}, {}, {}, {})'.format(hex(self.pid), hex(self.addr), \
             hex(self.endp), self.speed, self.delay)
 
-        
+    def __eq__(self, other):
+        if self.pid != other.pid or self.speed != other.speed:
+            match = False
+        else:
+            match = True
+            
+            try:
+                if self.addr != other.addr: match = False
+                if self.endp != other.endp: match = False
+            except AttributeError:
+                match = False
+                
+        return match
         
 class USBDataPacket(USBPacket):
     def __init__(self, pid, data, speed=USBSpeed.FullSpeed, delay=0.0):
@@ -341,6 +395,25 @@ class USBDataPacket(USBPacket):
     def __repr__(self):
         return 'USBDataPacket({}, {}, {}, {})'.format(hex(self.pid), self.data, \
             self.speed, self.delay)
+            
+    def __eq__(self, other):
+        if self.pid != other.pid or self.speed != other.speed:
+            match = False
+        else:
+            match = True
+            
+            try:
+                if len(self.data) != len(other.data):
+                    match = False
+                else:
+                    for d, o in zip(self.data, other.data):
+                        if d != o:
+                            match = False
+                            break
+            except AttributeError:
+                match = False
+                
+        return match
 
         
 class USBHandshakePacket(USBPacket):
@@ -358,6 +431,9 @@ class USBHandshakePacket(USBPacket):
     def __repr__(self):
         return 'USBHandshakePacket({}, {}, {})'.format(hex(self.pid), self.speed, self.delay)        
 
+    def __eq__(self, other):
+        return self.pid == other.pid
+        
 
 class USBSOFPacket(USBPacket):
     def __init__(self, pid, frame_num, speed=USBSpeed.FullSpeed, delay=0.0):
@@ -385,7 +461,18 @@ class USBSOFPacket(USBPacket):
         return 'USBSOFPacket({}, {}, {}, {})'.format(hex(self.pid), hex(self.frame_num), \
             self.speed, self.delay)
 
-
+    def __eq__(self, other):
+        if self.pid != other.pid or self.speed != other.speed:
+            match = False
+        else:
+            match = True
+            
+            try:
+                if self.frame_num != other.frame_num: match = False
+            except AttributeError:
+                match = False
+                
+        return match
 
 class USBSplitPacket(USBPacket):
     def __init__(self, pid, addr, sc, port, s, e, et, speed=USBSpeed.HighSpeed, delay=0.0):
@@ -434,7 +521,24 @@ class USBSplitPacket(USBPacket):
     def __repr__(self):
         return 'USBSplitPacket({}, {}, {}, {}, {}, {}, {}, {}, {})'.format(hex(self.pid), hex(self.addr), \
             self.sc, hex(self.port), self.s, self.e, hex(self.et), self.speed, self.delay)
+
+    def __eq__(self, other):
+        if self.pid != other.pid or self.speed != other.speed:
+            match = False
+        else:
+            match = True
             
+            try:
+                if self.addr != other.addr: match = False
+                if self.sc != other.sc: match = False
+                if self.port != other.port: match = False
+                if self.s != other.s: match = False
+                if self.e != other.e: match = False
+                if self.et != other.et: match = False
+            except AttributeError:
+                match = False
+                
+        return match
             
 class USBEXTPacket(USBPacket):
     def __init__(self, pid, addr, endp, sub_pid, variable, speed=USBSpeed.FullSpeed, delay=0.0):
@@ -489,12 +593,56 @@ class USBEXTPacket(USBPacket):
         return 'USBEXTPacket({}, {}, {}, {}, {}, {}, {})'.format(hex(self.pid), hex(self.addr), \
             hex(self.endp), hex(self.sub_pid), hex(self.variable), self.speed, self.delay)
             
-
-
+    def __eq__(self, other):
+        if self.pid != other.pid or self.speed != other.speed:
+            match = False
+        else:
+            match = True
+            
+            try:
+                if self.addr != other.addr: match = False
+                if self.endp != other.endp: match = False
+                if self.sub_pid != other.sub_pid: match = False
+                if self.variable != other.variable: match = False
+            except AttributeError:
+                match = False
+                
+        return match
 
 
             
 def usb_decode(dp, dm, stream_type=StreamType.Samples):
+    '''Decode a USB data stream
+    
+    This is a generator function that can be used in a pipeline of waveform
+    processing operations.
+    
+    This function decodes USB data captured from the two single-ended D+ and D- signals.
+    For differential USB decode see the function FIXME().
+    
+    The dp and dm parameters are edge or sample streams.
+    Each is a stream of 2-tuples of (time, value) pairs. The type of stream is identified
+    by the stream_type parameter. Either a series of real valued samples that will be
+    analyzed to find edge transitions or a set of pre-processed edge transitions
+    representing the 0 and 1 logic states of the waveforms. When this is a sample
+    stream, an initial block of data on the dp stream is consumed to determine the most
+    likely logic levels in the signal and the bus speed.
+    
+    dp
+        USB D+ stream
+    
+    dm
+        USB D- stream
+    
+    stream_type
+        A StreamType value indicating that the dp, and dm parameters represent either Samples
+        or Edges
+        
+    Yields a series of USBStreamPacket and USBStreamError objects
+    
+    Raises StreamError if stream_type = Samples and the logic levels cannot
+      be determined. Also if the bus speed cannot be determined.
+    '''
     
     if stream_type == StreamType.Samples:
         # tee off an iterator to determine logic thresholds
@@ -527,7 +675,7 @@ def usb_decode(dp, dm, stream_type=StreamType.Samples):
         
     print('## sym. rate edges len:', len(sre_list))
     
-    raw_symbol_rate = find_symbol_rate(iter(sre_list), spectra=2, discard_span_limit=5.0e-6)
+    raw_symbol_rate = find_symbol_rate(iter(sre_list), spectra=2)
     # delete the tee'd iterators so that the internal buffer will not grow
     # as the edges_it is advanced later on
     del symbol_rate_edges
@@ -555,6 +703,12 @@ def usb_decode(dp, dm, stream_type=StreamType.Samples):
 
 
 def _decode_usb_state(state_seq, bus_speed):
+    '''This routine does the bulk of the decode work. It is called by both the
+    single-ended decoder and the differential decoder once they have completed
+    the preliminary work of extracting the bus states (J, K, SE0) from their
+    input streams.
+    '''
+    
     SE0 = USBState.SE0
     J = USBState.J
     K = USBState.K
@@ -572,8 +726,8 @@ def _decode_usb_state(state_seq, bus_speed):
         clock_period = USBClockPeriod[bus_speed]
 
         # look for a start of packet:
-        #   Low and Full: Transition from J to K
-        #   High: Transition from SE0 to K
+        #   Low and Full speed: Transition from J to K
+        #   High speed: Transition from SE0 to K
         get_packet = False
         if bus_speed == USBSpeed.LowSpeed or bus_speed == USBSpeed.FullSpeed:
             if prev_bus == J and cur_bus == K:
@@ -641,6 +795,7 @@ def _decode_usb_state(state_seq, bus_speed):
         
         # Get the remaining states in the packet.
         # We will adjust timings to keep ourselves positioned in the center of a bit
+        #FIX: PRE packets do not end with an EOP. We need to detect this
         packet_states = []
         state_seq.advance(clock_period)  # At middle of first PID bit
         time_adjustment = 0.0
@@ -672,7 +827,7 @@ def _decode_usb_state(state_seq, bus_speed):
 
             
         packet_bits = _decode_NRZI(packet_states)
-        print('#### Packet states:', packet_states, packet_bits, len(packet_bits))
+        #print('#### Packet states:', packet_states, packet_bits, len(packet_bits))
         
         # Validate the PID
         packet_check = packet_bits[4:8]
@@ -718,12 +873,12 @@ def _decode_usb_state(state_seq, bus_speed):
         # Technically the final 1 in the sync participates in the stuffing
         # but there is guaranteed to be a 0 in the PID field before 6 1's go by
         # so we don't bother including it in packet_bits.
-        unstuffed_bits, stuffing_errors = _unstuff(packet_bits[0:len(packet_bits)-eop_bits])
+        unstuffed_bits, stuffing_errors, unstuff_cnt = _unstuff(packet_bits[0:len(packet_bits)-eop_bits])
         
         # Low and Full speed packets should have no stuffing errors
         # HighSpeed packets will have stuffing errors from their EOP.
         continue_decode = True
-        print('@@@@@@@@@@@@@ STUFFING ERRORS', stuffing_errors, len(packet_bits))
+        print('@@@@@@@@@@@@@ STUFFING ERRORS', stuffing_errors, len(packet_bits), unstuff_cnt)
         if len(stuffing_errors) > 0:
             if (bus_speed == USBSpeed.LowSpeed or bus_speed == USBSpeed.FullSpeed):
                 continue_decode = False # there was a stuffing error
@@ -734,54 +889,23 @@ def _decode_usb_state(state_seq, bus_speed):
                     if stuffing_errors[0] != len(packet_bits)-1:
                         continue_decode = False # there was a stuffing error not in the EOP
                 else: #SOF HighSpeed will have multiple stuffing errors in EOP
-                    # The first stuffing error should have been on bit-31
-                    if stuffing_errors[0] != 31:
+                    # The first stuffing error should have been on bit-31 in the
+                    # unstuffed data
+                    if stuffing_errors[0] - unstuff_cnt != 31:
                         continue_decode = False # there was a stuffing error not in the EOP
                 
         if continue_decode:
             ####### Now we decode the different packet types based on kind and PID
             short_packet = False
             
-            
             # Special case for the EXT token
             if ext_packet_bits is not None:
-                ### EXT packet part 1. We should have 8 + 16 bits of data (already verified)
-                addr_bits = ext_packet_bits[8:8+7]
-                addr = _join_bits(reversed(addr_bits))
-
-                endp_bits = ext_packet_bits[8+7:8+11]
-                endp = _join_bits(reversed(endp_bits))
-                
-                crc5_1_bits = ext_packet_bits[8+11:8+11+5]
-                # check the CRC
-                crc_check = usb_crc5(addr_bits + endp_bits)
-                status1 = USBStreamStatus.CRCError if crc_check != crc5_1_bits else StreamStatus.Ok
-                
-                # EXT packet part 2. We should have 8 + 16 bits of data
-                if len(unstuffed_bits) < (8 + 16):
-                    short_packet = True
-                else:
-                    sub_pid = pid
-                    
-                    variable_bits = unstuffed_bits[8:8+11]
-                    variable = _join_bits(reversed(variable_bits))
-                    crc5_2_bits = unstuffed_bits[8+11:8+11+5]
-                    # check the CRC
-                    crc_check = usb_crc5(variable_bits)
-                    status2 = USBStreamStatus.CRCError if crc_check != crc5_2_bits else StreamStatus.Ok
-                    
-                    # Construct the stream record
-                    raw_packet = USBEXTPacket(USBPID.EXT, addr, endp, sub_pid, variable, bus_speed)
-                    status = max(status1, status2)
-                    packet = USBStreamPacket((packet_start, packet_end), raw_packet, crc5_1_bits, status=status)
-                    packet.crc2 = crc5_2_bits
-                    yield packet
-
                 # Change the PID so we fall through the next section and hit the EXT
-                # termination code
+                # parsing code
+                sub_pid = pid
                 pid = USBPID.EXT
                 packet_kind = USBPacketKind.Special
-
+                
         
             #print('@@@ UNSTUFFED:', unstuffed_bits, len(unstuffed_bits))
             if (packet_kind == USBPacketKind.Token and pid != USBPID.SOF) or pid == USBPID.PING:
@@ -832,7 +956,6 @@ def _decode_usb_state(state_seq, bus_speed):
                 
                 # Check for non-multiple of 8
                 if data_bytes * 8 != data_bits:
-                    print('######## ERROR bits in data packet not multiple of 8')
                     short_packet = True
                 else:
                     data = []
@@ -906,8 +1029,41 @@ def _decode_usb_state(state_seq, bus_speed):
                             # Save the first packet of the EXT token
                             ext_packet_bits = unstuffed_bits
 
-                        # The whole EXT packet is decoded above once we get the next half
+                        # The whole EXT packet is decoded below once we get the next half
+
                     else:
+                        ### EXT packet part 1. We should have 8 + 16 bits of data (already verified)
+                        addr_bits = ext_packet_bits[8:8+7]
+                        addr = _join_bits(reversed(addr_bits))
+
+                        endp_bits = ext_packet_bits[8+7:8+11]
+                        endp = _join_bits(reversed(endp_bits))
+                        
+                        crc5_1_bits = ext_packet_bits[8+11:8+11+5]
+                        # check the CRC
+                        crc_check = usb_crc5(addr_bits + endp_bits)
+                        status1 = USBStreamStatus.CRCError if crc_check != crc5_1_bits else StreamStatus.Ok
+                        
+                        # EXT packet part 2. We should have 8 + 16 bits of data
+                        if len(unstuffed_bits) < (8 + 16):
+                            short_packet = True
+                        else:
+                            #sub_pid = pid
+                            
+                            variable_bits = unstuffed_bits[8:8+11]
+                            variable = _join_bits(reversed(variable_bits))
+                            crc5_2_bits = unstuffed_bits[8+11:8+11+5]
+                            # check the CRC
+                            crc_check = usb_crc5(variable_bits)
+                            status2 = USBStreamStatus.CRCError if crc_check != crc5_2_bits else StreamStatus.Ok
+                            
+                            # Construct the stream record
+                            raw_packet = USBEXTPacket(USBPID.EXT, addr, endp, sub_pid, variable, bus_speed)
+                            status = max(status1, status2)
+                            packet = USBStreamPacket((packet_start, packet_end), raw_packet, crc5_1_bits, status=status)
+                            packet.crc2 = crc5_2_bits
+                            yield packet
+
                         ext_packet_bits = None # Revert to normal processing of packets
 
                     
@@ -925,10 +1081,13 @@ def _decode_usb_state(state_seq, bus_speed):
 
         
 def _unstuff(packet_bits):
+    '''Remove stuffed bits from a list of bits representing a packet'''
+
     unstuffed = []
     ones = 0
     expect_stuffing = False
     stuffing_errors = []
+    unstuff_cnt = 0
     for i, b in enumerate(packet_bits):
         if not expect_stuffing:
             unstuffed.append(b)
@@ -936,6 +1095,8 @@ def _unstuff(packet_bits):
             # should have a stuffed 0
             if b != 0:
                 stuffing_errors.append(i)
+            else:
+                unstuff_cnt += 1
 
         expect_stuffing = False
 
@@ -949,10 +1110,11 @@ def _unstuff(packet_bits):
             expect_stuffing = True
             ones = 0
             
-    return (unstuffed, stuffing_errors)
+    return (unstuffed, stuffing_errors, unstuff_cnt)
 
     
 def _decode_NRZI(packet_states):
+    '''Convert NRZI states (J,K) to bits (0,1)'''
     # previous state was a K from end of sync
     prev_state = USBState.K
     bits = []
@@ -968,7 +1130,14 @@ def _decode_NRZI(packet_states):
 
 
 def _convert_single_ended_states(es, bus_speed):
-
+    '''Convert a stream of single-ended states for D+ and D- to
+    logical states (J, K, SE0). Small skews between D+ and D- are filtered
+    out to eliminate spurious SE0's and SE1's in the stream.
+    
+    This is a generator function.
+    
+    Yields a 2-tuple (time, state) representing the state of D+ and D-
+    '''
     # Establish J/K state values
     if bus_speed == USBSpeed.LowSpeed:
         J_DP = 0
