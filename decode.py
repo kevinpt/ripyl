@@ -32,11 +32,10 @@ import numpy as np
 import scipy as sp
 import scipy.stats
 import math
-import itertools
 import collections
 
 from stats import OnlineStats
-from streaming import *
+from streaming import StreamError
 
 import matplotlib.pyplot as plt
 
@@ -186,6 +185,7 @@ def find_hist_peaks(hist):
     
     state = NEED_PEAK
     peaks = []
+    peak_start = -1
     
     for i, b in enumerate(hist):
         if state == NEED_PEAK:
@@ -358,7 +358,7 @@ def find_edges(samples, logic, hysteresis=0.4):
     start_time, initial_sample = next(samples) # FIX: wrap in try block
     initial_state = (start_time, 1 if initial_sample > thresh else 0)
     
-    #start_time = time_axis[0] if not time_axis is None else 0
+    #start_time = time_axis[0] if time_axis is not None else 0
     #initial_state = (start_time,1 if wf[0] > thresh else 0)
     
     yield initial_state
@@ -375,12 +375,12 @@ def find_edges(samples, logic, hysteresis=0.4):
         elif state == ES_NEED_POS_EDGE: # currently below the threshold
             if x >= thresh:
                 state = ES_NEED_NEG_EDGE if x > hyst_top else ES_NEED_HIGH
-                yield (t,1)
+                yield (t, 1)
 
         elif state == ES_NEED_NEG_EDGE: # currently above the the threshold
             if x <= thresh:
                 state = ES_NEED_POS_EDGE if x < hyst_bot else ES_NEED_LOW
-                yield (t,0)
+                yield (t, 0)
         
         elif state == ES_NEED_HIGH: # looking for sample above hysteresis threshold
             if x > hyst_top:
@@ -391,7 +391,7 @@ def find_edges(samples, logic, hysteresis=0.4):
                 state = ES_NEED_POS_EDGE
     
     
-def find_symbol_rate(edges, sample_rate=1.0, spectra=2):
+def find_symbol_rate(edges, sample_rate=1.0, spectra=2, auto_span_limit=True, max_span_limit=None):
     '''Determine the base symbol rate from a set of edges
     
     This function depends on the edge data containing a variety of spans between
@@ -419,42 +419,87 @@ def find_symbol_rate(edges, sample_rate=1.0, spectra=2):
         The number of spectra to include in the calculation of the HPS. This
         number should not larger than the highest harmonic in the edge span
         data.
+        
+    auto_span_limit
+        Excessively long edge spans can impair the symbol rate detection by
+        reducing the resolution of the HPS. They are typically the result of
+        long idle periods between the interesting parts we want to estimate
+        the symbol rate from. When this parameter is True, an attempt is made
+        to find the ideal limit for the spans included in the HPS.
+        
+    max_span_limit
+        An optional upper limit for span length to include in the HPS.
+        auto_span_limit must be False for this to take effect.
     
     Returns the estimated symbol rate of the edge data set as an int
+    
+    Raises ValueError if there are not enough edge spans to evaluate
+      a HPS.
     '''
     e = np.array(zip(*edges)[0]) # get the sample indices of each edge
     spans = e[1:] - e[:-1] # time span (in samples) between successive edges
-    
+
+
+
+    if auto_span_limit:
+        # Automatically find maximum span limit
+        # The bw_method parameter is set to smear all small peaks together so
+        # that the first peak of the KDE covers the most relevant parts to
+        # measure the symbol rate from.
+        
+        mv = max(spans) * 1.1 # leave some extra room for the rightmost peak of the KDE
+        bins = 1000
+        step = mv / bins
+        x_hps = np.arange(0, mv, step)[:bins]
+        
+        if len(spans) == 0:
+            raise ValueError('Insufficient spans in edge set')
+        
+        kde = sp.stats.gaussian_kde(spans, bw_method=0.8)
+        asl = kde(x_hps)[:bins]
+        
+        # Get the width of the first peak
+        peaks = find_hist_peaks(asl)
+        if len(peaks) >= 1:
+            max_span_limit = x_hps[peaks[0][1]] * 2 # set limit to 2x the right edge of the peak
+
+    if max_span_limit is not None:
+        spans = [s for s in spans if s < max_span_limit]
+        
+    if len(spans) == 0:
+        raise ValueError('Insufficient spans in edge set')
+
+
+    mv = max(spans) * 1.1 # leave some extra room for the rightmost peak of the KDE
+    bins = 1000
+    step = mv / bins
+    x_hps = np.arange(0, mv, step)[:bins]
+        
     # generate kernel density estimate of span histogram
-    kde = sp.stats.gaussian_kde(spans, bw_method=0.05)
+    kde = sp.stats.gaussian_kde(spans, bw_method=0.02)
     
     # Compute the harmonic product spectrum from the KDE
     # This should leave us with one strong peak for the span corresponding to the
-    # fundamental symbol rate
-    mv = max(spans) * 1.1 # leave some extra room for the rightmost peak of the KDE
-    step = mv / 500
-    xs = np.arange(0, mv, step)[:500]
-    s = kde(xs)[:500] # fundamental spectrum (slice needed because sometimes kde() returns 501 elements)
-    
+    # fundamental symbol rate.
+    hps = kde(x_hps)[:bins] # fundamental spectrum (slice needed because sometimes kde() returns bins+1 elements)
 
-    #plt.plot(xs, s / s[np.argmax(s)])
+    #plt.plot(x_hps, hps / hps[np.argmax(hps)])
     
     # isolate the fundamental span width by multiplying downshifted spectra
-    for i in xrange(2,spectra+1):
-        s *= kde(np.arange(0, mv*i, step*i))[:len(s)]
+    for i in xrange(2, spectra+1):
+        hps *= kde(np.arange(0, mv*i, step*i))[:len(hps)]
 
-    #plt.plot(xs, s / s[np.argmax(s)])
+    #plt.plot(x_hps, hps / hps[np.argmax(hps)])
     #plt.show()
 
-    peaks = find_hist_peaks(s)
+    peaks = find_hist_peaks(hps)
     if len(peaks) < 1:
         return 0
     
     # We want the leftmost (first) peak as the fundamental
     # This is approximately the length of one bit period
-    hps = zip(xs, s)
-    peak_span = max(hps[peaks[0][0]:peaks[0][1]+1], key=lambda x: x[1])[0]
-    
+    hps_pairs = zip(x_hps, hps)
+    peak_span = max(hps_pairs[peaks[0][0]:peaks[0][1]+1], key=lambda x: x[1])[0]
     
     if peak_span != 0.0:
         symbol_rate = int(sample_rate / peak_span)
@@ -700,9 +745,9 @@ class StreamRecord(object):
     def nested_status(self):
         '''Retrieve the highest status value from this record and its subrecords'''
         cur_status = self.status
-        for sf in self.subrecords:
-            ns = sf.nested_status()
-            cur_status = ns if ns > cur_status else cur_status
+        for srec in self.subrecords:
+            nstat = srec.nested_status()
+            cur_status = nstat if nstat > cur_status else cur_status
             
         return cur_status
 
@@ -733,4 +778,3 @@ class StreamEvent(StreamRecord):
             repr(self.data), self.kind)        
 
         
-    
