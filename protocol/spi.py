@@ -28,11 +28,21 @@
 
 from __future__ import print_function, division
 
+import itertools
+from streaming import *
+
 from decode import *
 
 class SpiFrame(StreamSegment):
     '''Frame object for SPI data'''
     def __init__(self, bounds, data=None):
+        '''
+        bounds
+            2-tuple (start_time, end_time) for the bounds of the frame
+        
+        data
+            Optional data representing the contents of the frame
+        '''
         StreamSegment.__init__(self, bounds, data)
         self.kind = 'SPI frame'
         
@@ -45,7 +55,7 @@ def spi_decode(clk, mosi, cs=None, cpol=0, cpha=0, lsb_first=True, stream_type=S
     This is a generator function that can be used in a pipeline of waveform
     processing operations.
     
-    The clk, mosi, and cs parameters are edge streams.
+    The clk, mosi, and cs parameters are edge or sample streams.
     Each is a stream of 2-tuples of (time, value) pairs. The type of stream is identified
     by the stream_type parameter. Either a series of real valued samples that will be
     analyzed to find edge transitions or a set of pre-processed edge transitions
@@ -54,13 +64,13 @@ def spi_decode(clk, mosi, cs=None, cpol=0, cpha=0, lsb_first=True, stream_type=S
     likely logic levels in the signal.
     
     clk
-        SPI clk edge stream
+        SPI clk stream
     
     mosi
-        SPI MOSI edge stream. The MISO signal can also be substituted here.
+        SPI MOSI stream. The MISO signal can also be substituted here.
     
     cs
-        SPI chip select edge stream. Can be None if cs is not available.
+        SPI chip select stream. Can be None if cs is not available.
     
     cpol
         Clock polarity: 0 or 1
@@ -92,7 +102,7 @@ def spi_decode(clk, mosi, cs=None, cpol=0, cpha=0, lsb_first=True, stream_type=S
         hyst = 0.4
         clk_it = find_edges(s_clk_it, logic, hysteresis=hyst)
         mosi_it = find_edges(mosi, logic, hysteresis=hyst)
-        if not cs is None:
+        if cs is not None:
             cs_it = find_edges(cs, logic, hysteresis=hyst)
         else:
             cs_it = None
@@ -107,7 +117,7 @@ def spi_decode(clk, mosi, cs=None, cpol=0, cpha=0, lsb_first=True, stream_type=S
         'mosi': mosi_it
     }
     
-    if not cs_it is None:
+    if cs_it is not None:
         edge_sets['cs'] = cs_it
     
     es = MultiEdgeSequence(edge_sets, 0.0)
@@ -141,7 +151,7 @@ def spi_decode(clk, mosi, cs=None, cpol=0, cpha=0, lsb_first=True, stream_type=S
             if clk_val == active_edge: # capture data bit
                 # Check if the elapsed time is more than any previous cycle
                 # This indicates that a previous word was complete
-                if not prev_cycle is None and es.cur_time() - prev_edge > 1.5 * prev_cycle:
+                if prev_cycle is not None and es.cur_time() - prev_edge > 1.5 * prev_cycle:
                     word = 0
                     for b in bits[::step]:
                         word = word << 1 | b
@@ -161,7 +171,7 @@ def spi_decode(clk, mosi, cs=None, cpol=0, cpha=0, lsb_first=True, stream_type=S
                 bits.append(es.cur_state('mosi'))
                 end_time = es.cur_time()
                 
-                if not prev_edge is None:
+                if prev_edge is not None:
                     prev_cycle = es.cur_time() - prev_edge
 
                 prev_edge = es.cur_time()
