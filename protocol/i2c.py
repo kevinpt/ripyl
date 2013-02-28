@@ -28,7 +28,10 @@
 
 from __future__ import print_function, division
 
+import itertools
+
 from decode import *
+from streaming import *
 
 class I2C(object):
     '''Enumeration for I2C r/w bit states'''
@@ -205,7 +208,7 @@ def i2c_decode(scl, sda, stream_type=StreamType.Samples):
                                 # We will not receive the second byte of the address
                                 # The 10-bit address being read should be the last one
                                 # written to.
-                                if not prev_10b_addr is None:
+                                if prev_10b_addr is not None:
                                     addr_10b = prev_10b_addr.data
                                     
                                     # Check that the upper bits match
@@ -350,7 +353,7 @@ def reconstruct_i2c_transfers(records):
         except StopIteration:
             break
             
-    if not cur_addr is None:
+    if cur_addr is not None:
         # reconstruct last transfer
         tfer = I2CTransfer(cur_addr.r_wn, cur_addr.address, [b.data for b in cur_data])
         yield tfer
