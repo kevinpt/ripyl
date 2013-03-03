@@ -95,11 +95,13 @@ def find_bot_top_hist_peaks(samples, bins, use_kde=False):
     if len(peaks) < 2:
         return None
     
-    # sort peaks by height
-    heights = ((i, max(hist[p[0]:p[1]+1])) for i, p in enumerate(peaks))
-    heights = sorted(heights, key=lambda t: t[1])
-    # the last two are the highest
-    high_peaks = (peaks[heights[-1][0]], peaks[heights[-2][0]])
+    # # sort peaks by height
+    # heights = ((i, max(hist[p[0]:p[1]+1])) for i, p in enumerate(peaks))
+    # heights = sorted(heights, key=lambda t: t[1])
+    # # the last two are the highest
+    # high_peaks = (peaks[heights[-1][0]], peaks[heights[-2][0]])
+    
+    high_peaks = (peaks[0], peaks[-1])
     
     # get the center of each peak
     bot_top = []
@@ -264,6 +266,8 @@ def find_logic_levels(samples, max_samples, buf_size):
     '''
 
     # Get a minimal pool of samples containing both logic levels
+    # We use a statistical measure to find a likely first edge to minimize
+    # the chance that our buffer doesn't contain any edge transmissions.
     buf = collections.deque(maxlen=buf_size)
     os = OnlineStats()
     os_init = 0
@@ -313,9 +317,9 @@ def find_logic_levels(samples, max_samples, buf_size):
         return None
 
     return find_bot_top_hist_peaks(buf, 100, use_kde=True)
-        
 
 
+#FIX: the find_edges() FSM has some logic errors. It should be redone
 def find_edges(samples, logic, hysteresis=0.4):
     '''Find the edges in a sampled digital waveform
     
@@ -355,7 +359,11 @@ def find_edges(samples, logic, hysteresis=0.4):
     state = ES_START
     
     # set initial edge state
-    start_time, initial_sample = next(samples) # FIX: wrap in try block
+    try:
+        start_time, initial_sample = next(samples)
+    except StopIteration:
+        raise StreamError('Unable to initialize sample stream')
+    
     initial_state = (start_time, 1 if initial_sample > thresh else 0)
     
     #start_time = time_axis[0] if time_axis is not None else 0
@@ -389,7 +397,147 @@ def find_edges(samples, logic, hysteresis=0.4):
         elif state == ES_NEED_LOW: # looking for sample below hysteresis threshold
             if x < hyst_bot:
                 state = ES_NEED_POS_EDGE
+
+
+def find_differential_edges(samples, logic, hysteresis=0.1):
+    span = logic[1] - logic[0]
+    center = (logic[1] + logic[0]) / 2.0
+    span_high = logic[1] - center
+    span_low = center - logic[0]
+    thresh_high = (logic[1] + center) / 2.0
+    thresh_low = (center + logic[0]) / 2.0
+
+    hyst_high_top = span_high * (0.5 + hysteresis / 2.0) + center
+    hyst_high_bot = span_high * (0.5 - hysteresis / 2.0) + center
     
+    hyst_low_top = span_low * (0.5 + hysteresis / 2.0) + logic[0]
+    hyst_low_bot = span_low * (0.5 - hysteresis / 2.0) + logic[0]
+    
+    print('center', center)
+    print('th', thresh_high)
+    print('tl', thresh_low)
+    print('hht', hyst_high_top)
+    print('hhb', hyst_high_bot)
+    print('hlt', hyst_low_top)
+    print('hlb', hyst_low_bot)
+    
+    # A sample can be in one of five zones: three differential states (1, 0, -1) and
+    # two transition bands for the hysteresis (low, high)
+    
+    ZONE_1_DP = 1 # differential 1
+    ZONE_2_HT = 2 # high transition
+    ZONE_3_D0 = 3 # differential 0
+    ZONE_4_LT = 4 # low transition
+    ZONE_5_DM = 5 # differential -1
+    
+    def get_sample_zone(sample):
+        if sample > hyst_high_top:
+            zone = ZONE_1_DP
+        elif sample > hyst_high_bot:
+            zone = ZONE_2_HT
+        elif sample > hyst_low_top:
+            zone = ZONE_3_D0
+        elif sample > hyst_low_bot:
+            zone = ZONE_4_LT
+        else:
+            zone = ZONE_5_DM
+            
+        return zone
+        
+    def is_stable_zone(zone):
+        return zone == ZONE_1_DP or zone == ZONE_3_D0 or zone == ZONE_5_DM
+        
+    def zone_to_logic_state(zone):
+        ls = 999
+        if zone == ZONE_1_DP: ls = 1
+        elif zone == ZONE_3_D0: ls = 0
+        elif zone == ZONE_5_DM: ls = -1
+        
+        return ls
+    
+    #states
+    ES_START = 0
+
+    state = ES_START
+    
+    # set initial edge state
+    try:
+        start_time, initial_sample = next(samples)
+    except StopIteration:
+        raise StreamError('Unable to initialize sample stream')
+    
+    initial_state = (start_time, 1 if initial_sample > thresh_high else 0 if initial_sample > thresh_low else -1)
+    yield initial_state
+    
+    for t, sample in samples:
+        zone = get_sample_zone(sample)
+        
+        if state == ES_START:
+            # Stay in start until we reach one of the stable states
+            if is_stable_zone(zone):
+                state = zone
+
+        # last zone was a stable state
+        elif state == ZONE_1_DP or state == ZONE_3_D0 or state == ZONE_5_DM:
+            if is_stable_zone(zone):
+                if zone != state:
+                    state = zone
+                    yield (t, zone_to_logic_state(zone))
+            else:
+                prev_stable = state
+                state = zone
+        
+        # last zone was a transitional state (in hysteresis band)
+        elif state == ZONE_2_HT or state == ZONE_4_LT:
+            if is_stable_zone(zone):
+                if zone != prev_stable: # This wasn't just noise
+                    yield (t, zone_to_logic_state(zone))
+
+            state = zone
+
+
+def remove_short_se0s(diff_edges, min_se0_time):
+    se0_start = None
+    merged_edge = False
+    
+    # Get the first edge
+    try:
+        edge = next(diff_edges)
+    except StopIteration:
+        raise StreamError('Unable to initialize edge stream')
+
+    while True:
+        prev_edge = edge
+        try:
+            edge = next(diff_edges)
+        except StopIteration:
+            break
+
+        if edge[1] != 0:
+            merged_edge = False
+
+        if se0_start is not None: # prev edge started SE0
+            se0_end = edge[0]
+            se0_len = se0_end - se0_start
+            
+            if se0_len < min_se0_time:
+                # merge edges and remove SE0
+                prev_edge = ((se0_start + se0_end) / 2.0, edge[1])
+                merged_edge = True
+                yield prev_edge
+            else:
+                merged_edge = False
+
+            se0_start = None
+
+        if edge[1] == 0: #SE0
+            se0_start = edge[0]
+
+        if not merged_edge:
+            yield prev_edge
+
+    yield prev_edge # last edge
+
     
 def find_symbol_rate(edges, sample_rate=1.0, spectra=2, auto_span_limit=True, max_span_limit=None):
     '''Determine the base symbol rate from a set of edges
