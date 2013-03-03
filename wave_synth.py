@@ -38,7 +38,7 @@ def sine_synth(frequency=1.0e6, phase=0.0, sample_period=50.0e-9, samples=None):
         This generator will terminate if the number of output sampes is specified.
     '''
     angle = phase
-    sc = samples if not samples is None else -1
+    sc = samples if samples is not None else -1
     
     while sc > 0 or sc < 0:
         s = math.sin(angle)
@@ -53,7 +53,7 @@ def square_synth(frequency=1.0e6, duty=0.5, phase=0.0, sample_period=50.0e-9, sa
     ''' Square wave generator
     '''
     
-    sc = samples if not samples is None else -1
+    sc = samples if samples is not None else -1
     
     period = 1.0 / frequency
     fe_time = duty / frequency
