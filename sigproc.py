@@ -50,7 +50,7 @@ def remove_excess_edges(edges):
     if last_e is not None:
         yield last_e
 
-def sample_edge_list(edges, sample_period):
+def sample_edge_list(edges, sample_period, end_extension=None):
     t = 0.0
     
     try:
@@ -71,6 +71,12 @@ def sample_edge_list(edges, sample_period):
             next_states = next(edges)
         except StopIteration:
             break
+            
+    if end_extension is not None:
+        end_time = t + end_extension
+        while t < end_time:
+            yield(t, cur_states[1])
+            t += sample_period
 
     
     
