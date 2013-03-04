@@ -14,14 +14,14 @@ import numpy as np
 
 from collections import deque
 
-from decode import *
-from streaming import *
-from sigproc import *
-from protocol.spi import *
-from protocol.uart import *
-from protocol.i2c import *
-from protocol.usb import *
-from stats import OnlineStats
+from ripyl.decode import *
+from ripyl.streaming import *
+from ripyl.sigproc import *
+from ripyl.protocol.spi import *
+from ripyl.protocol.uart import *
+from ripyl.protocol.i2c import *
+from ripyl.protocol.usb import *
+from ripyl.stats import OnlineStats
 
 
 def read_bin_file(fname):
