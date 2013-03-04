@@ -30,8 +30,8 @@ from __future__ import print_function, division
 
 import itertools
 
-from decode import *
-from streaming import *
+from ripyl.decode import *
+from ripyl.streaming import *
 
 class UartFrame(StreamSegment):
     '''Frame object for UART data'''

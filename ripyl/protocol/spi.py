@@ -29,9 +29,9 @@
 from __future__ import print_function, division
 
 import itertools
-from streaming import *
 
-from decode import *
+from ripyl.streaming import *
+from ripyl.decode import *
 
 class SpiFrame(StreamSegment):
     '''Frame object for SPI data'''
