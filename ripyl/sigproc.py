@@ -32,6 +32,14 @@ import numpy as np
 import scipy as sp
 import scipy.signal as signal
 
+
+def samples_to_sample_stream(samples, sample_period, start_time=0.0):
+    t = start_time
+    for s in samples:
+        yield(t, s)
+        t += sample_period
+
+
 def remove_excess_edges(edges):
     prev_state = None
     last_e = None
@@ -50,7 +58,7 @@ def remove_excess_edges(edges):
     if last_e is not None:
         yield last_e
 
-def sample_edge_list(edges, sample_period, end_extension=None):
+def edges_to_sample_stream(edges, sample_period, end_extension=None):
     t = 0.0
     
     try:
@@ -80,7 +88,7 @@ def sample_edge_list(edges, sample_period, end_extension=None):
 
     
     
-def filter_edges(samples, sample_rate, rise_time, ripple_db=60.0, pool_size=1000):
+def filter_waveform(samples, sample_rate, rise_time, ripple_db=60.0, pool_size=1000):
     nyquist = sample_rate / 2.0
     edge_bw = 0.35 / rise_time
     transition_bw = edge_bw * 4.0 # this gives a nice smooth transition
@@ -156,9 +164,9 @@ def filter_edges(samples, sample_rate, rise_time, ripple_db=60.0, pool_size=1000
 def synth_wave(edges, sample_rate, rise_time, ripple_db=60.0):
     sample_period = 1.0 / sample_rate
     
-    samples = sample_edge_list(edges, sample_period)
+    samples = edges_to_sample_stream(edges, sample_period)
     
-    filtered = filter_edges(samples, sample_rate, rise_time, ripple_db)
+    filtered = filter_waveform(samples, sample_rate, rise_time, ripple_db)
     return filtered
 
     
