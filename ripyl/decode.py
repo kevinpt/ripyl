@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Protocol decode library
+'''Ripyl protocol decode library
    General routines shared between decoders
 '''
 
@@ -95,17 +95,13 @@ def find_bot_top_hist_peaks(samples, bins, use_kde=False):
     if len(peaks) < 2:
         return None
     
-    # # sort peaks by height
-    # heights = ((i, max(hist[p[0]:p[1]+1])) for i, p in enumerate(peaks))
-    # heights = sorted(heights, key=lambda t: t[1])
-    # # the last two are the highest
-    # high_peaks = (peaks[heights[-1][0]], peaks[heights[-2][0]])
-    
-    high_peaks = (peaks[0], peaks[-1])
+
+    # Take the lower and upper peaks from the list
+    end_peaks = (peaks[0], peaks[-1])
     
     # get the center of each peak
     bot_top = []
-    for p in high_peaks:
+    for p in end_peaks:
         hslice = hist[p[0]:p[1]+1] # the bins for this peak
         cs = np.cumsum(hslice)
         mid_pop = cs[-1] // 2
@@ -136,7 +132,7 @@ def find_hist_peaks(hist):
     For synthetic waveforms lacking noise or any intermediate samples between discrete
     logic levels, the statistical measures used to determine the threshold for a peak
     are not valid. The threshold t2 ends up being too large and valid peaks may be
-    excluded. To avoid this problem the histogram can be samples from a KDE instead.
+    excluded. To avoid this problem the histogram can be sampled from a KDE instead.
     
     hist
         A sequence representing the histogram bin counts. Typically the first parameter
@@ -319,7 +315,7 @@ def find_logic_levels(samples, max_samples, buf_size):
     return find_bot_top_hist_peaks(buf, 100, use_kde=True)
 
 
-#FIX: the find_edges() FSM has some logic errors. It should be redone
+
 def find_edges(samples, logic, hysteresis=0.4):
     '''Find the edges in a sampled digital waveform
     
@@ -341,20 +337,45 @@ def find_edges(samples, logic, hysteresis=0.4):
       logic value (0 or 1) for each edge transition. The first tuple
       yielded is the initial state of the sampled waveform. All remaining
       tuples are detected edges.
-    
-    
+      
+    Raises StreamError if the stream is empty
     '''
     span = logic[1] - logic[0]
     thresh = (logic[1] + logic[0]) / 2.0
     hyst_top = span * (0.5 + hysteresis / 2.0) + logic[0]
     hyst_bot = span * (0.5 - hysteresis / 2.0) + logic[0]
 
+    
+    # A sample can be in one of three zones: two logic states (1, 0) and
+    # one transition bands for the hysteresis
+    
+    ZONE_1_L1 = 1 # logic 1
+    ZONE_2_T  = 2 # transition
+    ZONE_3_L0 = 3 # logic 0
+    
+    def get_sample_zone(sample):
+        if sample > hyst_top:
+            zone = ZONE_1_L1
+        elif sample > hyst_bot:
+            zone = ZONE_2_T
+        else:
+            zone = ZONE_3_L0
+            
+        return zone
+        
+    def is_stable_zone(zone):
+        return zone == ZONE_1_L1 or zone == ZONE_3_L0
+        
+    def zone_to_logic_state(zone):
+        ls = 999
+        if zone == ZONE_1_L1: ls = 1
+        elif zone == ZONE_3_L0: ls = 0
+        
+        return ls
+    
+    
     # states
     ES_START = 0
-    ES_NEED_POS_EDGE = 1
-    ES_NEED_NEG_EDGE = 2
-    ES_NEED_HIGH = 3
-    ES_NEED_LOW = 4
     
     state = ES_START
     
@@ -363,43 +384,71 @@ def find_edges(samples, logic, hysteresis=0.4):
         start_time, initial_sample = next(samples)
     except StopIteration:
         raise StreamError('Unable to initialize sample stream')
-    
+        
     initial_state = (start_time, 1 if initial_sample > thresh else 0)
-    
-    #start_time = time_axis[0] if time_axis is not None else 0
-    #initial_state = (start_time,1 if wf[0] > thresh else 0)
-    
     yield initial_state
     
-    #for i, x in enumerate(wf):
-    for t, x in samples:
-    
-        if state == ES_START:
-            if x < hyst_bot:
-                state = ES_NEED_POS_EDGE
-            elif x > hyst_top:
-                state = ES_NEED_NEG_EDGE
-                
-        elif state == ES_NEED_POS_EDGE: # currently below the threshold
-            if x >= thresh:
-                state = ES_NEED_NEG_EDGE if x > hyst_top else ES_NEED_HIGH
-                yield (t, 1)
-
-        elif state == ES_NEED_NEG_EDGE: # currently above the the threshold
-            if x <= thresh:
-                state = ES_NEED_POS_EDGE if x < hyst_bot else ES_NEED_LOW
-                yield (t, 0)
+    for t, sample in samples:
+        zone = get_sample_zone(sample)
         
-        elif state == ES_NEED_HIGH: # looking for sample above hysteresis threshold
-            if x > hyst_top:
-                state = ES_NEED_NEG_EDGE
-                
-        elif state == ES_NEED_LOW: # looking for sample below hysteresis threshold
-            if x < hyst_bot:
-                state = ES_NEED_POS_EDGE
+        if state == ES_START:
+            # Stay in start until we reach one of the stable states
+            if is_stable_zone(zone):
+                state = zone
 
+        # last zone was a stable state
+        elif state == ZONE_1_L1 or state == ZONE_3_L0:
+            if is_stable_zone(zone):
+                if zone != state:
+                    state = zone
+                    yield (t, zone_to_logic_state(zone))
+            else:
+                prev_stable = state
+                state = zone
+        
+        # last zone was a transitional state (in hysteresis band)
+        elif state == ZONE_2_T:
+            if is_stable_zone(zone):
+                if zone != prev_stable: # This wasn't just noise
+                    yield (t, zone_to_logic_state(zone))
+
+            state = zone
+            
 
 def find_differential_edges(samples, logic, hysteresis=0.1):
+    '''Find the edges in a sampled differential digital waveform
+    
+    This is a generator function that can be used in a pipeline of waveform
+    procesing operations.
+    
+    The samples should be from a differential input such that the input signal can
+    be in one of three states: differential +1, differential -1, or 0.
+    
+    Note that the output of this function cannot be used directly without further
+    processing. Transitions from -1 to +1 and vice versa cannot be easily
+    distinguished from transitions from -/+1 to 0 to +/-1. Short periods in the 0 state
+    should be removed but this requires knowledge of the minimum time for a 0 state
+    to be valid. This is performed by the remove_short_diff_0s() function.
+    
+    samples
+        An iterable representing a sequence of samples. Each sample is a
+        2-tuple representing the time of the sample and the sample's value.
+
+    logic
+        A 2-tuple (low, high) representing the mean logic levels in the sampled waveform
+        for -1 and +1. The logic level for 0 is assumed to be midway between these two.
+        
+    hysteresis
+        A value between 0.0 and 1.0 representing the amount of hysteresis the use for
+        detecting valid edge crossings.
+        
+    Yields a series of 2-tuples (time, value) representing the time and
+      logic value (-1, 0, or 1) for each edge transition. The first tuple
+      yielded is the initial state of the sampled waveform. All remaining
+      tuples are detected edges.
+    
+    Raises StreamError if the stream is empty
+    '''
     span = logic[1] - logic[0]
     center = (logic[1] + logic[0]) / 2.0
     span_high = logic[1] - center
@@ -412,14 +461,6 @@ def find_differential_edges(samples, logic, hysteresis=0.1):
     
     hyst_low_top = span_low * (0.5 + hysteresis / 2.0) + logic[0]
     hyst_low_bot = span_low * (0.5 - hysteresis / 2.0) + logic[0]
-    
-    print('center', center)
-    print('th', thresh_high)
-    print('tl', thresh_low)
-    print('hht', hyst_high_top)
-    print('hhb', hyst_high_bot)
-    print('hlt', hyst_low_top)
-    print('hlb', hyst_low_bot)
     
     # A sample can be in one of five zones: three differential states (1, 0, -1) and
     # two transition bands for the hysteresis (low, high)
@@ -496,8 +537,30 @@ def find_differential_edges(samples, logic, hysteresis=0.1):
             state = zone
 
 
-def remove_short_se0s(diff_edges, min_se0_time):
-    se0_start = None
+def remove_short_diff_0s(diff_edges, min_diff_0_time):
+    '''Filter out unwanted differential 0's from an edge stream
+    
+    This is a generator function that can be used in a pipeline of waveform
+    procesing operations.
+    
+    diff_edges
+        An iterable of 2-tuples representing each edge transition.
+        The 2-tuples *must* be in the absolute time form (time, logic level).
+        The logic levels should be in the set (-1, 0, 1) as produced by
+        find_differential_edges().
+    
+    min_diff_0_time
+        The threshold for differential 0 states. A diff 0 lasting less than this
+        threshold will be filtered out of the edge stream.
+
+    Yields a series of 2-tuples (time, value) representing the time and
+      logic value (-1, 0, or 1) for each edge transition. The first tuple
+      yielded is the initial state of the sampled waveform. All remaining
+      tuples are detected edges.
+      
+    Raises StreamError if the stream is empty
+    '''
+    diff_0_start = None
     merged_edge = False
     
     # Get the first edge
@@ -516,22 +579,22 @@ def remove_short_se0s(diff_edges, min_se0_time):
         if edge[1] != 0:
             merged_edge = False
 
-        if se0_start is not None: # prev edge started SE0
-            se0_end = edge[0]
-            se0_len = se0_end - se0_start
+        if diff_0_start is not None: # prev edge started differential 0
+            diff_0_end = edge[0]
+            diff_0_len = diff_0_end - diff_0_start
             
-            if se0_len < min_se0_time:
-                # merge edges and remove SE0
-                prev_edge = ((se0_start + se0_end) / 2.0, edge[1])
+            if diff_0_len < min_diff_0_time:
+                # merge edges and remove differential 0
+                prev_edge = ((diff_0_start + diff_0_end) / 2.0, edge[1])
                 merged_edge = True
                 yield prev_edge
             else:
                 merged_edge = False
 
-            se0_start = None
+            diff_0_start = None
 
-        if edge[1] == 0: #SE0
-            se0_start = edge[0]
+        if edge[1] == 0: #diff_0
+            diff_0_start = edge[0]
 
         if not merged_edge:
             yield prev_edge
@@ -662,18 +725,18 @@ class EdgeSequence(object):
 
     def __init__(self, edges, time_step, start_time=None):
         '''
-            edges
-                An iterable of 2-tuples representing each edge transition.
-                The 2-tuples *must* be in the absolute time form (time, logic level).
+        edges
+            An iterable of 2-tuples representing each edge transition.
+            The 2-tuples *must* be in the absolute time form (time, logic level).
+        
+        time_step
+            The default time step for advance() when it is called
+            without an argument.
+        
+        start_time
+            The initial starting time for the sequence.
             
-            time_step
-                The default time step for advance() when it is called
-                without an argument.
-            
-            start_time
-                The initial starting time for the sequence.
-                
-            Raises StreamError when there are less than two elements to the edges iterable
+        Raises StreamError when there are less than two elements to the edges iterable
         '''
         self.edges = edges
         self.time_step = time_step
@@ -874,55 +937,3 @@ class MultiEdgeSequence(object):
                 return self.sequences[self.channel_ids[channel_name]].at_end()
             else:
                 raise ValueError("Invalid channel name '{0}'".format(channel_name))
-
-
-class StreamStatus(object):
-    '''Enumeration for standard stream status codes'''
-    Ok = 0
-    Warning = 100
-    Error = 200
-    
-class StreamRecord(object):
-    '''Base class for protocol decoder output stream objects'''
-    def __init__(self, kind='unknown', status=StreamStatus.Ok):
-        self.kind = kind
-        self.status = status
-        self.stream_id = 0 # associate this record from multiplexed data with a particular stream
-        self.subrecords = []
-
-    def nested_status(self):
-        '''Retrieve the highest status value from this record and its subrecords'''
-        cur_status = self.status
-        for srec in self.subrecords:
-            nstat = srec.nested_status()
-            cur_status = nstat if nstat > cur_status else cur_status
-            
-        return cur_status
-
-    def __repr__(self):
-        return 'StreamRecord(\'{0}\')'.format(self.kind)
-    
-class StreamSegment(StreamRecord):
-    '''A stream element that spans two points in time'''
-    def __init__(self, time_bounds, data=None, kind='unknown segment', status=StreamStatus.Ok):
-        StreamRecord.__init__(self, kind, status)
-        self.start_time = time_bounds[0] # (start time, end time)
-        self.end_time = time_bounds[1]
-        self.data = data
-        
-    def __repr__(self):
-        return 'StreamSegment(({0},{1}), {2}, \'{3}\')'.format(self.start_time, self.end_time, \
-            repr(self.data), self.kind)
-
-class StreamEvent(StreamRecord):
-    '''A stream element that occurs at a specific point in time'''
-    def __init__(self, time, data=None, kind='unknown event', status=StreamStatus.Ok):
-        StreamRecord.__init__(self, kind, status)
-        self.time = time
-        self.data = data
-
-    def __repr__(self):
-        return 'StreamEvent({0}, {1}, \'{2}\')'.format(self.time, \
-            repr(self.data), self.kind)        
-
-        
