@@ -179,9 +179,11 @@ class USBPacket(object):
         self.swap_jk = False # Set True for low-speed packets transmitted after a PREamble
         
     def get_bits(self):
+        '''Generate the raw data bits of a packet in LSB-first order'''
         raise NotImplementedError('USBPacket must be sub-classed')
         
     def _init_bits(self):
+        '''Generate the common sync and PID bits used by all packet types'''
         # sync and PID generation
         bits = []
         
@@ -203,6 +205,7 @@ class USBPacket(object):
         return bits
 
     def _bit_stuff(self, bits):
+        '''Perform USB bit-stuffing'''
         sbits = []
         ones = 0
         for b in bits:
@@ -220,7 +223,7 @@ class USBPacket(object):
         return sbits
         
     def _get_NRZI(self):
-        ''' Apply bit stuffing and convert bits to J/K states '''
+        '''Apply bit stuffing and convert bits to J/K states'''
         period = USBClockPeriod[self.speed]
         t = 0.0
 
@@ -275,6 +278,10 @@ class USBPacket(object):
         
         
     def get_edges(self, cur_time = 0.0):
+        '''Produce a set of edges corresponding to USB D+ and D- signals
+        
+        Returns a 2-tuple containing the D+ and D- edge lists
+        '''
         if self.speed == USBSpeed.LowSpeed and self.swap_jk == False:
             J_DP = 0
             J_DM = 1
@@ -332,12 +339,14 @@ def _join_bits(bits):
     
         
 class USBTokenPacket(USBPacket):
+    '''Token packet'''
     def __init__(self, pid, addr, endp, speed=USBSpeed.FullSpeed, delay=0.0):
         USBPacket.__init__(self, pid, speed, delay)
         self.addr = addr
         self.endp = endp
         
     def get_bits(self):
+        '''Generate token packet bits'''
         # Token packet format:
         #  sync, PID, Addr, Endp, CRC5
         
@@ -375,11 +384,13 @@ class USBTokenPacket(USBPacket):
         return match
         
 class USBDataPacket(USBPacket):
+    '''Data packet'''
     def __init__(self, pid, data, speed=USBSpeed.FullSpeed, delay=0.0):
         USBPacket.__init__(self, pid, speed, delay)
         self.data = data
     
     def get_bits(self):
+        '''Generate data packet bits'''
         # Data packet format:
         #  sync, PID, Data, CRC16
         
@@ -421,10 +432,12 @@ class USBDataPacket(USBPacket):
 
         
 class USBHandshakePacket(USBPacket):
+    '''Handshake packet'''
     def __init__(self, pid, speed=USBSpeed.FullSpeed, delay=0.0):
         USBPacket.__init__(self, pid, speed, delay)
 
     def get_bits(self):
+        '''Generate handshake packet bits'''
         # Handshake packet format:
         #  sync, PID
         
@@ -458,12 +471,14 @@ class USBHandshakePacket(USBPacket):
         
 
 class USBSOFPacket(USBPacket):
+    '''Start of Frame packet'''
     def __init__(self, pid, frame_num, speed=USBSpeed.FullSpeed, delay=0.0):
         USBPacket.__init__(self, pid, speed, delay)
         self.frame_num = frame_num
         self.hs_eop_bits = 40
 
     def get_bits(self):
+        '''Generate SOF packet bits'''
         # SOF packet format:
         #  sync, PID, Frame, CRC5
         
@@ -497,6 +512,7 @@ class USBSOFPacket(USBPacket):
         return match
 
 class USBSplitPacket(USBPacket):
+    '''Split packet'''
     def __init__(self, pid, addr, sc, port, s, e, et, speed=USBSpeed.HighSpeed, delay=0.0):
         USBPacket.__init__(self, pid, speed, delay)
         self.addr = addr
@@ -507,6 +523,7 @@ class USBSplitPacket(USBPacket):
         self.et = et
         
     def get_bits(self):
+        '''Generate split packet bits'''
         # Split packet format:
         #  sync, PID, Addr, SC, Port, S, E/U, ET, CRC5
         
@@ -563,6 +580,7 @@ class USBSplitPacket(USBPacket):
         return match
             
 class USBEXTPacket(USBPacket):
+    '''Extended packet'''
     def __init__(self, pid, addr, endp, sub_pid, variable, speed=USBSpeed.FullSpeed, delay=0.0):
         USBPacket.__init__(self, pid, speed, delay)
         self.addr = addr
@@ -598,6 +616,7 @@ class USBEXTPacket(USBPacket):
             idle_state = USBState.SE0
             gap_bit_times = 40 # Minimum is 32 bit times
 
+        # Add one cycle before switch to idle
         ig_start_time = tok_nrzi[-1][0] + USBClockPeriod[self.speed]
         tok_nrzi.append((ig_start_time, idle_state))
         
@@ -694,7 +713,7 @@ def usb_decode(dp, dm, stream_type=StreamType.Samples):
     # as the edges_it is advanced later on
     del speed_check_it
     
-    print('### symbol rate:', bus_speed, USBClockPeriod[bus_speed])
+    #print('### symbol rate:', bus_speed, USBClockPeriod[bus_speed])
 
     edge_sets = {
         'dp': dp_it,
@@ -751,19 +770,10 @@ def usb_diff_decode(d_diff, stream_type=StreamType.Samples):
         if logic is None:
             raise StreamError('Unable to find avg. logic levels of waveform')
         del thresh_it
-        
-        print('### logic levels:', logic)
-        
+
         hyst = 0.1
         d_diff_it = find_differential_edges(s_diff_it, logic, hysteresis=hyst)
-        
-        # d_diff_l = list(d_diff_it)
-        # #print('### diff edges:', d_diff_l)
-        # # ddt, ddl = zip(*d_diff_l)
-        # # dt = [ddt[i] - ddt[i-1] for i in xrange(1,len(ddt))]
-        # # print('### diff edges(dt):', zip(dt, ddl))
-        # d_diff_it = iter(d_diff_l)
-        
+
     else: # The stream is already a list of edges
         d_diff_it = d_diff
 
@@ -775,15 +785,14 @@ def usb_diff_decode(d_diff, stream_type=StreamType.Samples):
     # as the d_diff_it is advanced later on
     del speed_check_it
     
-    print('### symbol rate:', bus_speed, USBClockPeriod[bus_speed])
+    #print('### symbol rate:', bus_speed, USBClockPeriod[bus_speed])
     
     if stream_type == StreamType.Samples:
         # We needed the bus speed before we could properly strip just
-        # the anamolous SE0s
+        # the anomalous SE0s
         min_se0 = USBClockPeriod[bus_speed] * 0.75
         d_diff_it = remove_short_diff_0s(d_diff_it, min_se0)
 
-    #d_diff_it = remove_short_se0s(d_diff_it, 60.0e-9)
     es = EdgeSequence(d_diff_it, 0.0)
     state_seq = EdgeSequence(_convert_differential_states(es, bus_speed), 0.0)
     
@@ -795,6 +804,7 @@ def usb_diff_decode(d_diff, stream_type=StreamType.Samples):
         
     
 def _get_bus_speed(speed_check_it, remove_se0s=False):
+    '''Determine bus speed of USB waveforms'''
 
     # An unfiltered differential edge list can contain unwanted
     # SE0 states between +1 <-> -1 transitions. These will interfere
@@ -839,7 +849,6 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
     SE0 = USBState.SE0
     J = USBState.J
     K = USBState.K
-    SE1 = USBState.SE1
     
     ext_packet_bits = None
     preamble_active = False
@@ -851,6 +860,8 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
         cur_bus = state_seq.cur_state()
         packet_start = state_seq.cur_time
         
+        # The packet speed is reduced to low-speed if the previous packet
+        # was a PREamble.
         if not preamble_active:
             pkt_speed = bus_speed
         else:
@@ -862,14 +873,13 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
         if bus_speed == USBSpeed.FullSpeed and pkt_speed == USBSpeed.LowSpeed:
             next_edge_step = state_seq.next_states[0] - state_seq.cur_time
             if abs(next_edge_step - USBClockPeriod[USBSpeed.FullSpeed]) < \
-                USBClockPeriod[USBSpeed.FullSpeed] * 0.01:
+                USBClockPeriod[USBSpeed.FullSpeed] * 0.05:
                 pkt_speed = USBSpeed.FullSpeed
                 preamble_active = False
-                print('!!!! ENDING PREAMBLE', abs(next_edge_step - USBClockPeriod[USBSpeed.FullSpeed]), USBClockPeriod[USBSpeed.FullSpeed] * 0.01)
-        
+
         clock_period = USBClockPeriod[pkt_speed]
 
-        # look for a start of packet:
+        # Look for a start of packet:
         #   Low and Full speed: Transition from J to K
         #   High speed: Transition from SE0 to K
         get_packet = False
@@ -887,9 +897,7 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
                         if state_seq.cur_state() != p: # pattern mismatch
                             get_packet = False
                             break
-                            
-                        #print('#### sync pat:', get_packet)
-                            
+
         else: # HighSpeed SOP
             if prev_bus == SE0 and cur_bus == K:
                 # move to middle of current K state
@@ -969,7 +977,7 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
 
                 if packet_pid_bits[0:4] == packet_pid_check: # valid PID
                     pid = _join_bits(reversed(packet_pid_bits[0:4]))
-                    if bus_speed == USBSpeed.FullSpeed and pid == USBPID.PRE:
+                    if bus_speed == USBSpeed.FullSpeed and pid == USBPID.PRE and ext_packet_bits is None:
                         # The PREamble packet is special and does not
                         # have an EOP. There will be no SE0 to break on.
                         preamble_active = True
@@ -993,9 +1001,6 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
             yield USBStreamError((packet_start, packet_end), packet_bits, status=status)
             continue
             
-        # #print('#### Packet states:', packet_states, packet_bits, len(packet_bits))
-        #print('### PID:', bin(pid), packet_bits[0:8])
-        
         packet_kind = _get_packet_kind(pid)
         
         # A USB 2.0 hub chain can add up to 20 random bits to the end of a HighSpeed packet.
@@ -1015,7 +1020,7 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
                     eop_bits = i + 8
                     
             if eop_bits == 0: # no EOP found
-                print('######### ERROR NO EOP found in data packet', trailing_data)
+                #print('######### ERROR NO EOP found in data packet', trailing_data)
                 
                 status = USBStreamStatus.MissingEOPError
                 yield USBStreamError((packet_start, packet_end), packet_bits, pid=pid, status=status)
@@ -1281,37 +1286,6 @@ def _decode_NRZI(packet_states):
             
     return bits
 
-    
-def _convert_differential_states(es, bus_speed):
-    # Establish J/K state values
-    if bus_speed == USBSpeed.LowSpeed:
-        DIFF_J = -1
-        DIFF_K = 1
-    else:
-        DIFF_J = 1
-        DIFF_K = -1
-
-    DIFF_SE0 = 0
-    
-    def decode_state(cur_diff):
-        cur_bus = USBState.SE1
-        if cur_diff == DIFF_J: cur_bus = USBState.J
-        if cur_diff == DIFF_K: cur_bus = USBState.K
-        if cur_diff == DIFF_SE0: cur_bus = USBState.SE0
-        
-        return cur_bus
-        
-    
-    cur_bus = decode_state(es.cur_state())
-    yield (es.cur_time, cur_bus)
-    
-    while not es.at_end():
-        #prev_bus = cur_bus
-        es.advance_to_edge()
-        
-        cur_bus = decode_state(es.cur_state())
-        yield (es.cur_time, cur_bus)
-    
 
 def _convert_single_ended_states(es, bus_speed):
     '''Convert a stream of single-ended states for D+ and D- to
@@ -1367,10 +1341,69 @@ def _convert_single_ended_states(es, bus_speed):
         yield (es.cur_time() - skew_adjust, cur_bus)
         
 
+def _convert_differential_states(es, bus_speed):
+    '''Convert a stream of differential states for D+ - D- to
+    logical states (J, K, SE0).
+    
+    This is a generator function.
+    
+    Yields a 2-tuple (time, state) representing the state of the differential pair.
+    '''
+    # Establish J/K state values
+    if bus_speed == USBSpeed.LowSpeed:
+        DIFF_J = -1
+        DIFF_K = 1
+    else:
+        DIFF_J = 1
+        DIFF_K = -1
+
+    DIFF_SE0 = 0
+    
+    def decode_state(cur_diff):
+        cur_bus = USBState.SE1
+        if cur_diff == DIFF_J: cur_bus = USBState.J
+        if cur_diff == DIFF_K: cur_bus = USBState.K
+        if cur_diff == DIFF_SE0: cur_bus = USBState.SE0
+        
+        return cur_bus
+        
+    
+    cur_bus = decode_state(es.cur_state())
+    yield (es.cur_time, cur_bus)
+    
+    while not es.at_end():
+        #prev_bus = cur_bus
+        es.advance_to_edge()
+        
+        cur_bus = decode_state(es.cur_state())
+        yield (es.cur_time, cur_bus)
+
     
 
-        
 def usb_synth(packets, idle_start=0.0, idle_end=0.0):
+    '''Generate synthesized USB waveforms
+    
+    This function simulates USB packet transmission on the D+ and D- signals.
+    
+    This is a generator function that can be used in a pipeline of waveform
+    procesing operations.
+    
+    packets
+        A sequence of USBPacket objects that are to be simulated
+    
+    idle_start
+        The amount of idle time before the transmission of packets begins
+    
+    idle_end
+        The amount of idle time after the last packet
+
+    Yields a series of 2-tuples (dp, dm) for the D+ and D- channels. Each
+      tuple is itself a 2-tuple (time, value) representing the time and the
+      logic value (0 or 1) for each edge transition on D+ and D-. The first tuple
+      yielded is the initial state of the waveform. All remaining tuples are
+      edges where the state changes.
+    '''
+
     t = 0.0
     dp = 0
     dm = 0
@@ -1396,7 +1429,7 @@ def usb_synth(packets, idle_start=0.0, idle_end=0.0):
     
 
 def usb_crc5(d):
-    ''' Calculate USB CRC-5 on data
+    '''Calculate USB CRC-5 on data
     d
         Array of integers representing 0 or 1 bits in transmission order
         
@@ -1418,7 +1451,7 @@ def usb_crc5(d):
 
 
 def usb_crc16(d):
-    ''' Calculate USB CRC-16 on data
+    '''Calculate USB CRC-16 on data
     d
         Array of integers representing 0 or 1 bits in transmission order
         
@@ -1467,7 +1500,7 @@ _crc16_table = _crc16_table_gen()
 
 
 def table_usb_crc16(d):
-    ''' Calculate USB CRC-16 on data
+    '''Calculate USB CRC-16 on data
     
     This is a table-based byte-wise implementation
     
