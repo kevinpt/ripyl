@@ -206,14 +206,16 @@ def test_usb():
     p5 = USBSOFPacket(USBPID.SOF, 0x123, speed=speed)
     p6 = USBEXTPacket(USBPID.EXT, 0x22, 0x03, 0xA, 0x1A0, speed=speed)
     p7 = USBSplitPacket(USBPID.SPLIT, 0x11, 0, 0x10, 1, 0, 0x1, speed=speed)
+    p8 = USBHandshakePacket(USBPID.PRE, speed=speed)
     
     p4.hs_sync_dropped_bits = 18
     
     #packets = [p, p2, p3, p4, p5, p6]
     
     packets = [p, p2, p4, p5, p3]
-    packets = [p, p2, p6, p5]
-    packets = [p4, p4]
+    #packets = [p, p2, p6, p5]
+    #packets = [p4, p4, p4]
+    print('### test_usb()')
     
     dp, dm = zip(*list(usb_synth(packets, 1.0e-7, 3.0e-7)))
     
@@ -548,7 +550,7 @@ if __name__ == '__main__':
         test_i2c()
 
     if options.usb:
-        print('  Testing USB')
+        print('  Testing USB !!!')
         test_usb()
         
     if options.usb_file:
