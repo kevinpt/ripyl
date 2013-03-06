@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Protocol decode library
+'''Ripyl protocol decode library
    USB protocol decoder
 '''
 
@@ -176,6 +176,7 @@ class USBPacket(object):
         self.hs_eop_bits = 8 # High-speed EOP is normally 8-bits. SOF Packet overrides this to 40
         self.hs_sync_dropped_bits = 0 # USB 2.0 7.1.10: Up to 20 bits may be dropped from High-speed sync
         self.idle_cycles = 3 # number of idle cycles at start of a packet
+        self.swap_jk = False # Set True for low-speed packets transmitted after a PREamble
         
     def get_bits(self):
         raise NotImplementedError('USBPacket must be sub-classed')
@@ -274,7 +275,7 @@ class USBPacket(object):
         
         
     def get_edges(self, cur_time = 0.0):
-        if self.speed == USBSpeed.LowSpeed:
+        if self.speed == USBSpeed.LowSpeed and self.swap_jk == False:
             J_DP = 0
             J_DM = 1
         else:
@@ -435,7 +436,7 @@ class USBHandshakePacket(USBPacket):
         nrzi = USBPacket._get_NRZI(self)
     
         # Override default behavior for PRE PIDs so we can remove the EOP
-        if (self.speed == USBSpeed.LowSpeed or self.speed == USBSpeed.HighSpeed) \
+        if (self.speed == USBSpeed.LowSpeed or self.speed == USBSpeed.FullSpeed) \
             and self.pid == USBPID.PRE:
             # Technically, PRE packets are only transmitted at Full-speed but we include
             # Low-speed to maintain full coverate across all speeds. At High-speed
@@ -641,13 +642,6 @@ def usb_decode(dp, dm, stream_type=StreamType.Samples):
     This function decodes USB data captured from the two single-ended D+ and D- signals.
     For differential USB decode see the function usb_diff_decode().
     
-    This decoder currently only supports input signals containing packets encoded at a
-    single bus speed (Low, Full, or High). This is not an issue in a USB 2.0 system where
-    traffic at any one point in the system is always running at a fixed speed. With USB 1.1
-    hosts and hubs there is a possibility of seeing mixed Low and Full speed packets on the
-    same wire. The decoder will fail to handle this case properly but may produce some
-    valid packets.
-    
     Low speed device keep-alive EOPs are not reported in the decoded results.
     
     
@@ -725,23 +719,15 @@ def usb_diff_decode(d_diff, stream_type=StreamType.Samples):
     
     This function decodes USB data captured from a differential (D+)-(D-) signal.
     For single-ended USB decode see the function usb_decode().
-    
-    This decoder currently only supports input signals containing packets encoded at a
-    single bus speed (Low, Full, or High). This is not an issue in a USB 2.0 system where
-    traffic at any one point in the system is always running at a fixed speed. With USB 1.1
-    hosts and hubs there is a possibility of seeing mixed Low and Full speed packets on the
-    same wire. The decoder will fail to handle this case properly but may produce some
-    valid packets.
-    
+
     Low speed device keep-alive EOPs are not reported in the decoded results.
     
     
-    The dp and dm parameters are edge or sample streams.
-    Each is a stream of 2-tuples of (time, value) pairs. The type of stream is identified
-    by the stream_type parameter. Either a series of real valued samples that will be
-    analyzed to find edge transitions or a set of pre-processed edge transitions
-    representing the 0 and 1 logic states of the waveforms. When this is a sample
-    stream, an initial block of data on the dp stream is consumed to determine the most
+    The d_diff parameter is a stream of 2-tuples of (time, value) pairs. The type of stream
+    is identified by the stream_type parameter. Either a series of real valued samples that
+    will be analyzed to find edge transitions or a set of pre-processed edge transitions
+    representing the -1, 0, and 1 logic states of the differential waveform. When this is a
+    sample stream, an initial block of data is consumed to determine the most
     likely logic levels in the signal and the bus speed.
     
     d_diff
@@ -795,7 +781,7 @@ def usb_diff_decode(d_diff, stream_type=StreamType.Samples):
         # We needed the bus speed before we could properly strip just
         # the anamolous SE0s
         min_se0 = USBClockPeriod[bus_speed] * 0.75
-        d_diff_it = remove_short_se0s(d_diff_it, min_se0)
+        d_diff_it = remove_short_diff_0s(d_diff_it, min_se0)
 
     #d_diff_it = remove_short_se0s(d_diff_it, 60.0e-9)
     es = EdgeSequence(d_diff_it, 0.0)
@@ -843,7 +829,7 @@ def _get_bus_speed(speed_check_it, remove_se0s=False):
     return bus_speed
 
 
-def _decode_usb_state(state_seq, bus_speed):
+def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
     '''This routine does the bulk of the decode work. It is called by both the
     single-ended decoder and the differential decoder once they have completed
     the preliminary work of extracting the bus states (J, K, SE0) from their
@@ -856,21 +842,38 @@ def _decode_usb_state(state_seq, bus_speed):
     SE1 = USBState.SE1
     
     ext_packet_bits = None
+    preamble_active = False
 
     cur_bus = state_seq.cur_state()
     while not state_seq.at_end():
         prev_bus = cur_bus
         ts = state_seq.advance_to_edge()
         cur_bus = state_seq.cur_state()
-        packet_start = state_seq.cur_time    
+        packet_start = state_seq.cur_time
         
-        clock_period = USBClockPeriod[bus_speed]
+        if not preamble_active:
+            pkt_speed = bus_speed
+        else:
+            pkt_speed = USBSpeed.LowSpeed
+        
+        # Look ahead to next edge to determine if this edge may be the start
+        # of a full speed packet. This allows us to combine low and full
+        # speed packets when PREamble packets are in use.
+        if bus_speed == USBSpeed.FullSpeed and pkt_speed == USBSpeed.LowSpeed:
+            next_edge_step = state_seq.next_states[0] - state_seq.cur_time
+            if abs(next_edge_step - USBClockPeriod[USBSpeed.FullSpeed]) < \
+                USBClockPeriod[USBSpeed.FullSpeed] * 0.01:
+                pkt_speed = USBSpeed.FullSpeed
+                preamble_active = False
+                print('!!!! ENDING PREAMBLE', abs(next_edge_step - USBClockPeriod[USBSpeed.FullSpeed]), USBClockPeriod[USBSpeed.FullSpeed] * 0.01)
+        
+        clock_period = USBClockPeriod[pkt_speed]
 
         # look for a start of packet:
         #   Low and Full speed: Transition from J to K
         #   High speed: Transition from SE0 to K
         get_packet = False
-        if bus_speed == USBSpeed.LowSpeed or bus_speed == USBSpeed.FullSpeed:
+        if pkt_speed == USBSpeed.LowSpeed or pkt_speed == USBSpeed.FullSpeed:
             if prev_bus == J and cur_bus == K:
                 
                 # move to middle of current K state
@@ -935,10 +938,10 @@ def _decode_usb_state(state_seq, bus_speed):
         
         # Get the remaining states in the packet.
         # We will adjust timings to keep ourselves positioned in the center of a bit
-        #FIX: PRE packets do not end with an EOP. We need to detect this
         packet_states = []
         state_seq.advance(clock_period)  # At middle of first PID bit
         time_adjustment = 0.0
+        invalid_pid = False
         while state_seq.cur_state() != SE0:
             packet_states.append(state_seq.cur_state())
             
@@ -954,8 +957,26 @@ def _decode_usb_state(state_seq, bus_speed):
             next_step = next_edge_time - state_seq.cur_time
             if next_step < clock_period:
                 time_adjustment = next_step - (clock_period / 2.0)
-                    
-            
+                
+            if len(packet_states) == 8:
+                # Decode the PID
+                packet_pid_bits = _decode_NRZI(packet_states)
+                
+                # Validate the PID
+                packet_pid_check = packet_pid_bits[4:8]
+                for i, b in enumerate(packet_pid_check): # invert the check bits
+                    packet_pid_check[i] = 1 - b
+
+                if packet_pid_bits[0:4] == packet_pid_check: # valid PID
+                    pid = _join_bits(reversed(packet_pid_bits[0:4]))
+                    if bus_speed == USBSpeed.FullSpeed and pid == USBPID.PRE:
+                        # The PREamble packet is special and does not
+                        # have an EOP. There will be no SE0 to break on.
+                        preamble_active = True
+                        break
+                else:
+                    invalid_pid = True
+
         cur_bus = state_seq.cur_state()
         packet_end = state_seq.cur_time
             
@@ -964,23 +985,15 @@ def _decode_usb_state(state_seq, bus_speed):
             status = USBStreamStatus.ShortPacketError
             yield USBStreamError((packet_start, packet_end), packet_bits, status=status)
             continue
-
             
         packet_bits = _decode_NRZI(packet_states)
-        #print('#### Packet states:', packet_states, packet_bits, len(packet_bits))
         
-        # Validate the PID
-        packet_check = packet_bits[4:8]
-        for i, b in enumerate(packet_check): # invert the check bits
-            packet_check[i] = 1 - b
-            
-        if packet_bits[0:4] != packet_check: # invalid PID
+        if invalid_pid:
             status = USBStreamStatus.InvalidPIDError
             yield USBStreamError((packet_start, packet_end), packet_bits, status=status)
             continue
-        
-        pid = _join_bits(reversed(packet_bits[0:4]))
             
+        # #print('#### Packet states:', packet_states, packet_bits, len(packet_bits))
         #print('### PID:', bin(pid), packet_bits[0:8])
         
         packet_kind = _get_packet_kind(pid)
@@ -990,7 +1003,7 @@ def _decode_usb_state(state_seq, bus_speed):
         # so that we can determine the length of a data packet later. If we wait, the unstuffing
         # will mangle the EOP and make things less dependable.
         eop_bits = 0
-        if bus_speed == USBSpeed.HighSpeed and packet_kind == USBPacketKind.Data:
+        if pkt_speed == USBSpeed.HighSpeed and packet_kind == USBPacketKind.Data:
             # We need to find the *start* of the EOP
             trailing_data = list(reversed(packet_bits[-28:]))
             # look for reversed EOP pattern in trailing data
@@ -1020,7 +1033,7 @@ def _decode_usb_state(state_seq, bus_speed):
         continue_decode = True
         #print('@@@@@@@@@@@@@ STUFFING ERRORS', stuffing_errors, len(packet_bits), unstuff_cnt)
         if len(stuffing_errors) > 0:
-            if (bus_speed == USBSpeed.LowSpeed or bus_speed == USBSpeed.FullSpeed):
+            if (pkt_speed == USBSpeed.LowSpeed or pkt_speed == USBSpeed.FullSpeed):
                 continue_decode = False # there was a stuffing error
             else: # HighSpeed
                 # For all packets except SOF there should be one stuffing error
@@ -1065,7 +1078,7 @@ def _decode_usb_state(state_seq, bus_speed):
                     status = USBStreamStatus.CRCError if crc_check != crc5_bits else StreamStatus.Ok
                     
                     # Construct the stream record
-                    raw_packet = USBTokenPacket(pid, addr, endp, bus_speed)
+                    raw_packet = USBTokenPacket(pid, addr, endp, pkt_speed)
                     packet = USBStreamPacket((packet_start, packet_end), raw_packet, crc5_bits, status=status)
                     yield packet
 
@@ -1083,7 +1096,7 @@ def _decode_usb_state(state_seq, bus_speed):
                     status = USBStreamStatus.CRCError if crc_check != crc5_bits else StreamStatus.Ok
                     
                     # Construct the stream record
-                    raw_packet = USBSOFPacket(pid, frame_num, bus_speed)
+                    raw_packet = USBSOFPacket(pid, frame_num, pkt_speed)
                     packet = USBStreamPacket((packet_start, packet_end), raw_packet, crc5_bits, status=status)
                     yield packet
                 
@@ -1112,7 +1125,7 @@ def _decode_usb_state(state_seq, bus_speed):
                     status = USBStreamStatus.CRCError if crc_check != crc16_bits else StreamStatus.Ok
 
                     # Construct the stream record
-                    raw_packet = USBDataPacket(pid, data, bus_speed)
+                    raw_packet = USBDataPacket(pid, data, pkt_speed)
                     packet = USBStreamPacket((packet_start, packet_end), raw_packet, crc16_bits, status=status)
                     yield packet
 
@@ -1124,7 +1137,7 @@ def _decode_usb_state(state_seq, bus_speed):
                 # ERR is only used in High speed USB
                 
                 # Construct the stream record
-                raw_packet = USBHandshakePacket(pid, bus_speed)
+                raw_packet = USBHandshakePacket(pid, pkt_speed)
                 packet = USBStreamPacket((packet_start, packet_end), raw_packet, status=StreamStatus.Ok)
                 yield packet
 
@@ -1155,7 +1168,7 @@ def _decode_usb_state(state_seq, bus_speed):
                         status = USBStreamStatus.CRCError if crc_check != crc5_bits else StreamStatus.Ok
                         
                         # Construct the stream record
-                        raw_packet = USBSplitPacket(pid, addr, sc, port, s, e, et, bus_speed)
+                        raw_packet = USBSplitPacket(pid, addr, sc, port, s, e, et, pkt_speed)
                         packet = USBStreamPacket((packet_start, packet_end), raw_packet, crc5_bits, status=status)
                         yield packet  
                     
@@ -1198,7 +1211,7 @@ def _decode_usb_state(state_seq, bus_speed):
                             status2 = USBStreamStatus.CRCError if crc_check != crc5_2_bits else StreamStatus.Ok
                             
                             # Construct the stream record
-                            raw_packet = USBEXTPacket(USBPID.EXT, addr, endp, sub_pid, variable, bus_speed)
+                            raw_packet = USBEXTPacket(USBPID.EXT, addr, endp, sub_pid, variable, pkt_speed)
                             status = max(status1, status2)
                             packet = USBStreamPacket((packet_start, packet_end), raw_packet, crc5_1_bits, status=status)
                             packet.crc2 = crc5_2_bits
