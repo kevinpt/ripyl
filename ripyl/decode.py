@@ -85,10 +85,10 @@ def find_bot_top_hist_peaks(samples, bins, use_kde=False):
         
         step = (mxv - mnv) / bins
         bin_centers = np.arange(mnv, mxv, step)
-        hist = 100 * kde(bin_centers)
+        hist = 1000 * kde(bin_centers)
         
-    #plt.plot(bin_centers, hist)
-    #plt.show()
+    # plt.plot(bin_centers, hist)
+    # plt.show()
     peaks = find_hist_peaks(hist)
     
     # make sure we have at least two peaks
@@ -161,7 +161,7 @@ def find_hist_peaks(hist):
         if b > 0 and b < t1:
             os.accumulate(b)
         
-    t2 = pop_mean + 2.0 * os.std(ddof=1)
+    t2 = pop_mean + 1.5 * os.std(ddof=1)
     
     #print('@@@@@ t2', t2, pop_mean, os.std(ddof=1))
     
@@ -237,7 +237,7 @@ def find_hist_peaks(hist):
     
     
 
-def find_logic_levels(samples, max_samples, buf_size):
+def find_logic_levels(samples, max_samples=5000, buf_size=2000):
     '''Automatically determine the logic levels of a digital signal.
     
     This function consumes up to max_samples from samples in an attempt
