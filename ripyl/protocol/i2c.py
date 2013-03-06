@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Protocol decode library
+'''Ripyl protocol decode library
    I2C protocol decoder
 '''
 
@@ -184,8 +184,6 @@ def i2c_decode(scl, sda, stream_type=StreamType.Samples):
 
             if cname == 'scl' and not es.at_end('scl') and es.cur_state('scl') == 1:
                 # rising edge of SCL
-                
-                #FIX: Add detection of clock stretching
                 
                 # accumulate the bit
                 if start_time is None:

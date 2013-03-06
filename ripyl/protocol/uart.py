@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Protocol decode library
+'''Ripyl protocol decode library
    UART protocol decoder
 '''
 
@@ -30,6 +30,7 @@ from __future__ import print_function, division
 
 import itertools
 
+import ripyl
 from ripyl.decode import *
 from ripyl.streaming import *
 
@@ -120,7 +121,7 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, pola
         # tee off an iterator to determine logic thresholds
         samp_it, thresh_it = itertools.tee(stream)
         
-        logic = find_logic_levels(thresh_it, max_samples=5000, buf_size=2000)
+        logic = find_logic_levels(thresh_it)
         if logic is None:
             raise StreamError('Unable to find avg. logic levels of waveform')
         del thresh_it
