@@ -198,7 +198,7 @@ def amplify(samples, gain=1.0, offset=0.0):
 
 def dropout(samples, start_time, end_time, val=0.0):
     for s in samples:
-        if s[0] > start_time and s[0] < end_time:
+        if s[0] >= start_time and s[0] < end_time:
             yield (s[0], val)
         else:
             yield s
