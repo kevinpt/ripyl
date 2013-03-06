@@ -33,16 +33,26 @@ import itertools
 from ripyl.decode import *
 from ripyl.streaming import *
 
-class UartFrame(StreamSegment):
+
+class UARTStreamStatus(object):
+    FramingError = StreamStatus.Error + 1
+    ParityError = StreamStatus.Error + 2
+
+class UARTFrame(StreamSegment):
     '''Frame object for UART data'''
-    def __init__(self, bounds, data=None):
-        StreamSegment.__init__(self, bounds, data)
+    def __init__(self, bounds, data=None, status=StreamStatus.Ok):
+        StreamSegment.__init__(self, bounds, data, status=status)
         self.kind = 'UART frame'
         
     def __str__(self):
-        return chr(self.data)
+        return chr(self.data & 0xFF)
+        
 
-def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, inverted=False, \
+class UARTConfig(object):
+    IdleHigh = 1  # Polarity settings
+    IdleLow = 2
+
+def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, polarity=UARTConfig.IdleHigh, \
     baud_rate=None, use_std_baud=True, stream_type=StreamType.Samples, baud_deque=None):
     
     '''Decode a UART data stream
@@ -74,6 +84,8 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, inve
         Boolean indicating if the signal levels have been inverted from their logical
         meaning. Use this when the input stream derives from an inverting driver such
         as those used for RS-232.
+    polarity
+        FIX
     
     baud_rate
         The baud rate of the stream. If None, the first 50 edges will be analyzed to
@@ -93,7 +105,7 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, inve
         and raw_symbol_rate is placed on the deque when uart_decode() is called.
 
         
-    Yields a series of UartFrame objects. Each frame contains subrecords marking the location
+    Yields a series of UARTFrame objects. Each frame contains subrecords marking the location
       of sub-elements within the frame (start, data, parity, stop). Parity errors are recorded
       as an error status in the parity subrecord.
       
@@ -158,7 +170,10 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, inve
         
     else:
         edges_it = edges
-        
+
+    # Invert edge polarity if idle-low
+    if polarity == UARTConfig.IdleLow:
+        edges_it = ((t, 1 - e) for t, e in edges_it)
         
     if baud_deque is not None:
         bd_dict = {'baud_rate': baud_rate, 'raw_symbol_rate': raw_symbol_rate}
@@ -175,12 +190,8 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, inve
     
     # Now we start the actual decode process
     
-    if inverted:
-        mark = 1
-        space = 0
-    else:
-        mark = 0
-        space = 1
+    mark = 1
+    space = 0
         
     # initialize to point where state is 'mark' --> idle time before first start bit
     while es.cur_state() == space and not es.at_end():
@@ -215,8 +226,6 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, inve
                 
         while cur_bit < bits:
             bit_val = es.cur_state()
-            if not inverted:
-                bit_val = 1 - bit_val
             
             p ^= bit_val
             if lsb_first:
@@ -233,26 +242,34 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, inve
         if parity is not None:
             parity_time = data_end_time
             parity_val = es.cur_state()
-            if not inverted:
-                parity_val = 1 - parity_val
             #print('PB:', p, parity_val)
             # check the parity
             if parity_val != p:
                 parity_error = True
             es.advance()
         
+        # We are currently 1/2 bit past the last data or parity bit
         stop_time = es.cur_time - bit_period * 0.5
-        # FIX: verify stop bit
         
-        end_time = es.cur_time + bit_period * (stop_bits - 0.5)
+        # Verify the stop bit(s)
+        if stop_bits > 1.0:
+            # Move to within 1/2 bit of the end of the stop bits
+            es.advance(bit_period * (stop_bits - 1.0))
+            
+        framing_error = False
+        if es.cur_state() != mark: # Not at idle -> break condition
+            framing_error = True
+        
+        end_time = es.cur_time + bit_period * 0.5
         
         # construct frame objects
-        nf = UartFrame((start_time, end_time), byte)
+        status = UARTStreamStatus.FramingError if framing_error else StreamStatus.Ok
+        nf = UARTFrame((start_time, end_time), byte, status=status)
         
         nf.subrecords.append(StreamSegment((start_time, data_time), kind='start bit'))
         nf.subrecords.append(StreamSegment((data_time, data_end_time), byte, kind='data bits'))
         if parity is not None:
-            status = StreamStatus.Error if parity_error else StreamStatus.Ok
+            status = UARTStreamStatus.ParityError if parity_error else StreamStatus.Ok
             nf.subrecords.append(StreamSegment((parity_time, stop_time), kind='parity', status=status))
             
         nf.subrecords.append(StreamSegment((stop_time, end_time), kind='stop bit'))
@@ -266,7 +283,8 @@ def uart_synth(data, bits = 8, baud=115200, parity=None, stop_bits=1.0, idle_sta
     '''Generate synthesized UART waveform
     
     This function simulates a single, unidirectional channel of a UART serial
-    connection. Its output is analagous to txd.
+    connection. Its output is analagous to txd. The signal is generated with
+    idle-high polarity.
     
     This is a generator function that can be used in a pipeline of waveform
     procesing operations.
@@ -301,7 +319,7 @@ def uart_synth(data, bits = 8, baud=115200, parity=None, stop_bits=1.0, idle_sta
     bit_period = 1.0 / baud
     
     t = 0.0
-    txd = 1
+    txd = 1 # idle-high
     
     yield (t, txd) # set initial conditions
     t += idle_start
