@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Protocol decode library
+'''Ripyl protocol decode library
    Statistical operations test suite
 '''
 

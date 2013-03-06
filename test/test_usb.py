@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Protocol decode library
+'''Ripyl protocol decode library
    usb.py test suite
 '''
 
@@ -51,28 +51,29 @@ class TestUSBFuncs(unittest.TestCase):
         print('\n  Random seed:', seed)
         random.seed(seed)
         
-    def XXtest_usb_decode(self):
+    def test_usb_decode(self):
         print('')
-        trials = 1
+        trials = 100
         for i in xrange(trials):
             print('\r  USB transmission {0} / {1}  '.format(i+1, trials), end='')
 
             bus_speed = random.choice((usb.USBSpeed.LowSpeed, usb.USBSpeed.FullSpeed, usb.USBSpeed.HighSpeed))
-            print('\nBus speed', bus_speed)
-            #bus_speed = usb.USBSpeed.FullSpeed
+            #print('\nBus speed', bus_speed)
             
             # Build a set of packets
             packet_num = random.randint(1, 10)
-            #packet_num = 2
-            print('\nGEN PACKETS:', packet_num)
+            #print('\nGEN PACKETS:', packet_num)
             
             
             packets = []
             for _ in xrange(packet_num):
                 pid = random.randint(0,15)
-                while pid == usb.USBPID.PRE:
-                    pid = random.randint(0,15)
-                    
+                
+                if bus_speed == usb.USBSpeed.LowSpeed:
+                    # Never generate PRE on low-speed bus transmissions
+                    while pid == usb.USBPID.PRE:
+                        pid = random.randint(0,15)
+                        
                 packet_kind = usb._get_packet_kind(pid)
                 
                 if packet_kind == usb.USBPacketKind.Token or pid == usb.USBPID.PING:
@@ -87,7 +88,7 @@ class TestUSBFuncs(unittest.TestCase):
                     data_len = random.randint(1, 10)
                     data = [random.randint(0, 255) for d in xrange(data_len)]
                     pkt = usb.USBDataPacket(pid, data, speed=bus_speed)
-                elif packet_kind == usb.USBPacketKind.Handshake:
+                elif packet_kind == usb.USBPacketKind.Handshake or pid == usb.USBPID.PRE:
                     pkt = usb.USBHandshakePacket(pid, speed=bus_speed)
                 else:
                     if pid == usb.USBPID.SPLIT:
@@ -106,6 +107,12 @@ class TestUSBFuncs(unittest.TestCase):
                         pkt = usb.USBEXTPacket(pid, addr, endp, sub_pid, variable, speed=bus_speed)
             
                 packets.append(pkt)
+                
+                if pid == usb.USBPID.PRE and bus_speed == usb.USBSpeed.FullSpeed:
+                    # Add a Low-speed packet after the PREamble
+                    pkt = usb.USBDataPacket(usb.USBPID.Data0, [1,2,3,4], speed=usb.USBSpeed.LowSpeed)
+                    pkt.swap_jk = True
+                    packets.append(pkt)
 
                 
             # Synthesize edge waveforms
@@ -122,17 +129,18 @@ class TestUSBFuncs(unittest.TestCase):
             pkt_cnt = 0
             pkt_ix = 0
             match = True
-            print('PACKETS:', len(records))
+            #print('PACKETS:', len(records))
             for r in records:
                 if r.kind == 'USB packet':
-                    print('  ', repr(r.packet))
+                    #print('  ', repr(r.packet))
                     pkt_cnt += 1
                     if r.packet != packets[pkt_ix]:
                         match = False
                         break
                     pkt_ix += 1
                 else:
-                    print('ERROR:', repr(r))
+                    pass
+                    #print('ERROR:', repr(r))
                     
             if not match:
                 print('\nOriginal packets:')
@@ -150,7 +158,7 @@ class TestUSBFuncs(unittest.TestCase):
             self.assertEqual(pkt_cnt, len(packets), \
                 'Missing or extra decoded packets (got {} , expected {})'.format(pkt_cnt, len(packets)))
     
-    def XXtest_usb_sample_data(self):
+    def Xtest_usb_sample_data(self):
     
         # Read files containing 100 Full-speed SOF packets
         # Note that these packets were collected with segmented acquisition and are ~5us
@@ -174,7 +182,7 @@ class TestUSBFuncs(unittest.TestCase):
             cur_frame += 1
             self.assertEqual(r.packet.frame_num, cur_frame, 'SOF frame_num not decoded properly')
   
-    def test_usb_diff_sample_data(self):
+    def Xtest_usb_diff_sample_data(self):
     
         # Read files containing 100 Full-speed SOF packets
         # Note that these packets were collected with segmented acquisition and are ~5us

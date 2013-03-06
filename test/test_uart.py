@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Protocol decode library
+'''Ripyl protocol decode library
    uart.py test suite
 '''
 
@@ -75,14 +75,16 @@ class TestUARTFuncs(unittest.TestCase):
             bits = random.choice((7, 8, 9))
             #print('!!!!!!!!!!!!! bits:', bits)
             
+            print('\nTRIAL {}: msg="{}", baud={}, parity={}, bits={}'.format(i, msg, baud, parity, bits))
+            
             edges = uart.uart_synth(bytearray(msg), bits, baud, parity=parity, idle_start=100.0 / sample_rate)
             
             samples = sigp.synth_wave(edges, sample_rate, rise_time, ripple_db=60)
             
-            noisy = sigp.amplify(sigp.noisify(samples, snr_db=20.0), gain=-15.0)
+            noisy = sigp.amplify(sigp.noisify(samples, snr_db=20), gain=-15.0)
             waveform = list(noisy)
             bd = deque()
-            frames = uart.uart_decode(iter(waveform), bits=bits, inverted=False, parity=parity, baud_rate=None, baud_deque=bd)
+            frames = uart.uart_decode(iter(waveform), bits=bits, polarity=uart.UARTConfig.IdleLow, parity=parity, baud_rate=None, baud_deque=bd)
             frames = list(frames)
             #print('@@@@ deque data:', bd.pop())
             #print(''.join(str(d) for d in frames))

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Protocol decode library
+'''Ripyl protocol decode library
    i2c.py test suite
 '''
 
@@ -74,8 +74,8 @@ class TestI2CFuncs(unittest.TestCase):
                 records_it = i2c.i2c_decode(scl, sda, stream_type=streaming.StreamType.Edges)
             else:
                 sample_period = 1.0 / (20.0 * clock_freq)
-                scl_s = sigp.sample_edge_list(scl, sample_period)
-                sda_s = sigp.sample_edge_list(sda, sample_period)
+                scl_s = sigp.edges_to_sample_stream(scl, sample_period)
+                sda_s = sigp.edges_to_sample_stream(sda, sample_period)
                 
                 records_it = i2c.i2c_decode(scl_s, sda_s, stream_type=streaming.StreamType.Samples)
                 

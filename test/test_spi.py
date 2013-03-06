@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Protocol decode library
+'''Ripyl protocol decode library
    spi.py test suite
 '''
 
@@ -75,9 +75,9 @@ class TestSPIFuncs(unittest.TestCase):
                 #sr = 1.0e-2
                 sample_period = 1.0 / (20.0 * clock_freq)
                 #sample_period = 10.0e-2
-                clk_s = sigp.sample_edge_list(clk, sample_period)
-                mosi_s = sigp.noisify(sigp.sample_edge_list(mosi, sample_period))
-                cs_s = sigp.noisify(sigp.sample_edge_list(cs, sample_period))
+                clk_s = sigp.edges_to_sample_stream(clk, sample_period)
+                mosi_s = sigp.noisify(sigp.edges_to_sample_stream(mosi, sample_period))
+                cs_s = sigp.noisify(sigp.edges_to_sample_stream(cs, sample_period))
 
                 records_it = spi.spi_decode(clk_s, mosi_s, cs_s, cpol=cpol, cpha=cpha, lsb_first=lsb_first)
                             
