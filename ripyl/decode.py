@@ -37,13 +37,13 @@ import collections
 from stats import OnlineStats
 from streaming import StreamError
 
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
-def find_bot_top_hist_peaks(samples, bins, use_kde=False):
+def find_bot_top_hist_peaks(raw_samples, bins, use_kde=False):
     '''Find the bottom and top peaks in a histogram of data sample magnitudes.
     These are the left-most and right-most of the two largest peaks in the histogram.
     
-    samples
+    raw_samples
         A sequence representing the population of data samples that will be
         analyzed for peaks
     
@@ -64,20 +64,19 @@ def find_bot_top_hist_peaks(samples, bins, use_kde=False):
     '''
     
     if not use_kde:
-        hist, bin_edges = np.histogram(samples, bins=bins)
+        hist, bin_edges = np.histogram(raw_samples, bins=bins)
         bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
     else:
     
         try:
-            kde = sp.stats.gaussian_kde(samples, bw_method=0.05)
+            kde = sp.stats.gaussian_kde(raw_samples, bw_method=0.05)
         except np.linalg.linalg.LinAlgError:
             # If the sample data set contains constant samples, gaussian_kde()
             # will raise this exception.
             raise ValueError('Cannot construct KDE for histogram approximation. No sample variation present')
-            
         
-        mxv = max(samples)
-        mnv = min(samples)
+        mxv = max(raw_samples)
+        mnv = min(raw_samples)
         r = mxv - mnv
         # Expand the upper and lower bounds by 10% to allow room for gaussian tails at the extremes
         mnv -= r * 0.1
