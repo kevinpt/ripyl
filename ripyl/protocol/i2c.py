@@ -32,8 +32,9 @@ import itertools
 
 from ripyl.decode import *
 from ripyl.streaming import *
+from ripyl.util.enum import Enum
 
-class I2C(object):
+class I2C(Enum):
     '''Enumeration for I2C r/w bit states'''
     Write = 0
     Read = 1

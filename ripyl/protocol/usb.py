@@ -32,9 +32,10 @@ import itertools
 
 from ripyl.decode import *
 from ripyl.streaming import *
+from ripyl.util.enum import Enum
 
 
-class USBSpeed(object):
+class USBSpeed(Enum):
     '''Enumeration for the USB bus speeds'''
     LowSpeed = 0
     FullSpeed = 1
@@ -46,7 +47,7 @@ USBClockPeriod = {
     USBSpeed.HighSpeed: 1.0 / 480.0e6
 }
     
-class USBPID(object):
+class USBPID(Enum):
     '''Enumeration for the packet PIDs'''
     # The comments indicate the USBPacket() object that should be used with each PID
     
@@ -75,7 +76,7 @@ class USBPID(object):
     PING  = 0b0100 # USBTokenPacket()
     EXT   = 0b0000 # USBEXTPacket()  (extended token format from Link Power Management ECN)
 
-class USBPacketKind(object):
+class USBPacketKind(Enum):
     '''Enumeration for packet kind (lower two bits of PID)'''
     Token     = 0b01
     Data      = 0b11
@@ -87,7 +88,7 @@ def _get_packet_kind(pid):
     return pid & 0x03
 
 
-class USBState(object):
+class USBState(Enum):
     '''Enumeration for logical bus states'''
     SE0 = 0
     J   = 1
@@ -95,7 +96,7 @@ class USBState(object):
     SE1 = 3 # error condition
 
     
-class USBStreamStatus(object):
+class USBStreamStatus(Enum):
     '''Enumeration for USBStreamPacket and USBStreamError status codes'''
     ShortPacketError = StreamStatus.Error + 1
     MissingEOPError  = StreamStatus.Error + 2

@@ -28,7 +28,10 @@
 
 from __future__ import print_function, division
 
-class StreamType(object):
+from util.enum import Enum
+
+
+class StreamType(Enum):
     '''Enumeration for stream types'''
     Edges = 0
     Samples = 1
@@ -39,7 +42,7 @@ class StreamError(RuntimeError):
 
     
     
-class StreamStatus(object):
+class StreamStatus(Enum):
     '''Enumeration for standard stream status codes'''
     Ok = 0
     Warning = 100

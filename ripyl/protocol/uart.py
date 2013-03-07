@@ -30,12 +30,13 @@ from __future__ import print_function, division
 
 import itertools
 
-import ripyl
 from ripyl.decode import *
 from ripyl.streaming import *
+from ripyl.util.enum import Enum
 
 
-class UARTStreamStatus(object):
+class UARTStreamStatus(Enum):
+    '''Enumeration of UART status codes'''
     FramingError = StreamStatus.Error + 1
     ParityError = StreamStatus.Error + 2
 
@@ -49,7 +50,8 @@ class UARTFrame(StreamSegment):
         return chr(self.data & 0xFF)
         
 
-class UARTConfig(object):
+class UARTConfig(Enum):
+    '''Enumeration of configuration settings'''
     IdleHigh = 1  # Polarity settings
     IdleLow = 2
 
