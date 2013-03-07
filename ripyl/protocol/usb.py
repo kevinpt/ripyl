@@ -106,29 +106,60 @@ class USBStreamStatus(Enum):
     
 class USBStreamPacket(StreamSegment):
     '''Encapsulates a USBPacket object (see below) into a StreamSegment'''
-    def __init__(self, bounds, packet, crc=None, status=StreamStatus.Ok):
+    def __init__(self, bounds, sop_end, packet, crc=None, status=StreamStatus.Ok):
         '''
         bounds
             2-tuple (start_time, end_time) for the packet
             
+        sop_end
+            The time for the end of the SOP portion of the packet. Used to measure
+            bit positions for the packet fields.
+            
         packet
             USBPacket object
+
         crc
             Optional CRC extracted from a decoded packet. Not used for encoding
             with usb_synth().
-        
+            
         status
             status code for the packet
         '''
         StreamSegment.__init__(self, bounds, data=None, status=status)
         self.kind = 'USB packet'
         
+        self.sop_end = sop_end
         self.packet = packet # USBPacket object
         self.crc = crc
-        
-    # def __str__(self):
-        # return chr(self.data)
 
+
+    def field_offsets(self):
+        '''Get a dict of packet field bit offsets
+        Returns a dict keyed by the field name and a pair (start, end) for each value.
+          Start and end are the inclusive times for the start and end of a field.
+        '''
+
+        bit_fields = self.packet.field_offsets(with_stuffing = True)
+        
+        fields = {}
+        clock_period = USBClockPeriod[self.bus_speed]
+        for field, (start, end) in bit_fields:
+            fields[field] = (self.sop_end + start * clock_period, self.sop_end + (end + 1) * clock_period)
+
+        if self.packet.pid == USBPID.EXT:
+            # EXT packets need a special adjustment for the fields in the second half
+            part2_delta = self.sop_end2 - self.sop_end
+            start, end = fields['SubPID']
+            fields['SubPID'] = (start + part2_delta, end + part2_delta)
+            
+            start, end = fields['Variable']
+            fields['Variable'] = (start + part2_delta, end + part2_delta)
+            
+            start, end = fields['CRC5_2']
+            fields['CRC5_2'] = (start + part2_delta, end + part2_delta)
+            
+        return fields
+        
     def __repr__(self):
         return 'USBStreamPacket({}, {})'.format(self.packet, self.status)
 
@@ -190,7 +221,7 @@ class USBPacket(object):
         
         # generate sync
         if self.speed == USBSpeed.LowSpeed or self.speed == USBSpeed.FullSpeed:
-            bits += [0,0,0,0,0,0,0,1]
+            bits += [0, 0, 0, 0, 0, 0, 0, 1]
         else: # High-speed: 15 KJ pairs followed by 2 K's
             drop_bits = self.hs_sync_dropped_bits
             if drop_bits > 20:
@@ -222,6 +253,21 @@ class USBPacket(object):
                 sbits.append(0)
                 ones = 0
         return sbits
+        
+    def _bit_stuff_offsets(self, bits):
+        '''Get list of stuffed bit offsets in the unstuffed bit vector'''
+        stuff_offsets = []
+        ones = 0
+        for i, b in enumerate(bits):
+            if b == 1:
+                ones += 1
+            else:
+                ones = 0
+                
+            if ones == 6:
+                stuff_offsets.append(i)
+                
+        return stuff_offsets
         
     def _get_NRZI(self):
         '''Apply bit stuffing and convert bits to J/K states'''
@@ -312,6 +358,44 @@ class USBPacket(object):
             edges_dm.append((t, dm))
             
         return (edges_dp, edges_dm)
+
+
+    def _adjust_stuffing(self, fields):
+        import bisect
+        stuff_pos = self._bit_stuff_offsets(self.get_bits())
+        
+        if len(stuff_pos) == 0: # No bit stuffing present
+            return fields
+        
+        cum_offsets = list(xrange(len(stuff_pos)))
+        
+        adj_fields = {}
+        for field, (start, end) in field.items():
+            # Find the bit offsets that apply to the field range
+            i = bisect.bisect_left(stuff_pos, start)
+            if i < len(cum_offsets):
+                start += cum_offsets[i]
+            else:
+                start += cum_offsets[-1] + 1
+            
+            i = bisect.bisect_left(stuff_pos, end)
+            if i < len(cum_offsets):
+                end += cum_offsets[i]
+            else:
+                end += cum_offsets[-1] + 1
+
+            adj_fields[field] = (start, end)
+            
+        return adj_fields
+        
+    def field_offsets(self, with_stuffing=None):
+        '''Get a dict of packet field bit offsets
+        Returns a dict keyed by the field name and a pair (start, end) for each value.
+          Start and end are the inclusive bit offsets for the start and end of a field
+          relative to the end of SOP.
+        '''
+        # No bit stuffing will happen in the PID
+        return {'PID': (0, 7)}
         
     def __eq__(self, other):
         raise NotImplementedError('Must use from subclassed objects')
@@ -366,6 +450,12 @@ class USBTokenPacket(USBPacket):
         
         return start_bits + check_bits + crc_bits
         
+    def field_offsets(self, with_stuffing=False):
+        fields = {'PID': (0, 7), 'Addr': (8, 14), 'Endp': (15, 18), 'CRC5': (19, 23)}
+        if with_stuffing:
+            fields = self._adjust_stuffing(fields)
+        return fields
+        
     def __repr__(self):
         return 'USBTokenPacket({}, {}, {}, {}, {})'.format(hex(self.pid), hex(self.addr), \
             hex(self.endp), self.speed, self.delay)
@@ -407,7 +497,14 @@ class USBDataPacket(USBPacket):
             data_bits += reversed(_split_bits(byte, 8))
                 
         return start_bits + data_bits + crc_bits
-
+        
+    def field_offsets(self, with_stuffing=False):
+        data_bits = len(self.data) * 8
+        fields = {'PID': (0, 7), 'Data': (8, 8 + data_bits-1), 'CRC16': (8 + data_bits, 8 + data_bits + 16 - 1)}
+        if with_stuffing:
+            fields = self._adjust_stuffing(fields)
+        return fields
+        
     def __repr__(self):
         return 'USBDataPacket({}, {}, {}, {})'.format(hex(self.pid), self.data, \
             self.speed, self.delay)
@@ -462,7 +559,11 @@ class USBHandshakePacket(USBPacket):
             nrzi = nrzi[0:-2] + [(end_t, end_state)] # strip off EOP
 
         return nrzi
-            
+
+    def field_offsets(self, with_stuffing=False):
+        # There can be no bit stuffing on just a PID
+        fields = {'PID': (0, 7)}
+        return fields
 
     def __repr__(self):
         return 'USBHandshakePacket({}, {}, {})'.format(hex(self.pid), self.speed, self.delay)        
@@ -495,6 +596,18 @@ class USBSOFPacket(USBPacket):
         
         return start_bits + check_bits + crc_bits
 
+
+    def field_offsets(self, with_stuffing=False):
+        '''Get a dict of packet field bit offsets
+        Returns a dict keyed by the field name and a pair (start, end) for each value.
+          Start and end are the inclusive bit offsets for the start and end of a field
+          relative to the end of SOP.
+        '''
+        fields = {'PID': (0, 7), 'Frame': (8, 18), 'CRC5': (19, 23)}
+        if with_stuffing:
+            fields = self._adjust_stuffing(fields)
+        return fields
+        
     def __repr__(self):
         return 'USBSOFPacket({}, {}, {}, {})'.format(hex(self.pid), hex(self.frame_num), \
             self.speed, self.delay)
@@ -557,7 +670,19 @@ class USBSplitPacket(USBPacket):
         #print('$$$$ Token CRC5', crc_bits)
         
         return start_bits + check_bits + crc_bits
-  
+
+    def field_offsets(self, with_stuffing=False):
+        '''Get a dict of packet field bit offsets
+        Returns a dict keyed by the field name and a pair (start, end) for each value.
+          Start and end are the inclusive bit offsets for the start and end of a field
+          relative to the end of SOP.
+        '''
+        fields = {'PID': (0, 7), 'Addr': (8, 14), 'SC': (15, 15), 'Port': (16, 22), \
+            'S': (23, 23), 'E': (24, 24), 'ET': (25, 26), 'CRC5': (27, 31)}
+        if with_stuffing:
+            fields = self._adjust_stuffing(fields)
+        return fields
+        
     def __repr__(self):
         return 'USBSplitPacket({}, {}, {}, {}, {}, {}, {}, {}, {})'.format(hex(self.pid), hex(self.addr), \
             self.sc, hex(self.port), self.s, self.e, hex(self.et), self.speed, self.delay)
@@ -630,6 +755,30 @@ class USBEXTPacket(USBPacket):
         tok_nrzi += ext_nrzi
         
         return tok_nrzi
+
+    def field_offsets(self, with_stuffing=False):
+        '''Get a dict of packet field bit offsets
+        Returns a dict keyed by the field name and a pair (start, end) for each value.
+          Start and end are the inclusive bit offsets for the start and end of a field
+          relative to the end of SOP.
+        '''
+        tok_packet = USBTokenPacket(self.pid, self.addr, self.endp, speed=self.speed)
+        
+        # split the 11-bit variable into 7-bit and 4-bit parts so they
+        # can be stuffed into another USBTokenPacket()
+        ext_addr = self.variable & 0x7F
+        ext_endp = (self.variable >> 7) & 0x0F
+        ext_packet = USBTokenPacket(self.sub_pid, ext_addr, ext_endp, speed=self.speed)
+        
+        tok_fields = tok_packet.field_offsets(with_stuffing)
+        ext_fields = ext_packet.field_offsets(with_stuffing)
+
+        # These bit positions are relative to the start of second part of the EXT packet
+        tok_fields['SubPID'] = ext_fields['PID']
+        tok_fields['Variable'] = (ext_fields['Addr'][0], ext_fields['Endp'][1])
+        tok_fields['CRC5_2'] = ext_fields['CRC5']
+
+        return tok_fields
         
     def __repr__(self):
         return 'USBEXTPacket({}, {}, {}, {}, {}, {}, {})'.format(hex(self.pid), hex(self.addr), \
@@ -857,7 +1006,7 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
     cur_bus = state_seq.cur_state()
     while not state_seq.at_end():
         prev_bus = cur_bus
-        ts = state_seq.advance_to_edge()
+        state_seq.advance_to_edge()
         cur_bus = state_seq.cur_state()
         packet_start = state_seq.cur_time
         
@@ -944,6 +1093,8 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
             
         # We have potentially found a sync field but this could be packet data that has the same
         # pattern. A bad PID, CRC, or premature SE0 will catch this
+        
+        sop_end = state_seq.cur_time + clock_period / 2.0
         
         # Get the remaining states in the packet.
         # We will adjust timings to keep ourselves positioned in the center of a bit
@@ -1032,12 +1183,12 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
         # Technically the final 1 in the sync participates in the stuffing
         # but there is guaranteed to be a 0 in the PID field before 6 1's go by
         # so we don't bother including it in packet_bits.
-        unstuffed_bits, stuffing_errors, unstuff_cnt = _unstuff(packet_bits[0:len(packet_bits)-eop_bits])
+        unstuffed_bits, stuffed_bits, stuffing_errors = _unstuff(packet_bits[0:len(packet_bits)-eop_bits])
         
         # Low and Full speed packets should have no stuffing errors
         # HighSpeed packets will have stuffing errors from their EOP.
         continue_decode = True
-        #print('@@@@@@@@@@@@@ STUFFING ERRORS', stuffing_errors, len(packet_bits), unstuff_cnt)
+        #print('@@@@@@@@@@@@@ STUFFING ERRORS', stuffing_errors, len(packet_bits), len(stuffed_bits))
         if len(stuffing_errors) > 0:
             if (pkt_speed == USBSpeed.LowSpeed or pkt_speed == USBSpeed.FullSpeed):
                 continue_decode = False # there was a stuffing error
@@ -1050,7 +1201,7 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
                 else: #SOF HighSpeed will have multiple stuffing errors in EOP
                     # The first stuffing error should have been on bit-31 in the
                     # unstuffed data
-                    if stuffing_errors[0] - unstuff_cnt != 31:
+                    if stuffing_errors[0] - len(stuffed_bits) != 31:
                         continue_decode = False # there was a stuffing error not in the EOP
                 
         if continue_decode:
@@ -1085,7 +1236,7 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
                     
                     # Construct the stream record
                     raw_packet = USBTokenPacket(pid, addr, endp, pkt_speed)
-                    packet = USBStreamPacket((packet_start, packet_end), raw_packet, crc5_bits, status=status)
+                    packet = USBStreamPacket((packet_start, packet_end), sop_end, raw_packet, crc5_bits, status=status)
                     yield packet
 
                 
@@ -1103,7 +1254,7 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
                     
                     # Construct the stream record
                     raw_packet = USBSOFPacket(pid, frame_num, pkt_speed)
-                    packet = USBStreamPacket((packet_start, packet_end), raw_packet, crc5_bits, status=status)
+                    packet = USBStreamPacket((packet_start, packet_end), sop_end, raw_packet, crc5_bits, status=status)
                     yield packet
                 
             elif packet_kind == USBPacketKind.Data:
@@ -1132,7 +1283,7 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
 
                     # Construct the stream record
                     raw_packet = USBDataPacket(pid, data, pkt_speed)
-                    packet = USBStreamPacket((packet_start, packet_end), raw_packet, crc16_bits, status=status)
+                    packet = USBStreamPacket((packet_start, packet_end), sop_end, raw_packet, crc16_bits, status=status)
                     yield packet
 
                 
@@ -1144,7 +1295,7 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
                 
                 # Construct the stream record
                 raw_packet = USBHandshakePacket(pid, pkt_speed)
-                packet = USBStreamPacket((packet_start, packet_end), raw_packet, status=StreamStatus.Ok)
+                packet = USBStreamPacket((packet_start, packet_end), sop_end, raw_packet, status=StreamStatus.Ok)
                 yield packet
 
             else: # One of the "special" packets
@@ -1175,7 +1326,7 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
                         
                         # Construct the stream record
                         raw_packet = USBSplitPacket(pid, addr, sc, port, s, e, et, pkt_speed)
-                        packet = USBStreamPacket((packet_start, packet_end), raw_packet, crc5_bits, status=status)
+                        packet = USBStreamPacket((packet_start, packet_end), sop_end, raw_packet, crc5_bits, status=status)
                         yield packet  
                     
                 elif pid == USBPID.EXT:
@@ -1187,6 +1338,7 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
                         else:
                             # Save the first packet of the EXT token
                             ext_packet_bits = unstuffed_bits
+                            sop_end1 = sop_end
 
                         # The whole EXT packet is decoded below once we get the next half
 
@@ -1219,8 +1371,9 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
                             # Construct the stream record
                             raw_packet = USBEXTPacket(USBPID.EXT, addr, endp, sub_pid, variable, pkt_speed)
                             status = max(status1, status2)
-                            packet = USBStreamPacket((packet_start, packet_end), raw_packet, crc5_1_bits, status=status)
+                            packet = USBStreamPacket((packet_start, packet_end), sop_end1, raw_packet, crc5_1_bits, status=status)
                             packet.crc2 = crc5_2_bits
+                            packet.sop_end2 = sop_end
                             yield packet
 
                         ext_packet_bits = None # Revert to normal processing of packets
@@ -1246,7 +1399,7 @@ def _unstuff(packet_bits):
     ones = 0
     expect_stuffing = False
     stuffing_errors = []
-    unstuff_cnt = 0
+    stuffed_bits = []
     for i, b in enumerate(packet_bits):
         if not expect_stuffing:
             unstuffed.append(b)
@@ -1255,7 +1408,7 @@ def _unstuff(packet_bits):
             if b != 0:
                 stuffing_errors.append(i)
             else:
-                unstuff_cnt += 1
+                stuffed_bits.append(i)
 
         expect_stuffing = False
 
@@ -1269,7 +1422,7 @@ def _unstuff(packet_bits):
             expect_stuffing = True
             ones = 0
             
-    return (unstuffed, stuffing_errors, unstuff_cnt)
+    return (unstuffed, stuffed_bits, stuffing_errors)
 
     
 def _decode_NRZI(packet_states):
@@ -1320,8 +1473,7 @@ def _convert_single_ended_states(es, bus_speed):
     yield (es.cur_time(), cur_bus)
     
     while not es.at_end():
-        prev_bus = cur_bus
-        ts, cname = es.advance_to_edge()
+        es.advance_to_edge()
         
         # Due to channel skew we can get erroneous SE0 and SE1 decodes
         # on the bus so skip ahead by a small amount to ensure that any
@@ -1338,7 +1490,6 @@ def _convert_single_ended_states(es, bus_speed):
         es.advance(skew_adjust)
         
         cur_bus = decode_state(es.cur_state('dp'), es.cur_state('dm'))
-        #print('## pb, cb:', prev_bus, cur_bus, ts, es.cur_time() - skew_adjust)
         yield (es.cur_time() - skew_adjust, cur_bus)
         
 
