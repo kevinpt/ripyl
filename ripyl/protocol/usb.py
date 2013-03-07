@@ -33,6 +33,7 @@ import itertools
 from ripyl.decode import *
 from ripyl.streaming import *
 from ripyl.util.enum import Enum
+from ripyl.util.bitops import *
 
 
 class USBSpeed(Enum):
@@ -232,7 +233,7 @@ class USBPacket(object):
         # generate PID
         pid_rev = int('{:04b}'.format(self.pid)[::-1], base=2) # reverse the bits
         pid_enc = pid_rev << 4 | (pid_rev ^ 0x0f)
-        bits += _split_bits(pid_enc, 8)
+        bits += split_bits(pid_enc, 8)
         
         return bits
 
@@ -402,27 +403,9 @@ class USBPacket(object):
         
     def __ne__(self, other):
         return not self == other
-            
 
-def _split_bits(n, num_bits):
-    '''Convert integer to an array of bits (MSB-first)'''
-    bits = [0] * num_bits
-    for i in xrange(num_bits-1, -1, -1):
-        bits[i] = n & 0x01
-        n >>= 1
-        
-    return bits
-    
-   
-def _join_bits(bits):
-    '''Convert an array of bits (MSB first) to an integer word'''
-    word = 0
-    for b in bits:
-        word = (word << 1) | b
-        
-    return word
-    
-        
+
+
 class USBTokenPacket(USBPacket):
     '''Token packet'''
     def __init__(self, pid, addr, endp, speed=USBSpeed.FullSpeed, delay=0.0):
@@ -439,10 +422,10 @@ class USBTokenPacket(USBPacket):
             
         # generate address
         check_bits = []
-        check_bits += reversed(_split_bits(self.addr, 7))
+        check_bits += reversed(split_bits(self.addr, 7))
         
         # generate Endp
-        check_bits += reversed(_split_bits(self.endp, 4))
+        check_bits += reversed(split_bits(self.endp, 4))
         
         # generate CRC5
         crc_bits = usb_crc5(check_bits)
@@ -494,7 +477,7 @@ class USBDataPacket(USBPacket):
         # add data bits LSB first
         data_bits = []
         for byte in self.data:
-            data_bits += reversed(_split_bits(byte, 8))
+            data_bits += reversed(split_bits(byte, 8))
                 
         return start_bits + data_bits + crc_bits
         
@@ -588,7 +571,7 @@ class USBSOFPacket(USBPacket):
         
         # generate frame
         check_bits = []
-        check_bits += reversed(_split_bits(self.frame_num, 11))
+        check_bits += reversed(split_bits(self.frame_num, 11))
         
         # generate CRC5
         crc_bits = usb_crc5(check_bits)
@@ -646,13 +629,13 @@ class USBSplitPacket(USBPacket):
         # generate address
         check_bits = []
         
-        check_bits += reversed(_split_bits(self.addr, 7))
+        check_bits += reversed(split_bits(self.addr, 7))
         
         # SC field
         check_bits.append(self.sc & 0x01)
         
         # Port field
-        check_bits += reversed(_split_bits(self.port, 7))
+        check_bits += reversed(split_bits(self.port, 7))
         
         # S field
         check_bits.append(self.s & 0x01)
@@ -662,7 +645,7 @@ class USBSplitPacket(USBPacket):
         check_bits.append(self.e & 0x01)
         
         # ET field
-        check_bits += reversed(_split_bits(self.et, 2))
+        check_bits += reversed(split_bits(self.et, 2))
         
 
         # generate CRC5
@@ -1128,7 +1111,7 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
                     packet_pid_check[i] = 1 - b
 
                 if packet_pid_bits[0:4] == packet_pid_check: # valid PID
-                    pid = _join_bits(reversed(packet_pid_bits[0:4]))
+                    pid = join_bits(reversed(packet_pid_bits[0:4]))
                     if bus_speed == USBSpeed.FullSpeed and pid == USBPID.PRE and ext_packet_bits is None:
                         # The PREamble packet is special and does not
                         # have an EOP. There will be no SE0 to break on.
@@ -1224,10 +1207,10 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
                     short_packet = True
                 else:
                     addr_bits = unstuffed_bits[8:8+7]
-                    addr = _join_bits(reversed(addr_bits))
+                    addr = join_bits(reversed(addr_bits))
 
                     endp_bits = unstuffed_bits[8+7:8+11]
-                    endp = _join_bits(reversed(endp_bits))
+                    endp = join_bits(reversed(endp_bits))
                     
                     crc5_bits = unstuffed_bits[8+11:8+11+5]
                     # check the CRC
@@ -1246,7 +1229,7 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
                     short_packet = True
                 else:
                     frame_num_bits = unstuffed_bits[8:8+11]
-                    frame_num = _join_bits(reversed(frame_num_bits))
+                    frame_num = join_bits(reversed(frame_num_bits))
                     crc5_bits = unstuffed_bits[8+11:8+11+5]
                     # check the CRC
                     crc_check = usb_crc5(frame_num_bits)
@@ -1270,7 +1253,7 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
                 else:
                     data = []
                     for i in xrange(data_bytes):
-                        byte = _join_bits(reversed(unstuffed_bits[8 + i*8: 8 + i*8 + 8]))
+                        byte = join_bits(reversed(unstuffed_bits[8 + i*8: 8 + i*8 + 8]))
                         data.append(byte)
                     
                     #print('DECODED DATA:', data)
@@ -1305,19 +1288,19 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
                         short_packet = True
                     else:
                         addr_bits = unstuffed_bits[8:8+7]
-                        addr = _join_bits(reversed(addr_bits))
+                        addr = join_bits(reversed(addr_bits))
                         
                         sc = unstuffed_bits[8+7]
                         
                         port_bits = unstuffed_bits[8+8:8+8+7]
-                        port = _join_bits(reversed(port_bits))
+                        port = join_bits(reversed(port_bits))
                         
                         s = unstuffed_bits[8+7+1+7]
                         
                         e = unstuffed_bits[8+7+1+7+1]
                         
                         et_bits = unstuffed_bits[8+17:8+17+2]
-                        et = _join_bits(reversed(et_bits))
+                        et = join_bits(reversed(et_bits))
                         
                         crc5_bits = unstuffed_bits[8+17+2:8+17+2+5]
                         # check the CRC
@@ -1345,10 +1328,10 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
                     else:
                         ### EXT packet part 1. We should have 8 + 16 bits of data (already verified)
                         addr_bits = ext_packet_bits[8:8+7]
-                        addr = _join_bits(reversed(addr_bits))
+                        addr = join_bits(reversed(addr_bits))
 
                         endp_bits = ext_packet_bits[8+7:8+11]
-                        endp = _join_bits(reversed(endp_bits))
+                        endp = join_bits(reversed(endp_bits))
                         
                         crc5_1_bits = ext_packet_bits[8+11:8+11+5]
                         # check the CRC
@@ -1362,7 +1345,7 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
                             #sub_pid = pid
                             
                             variable_bits = unstuffed_bits[8:8+11]
-                            variable = _join_bits(reversed(variable_bits))
+                            variable = join_bits(reversed(variable_bits))
                             crc5_2_bits = unstuffed_bits[8+11:8+11+5]
                             # check the CRC
                             crc_check = usb_crc5(variable_bits)
@@ -1599,7 +1582,7 @@ def usb_crc5(d):
 
     crc = sreg ^ mask  # invert shift register contents
     # Note: crc is in LSB-first order    
-    return _split_bits(crc, 5)
+    return split_bits(crc, 5)
 
 
 def usb_crc16(d):
@@ -1621,7 +1604,7 @@ def usb_crc16(d):
 
     crc = sreg ^ mask  # invert shift register contents
     # Note: crc is in LSB-first order
-    return _split_bits(crc, 16)
+    return split_bits(crc, 16)
 
     
     
@@ -1676,4 +1659,4 @@ def table_usb_crc16(d):
     crc = sreg ^ mask # invert shift register contents
     
     # Note: crc is in LSB-first order
-    return _split_bits(crc, 16)
+    return split_bits(crc, 16)

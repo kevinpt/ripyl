@@ -33,6 +33,7 @@ import itertools
 from ripyl.decode import *
 from ripyl.streaming import *
 from ripyl.util.enum import Enum
+from ripyl.util.bitops import *
 
 class I2C(Enum):
     '''Enumeration for I2C r/w bit states'''
@@ -194,11 +195,9 @@ def i2c_decode(scl, sda, stream_type=StreamType.Samples):
                 end_time = es.cur_time()
                 
                 if len(bits) == 9:
+                    word = join_bits(bits[0:8])
                     ack_bit = bits[8]
-                    word = 0
-                    for b in bits[0:8]:
-                        word = word << 1 | (b & 0x01)
-                        
+
                     if state == S_ADDR:
                         addr = word >> 1
                         r_wn = word & 0x01
@@ -381,7 +380,7 @@ def i2c_synth(transfers, clock_freq, idle_start=0.0, idle_end=0.0):
     
         ack_bits = tfer.ack_bits()
         for j, byte in enumerate(tfer.bytes()):
-            bits = [int(c) for c in bin(byte & 0xFF)[2:].zfill(8)]
+            bits = split_bits(byte, 8)
             bits.append(ack_bits[j])
             
             for b in bits:

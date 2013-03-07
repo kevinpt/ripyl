@@ -32,6 +32,7 @@ import itertools
 
 from ripyl.streaming import *
 from ripyl.decode import *
+from ripyl.util.bitops import *
 
 class SpiFrame(StreamSegment):
     '''Frame object for SPI data'''
@@ -127,8 +128,6 @@ def spi_decode(clk, mosi, cs=None, cpol=0, cpha=0, lsb_first=True, stream_type=S
     else:
         active_edge = 0 if cpol == 0 else 1
     
-    step = -1 if lsb_first else 1
-    
     bits = []
     start_time = None
     end_time = None
@@ -152,9 +151,10 @@ def spi_decode(clk, mosi, cs=None, cpol=0, cpha=0, lsb_first=True, stream_type=S
                 # Check if the elapsed time is more than any previous cycle
                 # This indicates that a previous word was complete
                 if prev_cycle is not None and es.cur_time() - prev_edge > 1.5 * prev_cycle:
-                    word = 0
-                    for b in bits[::step]:
-                        word = word << 1 | b
+                    if lsb_first:
+                        word = join_bits(reversed(bits))
+                    else:
+                        word = join_bits(bits)
                     
                     nf = SpiFrame((start_time, end_time), word)
                     nf.word_size = len(bits)
@@ -178,10 +178,11 @@ def spi_decode(clk, mosi, cs=None, cpol=0, cpha=0, lsb_first=True, stream_type=S
                 
         
     if len(bits) > 0:
-        word = 0
-        for b in bits[::step]:
-            word = word << 1 | b
-        
+        if lsb_first:
+            word = join_bits(reversed(bits))
+        else:
+            word = join_bits(bits)
+            
         nf = SpiFrame((start_time, end_time), word)
         nf.word_size = len(bits)
         
@@ -238,16 +239,12 @@ def spi_synth(data, word_size, clock_freq, cpol=0, cpha=0, lsb_first=True, idle_
      
     for i, d in enumerate(data):
         bits_remaining = word_size
-        bits = [0] * word_size
-        for j in xrange(word_size):
-            b = d & 0x01
-            d = d >> 1
-            
-            # first bit transmitted will be at the end of the list
-            if lsb_first:
-                bits[word_size - 1 - j] = b
-            else:
-                bits[j] = b
+
+        # first bit transmitted will be at the end of the list
+        if lsb_first:
+            bits = split_bits(d, word_size)
+        else:
+            bits = list(reversed(split_bits(d, word_size)))
         
         if cpha == 0: # data goes valid a half cycle before the first clock edge
             t += half_bit_period
