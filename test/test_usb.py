@@ -48,12 +48,11 @@ class TestUSBFuncs(unittest.TestCase):
             random.seed()
             seed = long(random.random() * 1e9)
 
-        print('\n  Random seed:', seed)
+        print('\n * Random seed: {} *'.format(seed))
         random.seed(seed)
         
     def test_usb_decode(self):
-        print('')
-        trials = 100
+        trials = 50
         for i in xrange(trials):
             print('\r  USB transmission {0} / {1}  '.format(i+1, trials), end='')
 

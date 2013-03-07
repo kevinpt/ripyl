@@ -46,11 +46,10 @@ class TestUARTFuncs(unittest.TestCase):
             random.seed()
             seed = long(random.random() * 1e9)
 
-        print('\n  Random seed:', seed)
+        print('\n * Random seed: {} *'.format(seed))
         random.seed(seed)
         
     def test_uart_decode(self):
-        print('')
         trials = 10
         for i in xrange(trials):
             print('\r  UART message {0} / {1}  '.format(i+1, trials), end='')
@@ -61,21 +60,16 @@ class TestUARTFuncs(unittest.TestCase):
                 
             msg = ''.join(msg)
             
-            #baud = random.randrange(50000, 200000)
             baud = random.choice((110, 300, 600, 1200, 2400, 4800, 9600, 14400, 19200, 28800, 38400, \
             56000, 57600, 115200, 128000, 153600, 230400, 256000, 460800, 921600))
             
-            #baud = 56000
-            
             sample_rate = baud * 100.0
             rise_time = 0.35 * 2.0 / sample_rate * 10.0 # 10x min rise time
-            #print('!!!!!!!!!!!!!!! baud:', baud, rise_time)
             parity = random.choice((None, 'even', 'odd'))
             
             bits = random.choice((7, 8, 9))
-            #print('!!!!!!!!!!!!! bits:', bits)
             
-            print('\nTRIAL {}: msg="{}", baud={}, parity={}, bits={}'.format(i, msg, baud, parity, bits))
+            #print('\nTRIAL {}: msg="{}", baud={}, parity={}, bits={}'.format(i, msg, baud, parity, bits))
             
             edges = uart.uart_synth(bytearray(msg), bits, baud, parity=parity, idle_start=100.0 / sample_rate)
             
