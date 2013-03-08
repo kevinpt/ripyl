@@ -37,7 +37,8 @@ class I2C(Enum):
     Read = 1
 
 
-class I2cByte(StreamSegment):
+class I2CByte(StreamSegment):
+    '''Segment for a byte of I2C data'''
     def __init__(self, bounds, data=None, ack_bit=None):
         StreamSegment.__init__(self, bounds, data)
         self.kind = 'I2C byte'
@@ -47,12 +48,15 @@ class I2cByte(StreamSegment):
         return str(self.data)
 
         
-class I2cAddress(StreamSegment):
+class I2CAddress(StreamSegment):
+    '''Segment for an I2C address
+    
+    The byte(s) conposing the address are contained as subrecords
+    '''
     def __init__(self, bounds, address=None, r_wn=None):
         '''
         r_wn
             Read (1) / Write (0) bit
-        
         '''
         StreamSegment.__init__(self, bounds, address)
         self.kind = 'I2C address'
@@ -74,6 +78,9 @@ class I2cAddress(StreamSegment):
 def i2c_decode(scl, sda, stream_type=StreamType.Samples):
     '''Decode an I2C data stream
     
+    This is a generator function that can be used in a pipeline of waveform
+    processing operations.
+    
     scl
         An iterable representing the I2C serial clock
     
@@ -94,28 +101,28 @@ def i2c_decode(scl, sda, stream_type=StreamType.Samples):
 
     
     Yields a series of StreamRecord-based objects. These will be one of three event types
-    or two data types. The three events are represented by StreamEvent object with these
-    obj.kind attribute values:
+      or two data types. The three events are represented by StreamEvent object with these
+      obj.kind attribute values:
         * 'I2C start'   The start of an I2C transfer
         * 'I2C restart' A start condition during a transfer
         * 'I2C stop'    The end of a transfer
         
-    The two data types are represented by the objects I2cAddress and I2cByte. The former
-    is a 7-bit or 10-bit address from the start of a transfer or restart. The latter contains
-    the data read or written during the transfer. I2cByte has an attribute ack_bit that
-    records the value of the ACK for that byte. I2cAddress has a r_wn attribute that indicates
-    if the transfer is a read or write. The subrecords attribute contains the I2cByte object
-    or objects that composed the address.
+      The two data types are represented by the objects I2CAddress and I2CByte. The former
+      is a 7-bit or 10-bit address from the start of a transfer or restart. The latter contains
+      the data read or written during the transfer. I2CByte has an attribute ack_bit that
+      records the value of the ACK for that byte. I2CAddress has a r_wn attribute that indicates
+      if the transfer is a read or write. The subrecords attribute contains the I2CByte object
+      or objects that composed the address.
     
     Raises StreamError when the stream_type is Samples and the logic levels cannot
-    be determined automatically.
+      be determined automatically.
     '''
     
     if stream_type == StreamType.Samples:
         # tee off an iterator to determine logic thresholds
         s_scl_it, thresh_it = itertools.tee(scl)
         
-        logic = find_logic_levels(thresh_it, max_samples=5000, buf_size=2000)
+        logic = find_logic_levels(thresh_it)
         if logic is None:
             raise StreamError('Unable to find avg. logic levels of waveform')
         del thresh_it
@@ -214,8 +221,8 @@ def i2c_decode(scl, sda, stream_type=StreamType.Samples):
                                 else: # This shouldn't happen
                                     addr_10b = 0xFFF # invalid address
                                 
-                                nb = I2cByte((start_time, end_time), word, ack_bit)
-                                na = I2cAddress((start_time, end_time), addr_10b, r_wn)
+                                nb = I2CByte((start_time, end_time), word, ack_bit)
+                                na = I2CAddress((start_time, end_time), addr_10b, r_wn)
                                 na.subrecords.append(nb)
                                 yield na
                                 bits = []
@@ -223,14 +230,14 @@ def i2c_decode(scl, sda, stream_type=StreamType.Samples):
                                 state = S_DATA
                             
                             else: # 10-bit addressed write
-                                first_addr = I2cByte((start_time, end_time), word, ack_bit)
+                                first_addr = I2CByte((start_time, end_time), word, ack_bit)
                                 bits = []
                                 state = S_ADDR_10B
                             
                         else: # 7-bit address
                             r_wn = word & 0x01
-                            nb = I2cByte((start_time, end_time), word, ack_bit)
-                            na = I2cAddress((start_time, end_time), addr, r_wn)
+                            nb = I2CByte((start_time, end_time), word, ack_bit)
+                            na = I2CAddress((start_time, end_time), addr, r_wn)
                             na.subrecords.append(nb)
                             yield na
                             bits = []
@@ -240,8 +247,8 @@ def i2c_decode(scl, sda, stream_type=StreamType.Samples):
                     elif state == S_ADDR_10B: # 10-bit address
                         addr = (((first_addr.data >> 1) & 0x03) << 8) | word
                         r_wn = first_addr.data & 0x01
-                        ab2 = I2cByte((start_time, end_time), word, ack_bit)
-                        na = I2cAddress((first_addr.start_time, end_time), addr, r_wn)
+                        ab2 = I2CByte((start_time, end_time), word, ack_bit)
+                        na = I2CAddress((first_addr.start_time, end_time), addr, r_wn)
                         na.subrecords.append(first_addr)
                         na.subrecords.append(ab2)
                         
@@ -253,19 +260,31 @@ def i2c_decode(scl, sda, stream_type=StreamType.Samples):
                                     
 
                     else: # S_DATA
-                        nb = I2cByte((start_time, end_time), word, ack_bit)
+                        nb = I2CByte((start_time, end_time), word, ack_bit)
                         yield nb
                         bits = []
                         start_time = None               
-                
+
 
 class I2CTransfer(object):
+    '''Represent a transaction over the I2C bus'''
     def __init__(self, r_wn, address, data):
+        '''
+        r_wn
+            Read/write mode for the transfer
+        
+        address
+            Address of the transfer. Can be either a 7-bit or 10-bit address.
+        
+        data
+            Array of bytes sent in the transfer
+        '''
         self.r_wn = r_wn
         self.address = address
         self.data = data
         
     def bytes(self):
+        '''Get a list of raw bytes including the formatted address'''
         b = []
         
         if self.address <= 0x77: # 7-bit address
@@ -283,6 +302,7 @@ class I2CTransfer(object):
         return b
         
     def ack_bits(self):
+        '''Generate a list of ack bits for each byte of data'''
         ack = []
         
         if self.address <= 0x77:
@@ -315,37 +335,45 @@ class I2CTransfer(object):
         
     def __ne__(self, other):
         return not self == other
+
         
 def reconstruct_i2c_transfers(records):
+    '''Recreate a I2CTransfer objects from the output of i2c_decode()
+
+    This is a generator function that can be used in a pipeline of waveform
+    processing operations.
+
+    records
+        An iterable of I2CByte and I2CAddress records as produced by i2c_decode()
+        
+    Yields a stream of I2CTransfer objects containing aggregated address and data
+      from the input records.
+    '''
     S_ADDR = 0
     S_DATA = 1
     
     state = S_ADDR
     cur_addr = None
     cur_data = []
-    while True:
-        try:
-            r = next(records)
+
+    for r in records:
+        
+        if state == S_ADDR:
+            if r.kind == 'I2C address':
+                cur_addr = r
+                state = S_DATA
+               
+        elif state == S_DATA:
+            if r.kind == 'I2C byte':
+                cur_data.append(r)
             
-            if state == S_ADDR:
-                if r.kind == 'I2C address':
-                    cur_addr = r
-                    state = S_DATA
-                   
-            elif state == S_DATA:
-                if r.kind == 'I2C byte':
-                    cur_data.append(r)
+            if r.kind == 'I2C address':
+                # reconstruct previous transfer
+                tfer = I2CTransfer(cur_addr.r_wn, cur_addr.address, [b.data for b in cur_data])
+                yield tfer
                 
-                if r.kind == 'I2C address':
-                    # reconstruct previous transfer
-                    tfer = I2CTransfer(cur_addr.r_wn, cur_addr.address, [b.data for b in cur_data])
-                    yield tfer
-                    
-                    cur_addr = r
-                    cur_data = []
-            
-        except StopIteration:
-            break
+                cur_addr = r
+                cur_data = []
             
     if cur_addr is not None:
         # reconstruct last transfer
@@ -354,6 +382,32 @@ def reconstruct_i2c_transfers(records):
 
 
 def i2c_synth(transfers, clock_freq, idle_start=0.0, idle_end=0.0):
+    '''Generate synthesized I2C waveforms
+    
+    This function simulates I2C transfers on the SCL and SDA signals.
+
+    This is a generator function that can be used in a pipeline of waveform
+    procesing operations
+
+    transfers
+        An iterable of I2CTransfer objects containing data to be synthesized.
+    
+    clock_freq
+        Floating point clock frequency for the I2C bus. Standard rates are 100kHz (100.0e3)
+        and 400kHz (400.0e3) but any frequency can be specified.
+    
+    idle_start
+        The amount of idle time before the transmission of transfers begins
+    
+    idle_end
+        The amount of idle time after the last transfer
+    
+    Yields a pair of pairs representing the two edge streams for scl, and sda
+      respectively. Each edge stream pair is in (time, value) format representing the
+      time and logic value (0 or 1) for each edge transition. The first set of pairs
+      yielded is the initial state of the waveforms.
+    '''
+
     t = 0.0
     sda = 1
     scl = 1
