@@ -30,7 +30,7 @@ from ripyl.streaming import *
 from ripyl.decode import *
 from ripyl.util.bitops import *
 
-class SpiFrame(StreamSegment):
+class SPIFrame(StreamSegment):
     '''Frame object for SPI data'''
     def __init__(self, bounds, data=None):
         '''
@@ -82,7 +82,7 @@ def spi_decode(clk, mosi, cs=None, cpol=0, cpha=0, lsb_first=True, stream_type=S
         A StreamType value indicating that the clk, mosi, and cs parameters represent either Samples
         or Edges
 
-    Yields a series of SpiFrame objects.
+    Yields a series of SPIFrame objects.
       
     Raises StreamError if stream_type = Samples and the logic levels cannot
       be determined.
@@ -91,7 +91,7 @@ def spi_decode(clk, mosi, cs=None, cpol=0, cpha=0, lsb_first=True, stream_type=S
         # tee off an iterator to determine logic thresholds
         s_clk_it, thresh_it = itertools.tee(clk)
         
-        logic = find_logic_levels(thresh_it, max_samples=5000, buf_size=2000)
+        logic = find_logic_levels(thresh_it)
         if logic is None:
             raise StreamError('Unable to find avg. logic levels of waveform')
         del thresh_it
@@ -152,7 +152,7 @@ def spi_decode(clk, mosi, cs=None, cpol=0, cpha=0, lsb_first=True, stream_type=S
                     else:
                         word = join_bits(bits)
                     
-                    nf = SpiFrame((start_time, end_time), word)
+                    nf = SPIFrame((start_time, end_time), word)
                     nf.word_size = len(bits)
                     
                     bits = []
@@ -179,7 +179,7 @@ def spi_decode(clk, mosi, cs=None, cpol=0, cpha=0, lsb_first=True, stream_type=S
         else:
             word = join_bits(bits)
             
-        nf = SpiFrame((start_time, end_time), word)
+        nf = SPIFrame((start_time, end_time), word)
         nf.word_size = len(bits)
         
         yield nf
@@ -202,7 +202,7 @@ def spi_synth(data, word_size, clock_freq, cpol=0, cpha=0, lsb_first=True, idle_
         The number of bits in each word
     
     clock_freq
-        The SPI clock frequency
+        The SPI floating point clock frequency
     
     cpol
         Clock polarity: 0 or 1
@@ -218,9 +218,11 @@ def spi_synth(data, word_size, clock_freq, cpol=0, cpha=0, lsb_first=True, idle_
     
     word_interval
         The amount of time between data words
-        
 
-    
+    Yields a triplet of pairs representing the three edge streams for clk, mosi, and cs
+      respectively. Each edge stream pair is in (time, value) format representing the
+      time and logic value (0 or 1) for each edge transition. The first set of pairs
+      yielded is the initial state of the waveforms.
     '''
     t = 0.0
     clk = cpol
@@ -288,3 +290,4 @@ def spi_synth(data, word_size, clock_freq, cpol=0, cpha=0, lsb_first=True, idle_
     t += half_bit_period
         
     yield ((t, clk),(t, mosi),(t, cs)) # final state
+
