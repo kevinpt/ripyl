@@ -30,8 +30,8 @@ import scipy.stats
 import math
 import collections
 
-from stats import OnlineStats
-from streaming import StreamError
+from ripyl.stats import OnlineStats
+from ripyl.streaming import StreamError
 
 #import matplotlib.pyplot as plt
 

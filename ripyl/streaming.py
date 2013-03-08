@@ -24,7 +24,7 @@
 
 from __future__ import print_function, division
 
-from util.enum import Enum
+from ripyl.util.enum import Enum
 
 
 class StreamType(Enum):
