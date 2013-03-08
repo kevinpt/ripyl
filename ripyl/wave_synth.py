@@ -24,14 +24,28 @@
 
 from __future__ import print_function, division
 
-
 import math
 
 
 def sine_synth(frequency=1.0e6, phase=0.0, sample_period=50.0e-9, samples=None):
     ''' Sine generator
-        Will generate a continuous stream of samples from a sine wave.
-        This generator will terminate if the number of output sampes is specified.
+    
+    Will generate a continuous stream of samples from a sine wave.
+    This generator will terminate if the number of output samples is specified.
+        
+    frequency
+        Frequency in Hz of the sine wave
+    
+    phase
+        Phase in radians of the sine wave
+    
+    sample_period
+        Time interval between samples
+    
+    samples
+        Optional number of samples to generate
+        
+    Yields a series of raw samples.
     '''
     angle = phase
     sc = samples if samples is not None else -1
@@ -47,12 +61,32 @@ def sine_synth(frequency=1.0e6, phase=0.0, sample_period=50.0e-9, samples=None):
         
 def square_synth(frequency=1.0e6, duty=0.5, phase=0.0, sample_period=50.0e-9, samples=None):
     ''' Square wave generator
+    
+    Will generate a continuous stream of samples from a square wave.
+    This generator will terminate if the number of output samples is specified.
+        
+    frequency
+        Frequency in Hz of the square wave
+        
+    duty
+        Duty cycle of the square wave. Should be between 0.0 and 1.0.
+    
+    phase
+        Phase of the square wave in fractions of a period. Should be between 0.0 and 1.0.
+    
+    sample_period
+        Time interval between samples
+    
+    samples
+        Optional number of samples to generate
+        
+    Yields a series of raw samples.
     '''
     
     sc = samples if samples is not None else -1
     
     period = 1.0 / frequency
-    fe_time = duty / frequency
+    fe_time = duty / frequency # Falling edge time
     
     t = phase * period
     cur_level = 1 if t < fe_time else 0
