@@ -154,7 +154,7 @@ class TestUSBFuncs(unittest.TestCase):
             self.assertEqual(pkt_cnt, len(packets), \
                 'Missing or extra decoded packets (got {} , expected {})'.format(pkt_cnt, len(packets)))
     
-    def Xtest_usb_sample_data(self):
+    def test_usb_sample_data(self):
     
         # Read files containing 100 Full-speed SOF packets
         # Note that these packets were collected with segmented acquisition and are ~5us
@@ -178,7 +178,7 @@ class TestUSBFuncs(unittest.TestCase):
             cur_frame += 1
             self.assertEqual(r.packet.frame_num, cur_frame, 'SOF frame_num not decoded properly')
   
-    def Xtest_usb_diff_sample_data(self):
+    def test_usb_diff_sample_data(self):
     
         # Read files containing 100 Full-speed SOF packets
         # Note that these packets were collected with segmented acquisition and are ~5us
