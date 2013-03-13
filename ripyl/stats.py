@@ -36,12 +36,25 @@ class OnlineStats(object):
         self.m = 0.0
         self.s = 0.0
         
-    def accumulate(self, d):
-        '''Add a new data value to the set of accumulated statistics'''
-        self.c += 1
-        delta = d - self.m
-        self.m = self.m + delta / self.c
-        self.s = self.s + delta * (d - self.m)
+    def accumulate(self, data):
+        '''Add a new data value to the set of accumulated statistics
+        
+        data
+            A scalar number or an iterable sequence of numbers
+        '''
+        
+        try:
+            for d in data:
+                self.c += 1
+                delta = d - self.m
+                self.m = self.m + delta / self.c
+                self.s = self.s + delta * (d - self.m)
+        
+        except TypeError: # Assume data is a scalar
+            self.c += 1
+            delta = data - self.m
+            self.m = self.m + delta / self.c
+            self.s = self.s + delta * (data - self.m)
     
     def variance(self, ddof=0):
         '''Return the variance of the data values previously accumulated
