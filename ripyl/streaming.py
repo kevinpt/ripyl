@@ -36,6 +36,9 @@ class StreamType(Enum):
 class StreamError(RuntimeError):
 	pass
 
+class AutoLevelError(StreamError):
+    def __init__(self, msg='Unable to find avg. logic levels of waveform'):
+        StreamError.__init__(self, msg)
     
     
 class StreamStatus(Enum):
