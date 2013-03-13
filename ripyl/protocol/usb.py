@@ -3,6 +3,10 @@
 
 '''Ripyl protocol decode library
    USB protocol decoder
+   
+   This Supports all of USB 2.0 including Low, Full, and High speed;
+   Link Power Management extended tokens; and USB 1.x mixed Low and
+   Full speed transmissions.
 '''
 
 # Copyright © 2013 Kevin Thibedeau
@@ -30,6 +34,7 @@ from ripyl.decode import *
 from ripyl.streaming import *
 from ripyl.util.enum import Enum
 from ripyl.util.bitops import *
+from ripyl.sigproc import remove_excess_edges
 
 
 class USBSpeed(Enum):
@@ -139,8 +144,8 @@ class USBStreamPacket(StreamSegment):
         bit_fields = self.packet.field_offsets(with_stuffing = True)
         
         fields = {}
-        clock_period = USBClockPeriod[self.bus_speed]
-        for field, (start, end) in bit_fields:
+        clock_period = USBClockPeriod[self.packet.speed]
+        for field, (start, end) in bit_fields.items():
             fields[field] = (self.sop_end + start * clock_period, self.sop_end + (end + 1) * clock_period)
 
         if self.packet.pid == USBPID.EXT:
@@ -356,6 +361,32 @@ class USBPacket(object):
             
         return (edges_dp, edges_dm)
 
+    def get_diff_edges(self, cur_time = 0.0):
+        '''Produce a set of edges corresponding to USB differential (D+ - D-) signal
+        
+        Returns a list of differential edges
+        '''
+        if self.speed == USBSpeed.LowSpeed and self.swap_jk == False:
+            DIFF_J = -1
+            DIFF_K = 1
+        else:
+            DIFF_J = 1
+            DIFF_K = -1
+            
+        edges_diff = []
+        
+        for s in self._get_NRZI():
+            t = s[0] + self.delay + cur_time
+            if s[1] == USBState.J:
+                diff = DIFF_J
+            elif s[1] == USBState.K:
+                diff = DIFF_K
+            else: # SE0
+                diff = 0
+
+            edges_diff.append((t, diff))
+            
+        return edges_diff
 
     def _adjust_stuffing(self, fields):
         import bisect
@@ -367,7 +398,7 @@ class USBPacket(object):
         cum_offsets = list(xrange(len(stuff_pos)))
         
         adj_fields = {}
-        for field, (start, end) in field.items():
+        for field, (start, end) in fields.items():
             # Find the bit offsets that apply to the field range
             i = bisect.bisect_left(stuff_pos, start)
             if i < len(cum_offsets):
@@ -821,7 +852,7 @@ def usb_decode(dp, dm, stream_type=StreamType.Samples):
         # tee off an iterator to determine logic thresholds
         s_dp_it, thresh_it = itertools.tee(dp)
         
-        logic = find_logic_levels(thresh_it, max_samples=5000, buf_size=2000)
+        logic = find_logic_levels(thresh_it)
         if logic is None:
             raise StreamError('Unable to find avg. logic levels of waveform')
         del thresh_it
@@ -895,9 +926,9 @@ def usb_diff_decode(d_diff, stream_type=StreamType.Samples):
         # tee off an iterator to determine logic thresholds
         s_diff_it, thresh_it = itertools.tee(d_diff)
         
-        logic = find_logic_levels(thresh_it, max_samples=5000, buf_size=2000)
+        logic = find_logic_levels(thresh_it)
         if logic is None:
-            raise StreamError('Unable to find avg. logic levels of waveform')
+            raise AutoLevelError
         del thresh_it
 
         hyst = 0.1
@@ -1081,7 +1112,11 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
         state_seq.advance(clock_period)  # At middle of first PID bit
         time_adjustment = 0.0
         invalid_pid = False
+
         while state_seq.cur_state() != SE0:
+            if state_seq.at_end():
+                break
+                
             packet_states.append(state_seq.cur_state())
             
             time_step = clock_period
@@ -1100,6 +1135,7 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
             if len(packet_states) == 8:
                 # Decode the PID
                 packet_pid_bits = _decode_NRZI(packet_states)
+                print('#### PID:', packet_pid_bits, packet_states)
                 
                 # Validate the PID
                 packet_pid_check = packet_pid_bits[4:8]
@@ -1516,9 +1552,6 @@ def usb_synth(packets, idle_start=0.0, idle_end=0.0):
     
     This function simulates USB packet transmission on the D+ and D- signals.
     
-    This is a generator function that can be used in a pipeline of waveform
-    procesing operations.
-    
     packets
         A sequence of USBPacket objects that are to be simulated
     
@@ -1528,13 +1561,25 @@ def usb_synth(packets, idle_start=0.0, idle_end=0.0):
     idle_end
         The amount of idle time after the last packet
 
-    Yields a series of 2-tuples (dp, dm) for the D+ and D- channels. Each
-      tuple is itself a 2-tuple (time, value) representing the time and the
+    Returns a pair of iterators (dp, dm) for the D+ and D- channels. Each
+      iterator is a 2-tuple (time, value) representing the time and the
       logic value (0 or 1) for each edge transition on D+ and D-. The first tuple
       yielded is the initial state of the waveform. All remaining tuples are
       edges where the state changes.
     '''
+    # This is a wrapper around the actual synthesis code in _usb_synth()
+    # It unzips the yielded tuple and removes unwanted artifact edges
+    dp, dm = itertools.izip(*_usb_synth(packets, idle_start, idle_end))
+    dp = remove_excess_edges(dp)
+    dm = remove_excess_edges(dm)
+    return dp, dm
 
+def _usb_synth(packets, idle_start=0.0, idle_end=0.0):
+    '''Core USB sunthesizer
+    
+    This is a generator function.
+    '''
+    
     t = 0.0
     dp = 0
     dm = 0
@@ -1556,8 +1601,56 @@ def usb_synth(packets, idle_start=0.0, idle_end=0.0):
     yield ((t, dp), (t, dm))
     t += idle_end
     yield ((t, dp), (t, dm)) # final state
+
     
     
+def usb_diff_synth(packets, idle_start=0.0, idle_end=0.0):
+    '''Generate synthesized differential USB waveforms
+    
+    This function simulates USB packet transmission on the differential D+ - D-
+    signal.
+    
+    packets
+        A sequence of USBPacket objects that are to be simulated
+    
+    idle_start
+        The amount of idle time before the transmission of packets begins
+    
+    idle_end
+        The amount of idle time after the last packet
+
+    Returns an iterator of 2-tuples for the D+ - D- differential channel. Each
+      2-tuple is a (time, value) pair representing the time and the
+      logic value (-1, 0, or 1) for each edge transition. The first tuple
+      yielded is the initial state of the waveform. All remaining tuples are
+      edges where the state changes.
+    ''' 
+    # This is a wrapper around the actual synthesis code in _usb_diff_synth()
+    diff_d = _usb_diff_synth(packets, idle_start, idle_end)
+    diff_d = remove_excess_edges(diff_d)
+    return diff_d
+
+def _usb_diff_synth(packets, idle_start=0.0, idle_end=0.0):
+    t = 0.0
+    diff_d = 0
+    
+    yield (t, diff_d) # initial conditions
+    t += idle_start
+
+    for p in packets:
+        diff_edges = p.get_diff_edges(t)
+        
+        for e in diff_edges:
+            yield e
+        
+        # update time to end of edge sequence plus a clock period
+        t = diff_edges[-1][0] + USBClockPeriod[p.speed]
+ 
+    yield (t, diff_d)
+    t += idle_end
+    yield (t, diff_d) # final state
+
+
 
 def usb_crc5(d):
     '''Calculate USB CRC-5 on data
