@@ -30,6 +30,7 @@ from ripyl.decode import *
 from ripyl.streaming import *
 from ripyl.util.enum import Enum
 from ripyl.util.bitops import *
+from ripyl.sigproc import remove_excess_edges
 
 class I2C(Enum):
     '''Enumeration for I2C r/w bit states'''
@@ -74,7 +75,6 @@ class I2CAddress(StreamSegment):
         return str(hex(self.data))
 
 
-
 def i2c_decode(scl, sda, stream_type=StreamType.Samples):
     '''Decode an I2C data stream
     
@@ -114,7 +114,7 @@ def i2c_decode(scl, sda, stream_type=StreamType.Samples):
       if the transfer is a read or write. The subrecords attribute contains the I2CByte object
       or objects that composed the address.
     
-    Raises StreamError when the stream_type is Samples and the logic levels cannot
+    Raises AutoLevelError when the stream_type is Samples and the logic levels cannot
       be determined automatically.
     '''
     
@@ -124,7 +124,7 @@ def i2c_decode(scl, sda, stream_type=StreamType.Samples):
         
         logic = find_logic_levels(thresh_it)
         if logic is None:
-            raise StreamError('Unable to find avg. logic levels of waveform')
+            raise AutoLevelError
         del thresh_it
         
         hyst = 0.4
@@ -226,6 +226,7 @@ def i2c_decode(scl, sda, stream_type=StreamType.Samples):
                                 na.subrecords.append(nb)
                                 yield na
                                 bits = []
+                                start_time = None
                                 
                                 state = S_DATA
                             
@@ -241,6 +242,7 @@ def i2c_decode(scl, sda, stream_type=StreamType.Samples):
                             na.subrecords.append(nb)
                             yield na
                             bits = []
+                            start_time = None
 
                             state = S_DATA
 
@@ -255,6 +257,7 @@ def i2c_decode(scl, sda, stream_type=StreamType.Samples):
                         prev_10b_addr = na
                         yield na
                         bits = []
+                        start_time = None
 
                         state = S_DATA
                                     
@@ -386,9 +389,6 @@ def i2c_synth(transfers, clock_freq, idle_start=0.0, idle_end=0.0):
     
     This function simulates I2C transfers on the SCL and SDA signals.
 
-    This is a generator function that can be used in a pipeline of waveform
-    procesing operations
-
     transfers
         An iterable of I2CTransfer objects containing data to be synthesized.
     
@@ -402,10 +402,23 @@ def i2c_synth(transfers, clock_freq, idle_start=0.0, idle_end=0.0):
     idle_end
         The amount of idle time after the last transfer
     
-    Yields a pair of pairs representing the two edge streams for scl, and sda
+    Returns a pair of iterators representing the two edge streams for scl, and sda
       respectively. Each edge stream pair is in (time, value) format representing the
-      time and logic value (0 or 1) for each edge transition. The first set of pairs
-      yielded is the initial state of the waveforms.
+      time and logic value (0 or 1) for each edge transition. The first elements in the
+      iterators are the initial state of the waveforms.
+    '''
+    # This is a wrapper around the actual synthesis code in _i2c_synth()
+    # It unzips the yielded tuple and removes unwanted artifact edges
+    scl, sda = itertools.izip(*_i2c_synth(transfers, clock_freq, idle_start, idle_end))
+    scl = remove_excess_edges(scl)
+    sda = remove_excess_edges(sda)
+    return scl, sda
+
+
+def _i2c_synth(transfers, clock_freq, idle_start=0.0, idle_end=0.0):
+    '''Core I2C synthesizer
+    
+    This is a generator function.
     '''
 
     t = 0.0
