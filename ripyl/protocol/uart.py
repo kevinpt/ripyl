@@ -31,6 +31,10 @@ from ripyl.streaming import *
 from ripyl.util.enum import Enum
 
 
+class AutoBaudError(StreamError):
+    pass
+
+
 class UARTStreamStatus(Enum):
     '''Enumeration of UART status codes'''
     FramingError = StreamStatus.Error + 1
@@ -88,7 +92,8 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, pola
     
     baud_rate
         The baud rate of the stream. If None, the first 50 edges will be analyzed to
-        automatically determine the most likely baud rate for the stream
+        automatically determine the most likely baud rate for the stream. On average
+        50 edges will occur after 11 frames have been captured.
     
     use_std_baud
         Boolean that forces coercion of automatically detected baud rate to the set of
@@ -108,8 +113,10 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, pola
       of sub-elements within the frame (start, data, parity, stop). Parity errors are recorded
       as an error status in the parity subrecord.
       
-    Raises StreamError if stream_type = Samples and the logic levels cannot
-      be determined. Also if auto-baud is active and the baud rate cannot
+    Raises AutoLevelError if stream_type = Samples and the logic levels cannot
+      be determined.
+      
+    Raises AutoBaudError if auto-baud is active and the baud rate cannot
       be determined.
       
     Raises ValueError is the parity argument is invalid.
@@ -121,7 +128,7 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, pola
         
         logic = find_logic_levels(thresh_it)
         if logic is None:
-            raise StreamError('Unable to find avg. logic levels of waveform')
+            raise AutoLevelError
         del thresh_it
         
         edges = find_edges(samp_it, logic, hysteresis=0.4)
@@ -147,7 +154,7 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, pola
         # Just consume them all for a count        
         sre_list = list(symbol_rate_edges)
         if len(sre_list) < min_edges:
-            raise StreamError('Unable to compute automatic baud rate.')
+            raise AutoBaudError('Unable to compute automatic baud rate.')
         
         raw_symbol_rate = find_symbol_rate(iter(sre_list), spectra=2)
         
@@ -216,9 +223,9 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, pola
         
         p = 0
         if parity is not None:
-            if parity == 'even':
+            if parity.lower() == 'even':
                 p = 0
-            elif parity == 'odd':
+            elif parity.lower() == 'odd':
                 p = 1
             else:
                 raise ValueError('Invalid parity argument')
@@ -331,9 +338,9 @@ def uart_synth(data, bits = 8, baud=115200, parity=None, stop_bits=1.0, idle_sta
 
         p = 0
         if parity is not None:
-            if parity == 'even':
+            if parity.lower() == 'even':
                 p = 0
-            elif parity == 'odd':
+            elif parity.lower() == 'odd':
                 p = 1
             else:
                 raise ValueError('Invalid parity argument')        
