@@ -29,6 +29,7 @@ import itertools
 from ripyl.streaming import *
 from ripyl.decode import *
 from ripyl.util.bitops import *
+from ripyl.sigproc import remove_excess_edges
 
 class SPIFrame(StreamSegment):
     '''Frame object for SPI data'''
@@ -46,13 +47,13 @@ class SPIFrame(StreamSegment):
     def __str__(self):
         return str(self.data)
 
-def spi_decode(clk, mosi, cs=None, cpol=0, cpha=0, lsb_first=True, stream_type=StreamType.Samples):
+def spi_decode(clk, data_io, cs=None, cpol=0, cpha=0, lsb_first=True, stream_type=StreamType.Samples):
     '''Decode an SPI data stream
     
     This is a generator function that can be used in a pipeline of waveform
     processing operations.
     
-    The clk, mosi, and cs parameters are edge or sample streams.
+    The clk, data_io, and cs parameters are edge or sample streams.
     Each is a stream of 2-tuples of (time, value) pairs. The type of stream is identified
     by the stream_type parameter. Either a series of real valued samples that will be
     analyzed to find edge transitions or a set of pre-processed edge transitions
@@ -63,8 +64,8 @@ def spi_decode(clk, mosi, cs=None, cpol=0, cpha=0, lsb_first=True, stream_type=S
     clk
         SPI clk stream
     
-    mosi
-        SPI MOSI stream. The MISO signal can also be substituted here.
+    data_io
+        SPI MOSI or MISO stream.
     
     cs
         SPI chip select stream. Can be None if cs is not available.
@@ -79,7 +80,7 @@ def spi_decode(clk, mosi, cs=None, cpol=0, cpha=0, lsb_first=True, stream_type=S
         Boolean indicating whether the Least Significant Bit is transmitted first.
     
     stream_type
-        A StreamType value indicating that the clk, mosi, and cs parameters represent either Samples
+        A StreamType value indicating that the clk, data_io, and cs parameters represent either Samples
         or Edges
 
     Yields a series of SPIFrame objects.
@@ -98,20 +99,20 @@ def spi_decode(clk, mosi, cs=None, cpol=0, cpha=0, lsb_first=True, stream_type=S
         
         hyst = 0.4
         clk_it = find_edges(s_clk_it, logic, hysteresis=hyst)
-        mosi_it = find_edges(mosi, logic, hysteresis=hyst)
+        data_io_it = find_edges(data_io, logic, hysteresis=hyst)
         if cs is not None:
             cs_it = find_edges(cs, logic, hysteresis=hyst)
         else:
             cs_it = None
     else: # the streams are already lists of edges
         clk_it = clk
-        mosi_it = mosi
+        data_io_it = data_io
         cs_it = cs
 
 
     edge_sets = {
         'clk': clk_it,
-        'mosi': mosi_it
+        'data_io': data_io_it
     }
     
     if cs_it is not None:
@@ -164,7 +165,7 @@ def spi_decode(clk, mosi, cs=None, cpol=0, cpha=0, lsb_first=True, stream_type=S
                 if start_time is None:
                     start_time = es.cur_time()
                     
-                bits.append(es.cur_state('mosi'))
+                bits.append(es.cur_state('data_io'))
                 end_time = es.cur_time()
                 
                 if prev_edge is not None:
@@ -219,20 +220,34 @@ def spi_synth(data, word_size, clock_freq, cpol=0, cpha=0, lsb_first=True, idle_
     word_interval
         The amount of time between data words
 
-    Yields a triplet of pairs representing the three edge streams for clk, mosi, and cs
+    Yields a triplet of pairs representing the three edge streams for clk, data_io, and cs
       respectively. Each edge stream pair is in (time, value) format representing the
       time and logic value (0 or 1) for each edge transition. The first set of pairs
       yielded is the initial state of the waveforms.
     '''
+    # This is a wrapper around the actual synthesis code in _spi_synth()
+    # It unzips the yielded tuple and removes unwanted artifact edges
+    clk, data_io, cs = itertools.izip(*_spi_synth(data, word_size, clock_freq, cpol, cpha, lsb_first, idle_start, word_interval))
+    clk = remove_excess_edges(clk)
+    data_io = remove_excess_edges(data_io)
+    cs = remove_excess_edges(cs)
+    return clk, data_io, cs
+    
+def _spi_synth(data, word_size, clock_freq, cpol=0, cpha=0, lsb_first=True, idle_start=0.0, word_interval=0.0):
+    '''Core SPI sunthesizer
+    
+    This is a generator function.
+    '''
+
     t = 0.0
     clk = cpol
-    mosi = 0
+    data_io = 0
     cs = 1
     
     half_bit_period = 1.0 / (2.0 * clock_freq)
     
     
-    yield ((t, clk),(t, mosi),(t, cs)) # initial conditions
+    yield ((t, clk),(t, data_io),(t, cs)) # initial conditions
     t += idle_start
      
     for i, d in enumerate(data):
@@ -246,28 +261,28 @@ def spi_synth(data, word_size, clock_freq, cpol=0, cpha=0, lsb_first=True, idle_
         
         if cpha == 0: # data goes valid a half cycle before the first clock edge
             t += half_bit_period
-            mosi = bits[bits_remaining-1]
+            data_io = bits[bits_remaining-1]
             bits_remaining -= 1
             cs = 0
-            yield ((t, clk),(t, mosi),(t, cs))
+            yield ((t, clk),(t, data_io),(t, cs))
             t += half_bit_period
             clk = 1 - clk # initial half clock period
-            yield ((t, clk),(t, mosi),(t, cs))
+            yield ((t, clk),(t, data_io),(t, cs))
         else:
             t += half_bit_period
             cs = 0
-            yield ((t, clk),(t, mosi),(t, cs))
+            yield ((t, clk),(t, data_io),(t, cs))
             
         while bits_remaining:
             t += half_bit_period
             clk = 1 - clk
-            mosi = bits[bits_remaining-1]
+            data_io = bits[bits_remaining-1]
             bits_remaining -= 1
-            yield ((t, clk),(t, mosi),(t, cs))
+            yield ((t, clk),(t, data_io),(t, cs))
 
             t += half_bit_period
             clk = 1 - clk
-            yield ((t, clk),(t, mosi),(t, cs))
+            yield ((t, clk),(t, data_io),(t, cs))
             
         t += half_bit_period
         if cpha == 0: # final half clock period
@@ -275,19 +290,19 @@ def spi_synth(data, word_size, clock_freq, cpol=0, cpha=0, lsb_first=True, idle_
         else: # cpha == 1
             if i == len(data) - 1:  # deassert CS at end of data sequence
                 cs = 1
-        mosi = 0
-        yield ((t, clk),(t, mosi),(t, cs))
+        data_io = 0
+        yield ((t, clk),(t, data_io),(t, cs))
         
         if cpha == 0:
             t += half_bit_period
             if i == len(data) - 1: # deassert CS at end of data sequence
                 cs = 1
-            yield ((t, clk),(t, mosi),(t, cs))
+            yield ((t, clk),(t, data_io),(t, cs))
         
             
         t += word_interval
         
     t += half_bit_period
         
-    yield ((t, clk),(t, mosi),(t, cs)) # final state
+    yield ((t, clk),(t, data_io),(t, cs)) # final state
 
