@@ -54,49 +54,85 @@ def waveform_bounds(raw_samples):
     
     return bounds
 
+def plot(channels, records, title='', label_format='text', save_file=None):
+    '''Generic plot function
+    
+    Dispatches to the protocol specific plotters based on the keys in the channels dict
+    
+    '''
+    
+    try:
+        keys = channels.keys()
+        if 'dp' in keys and 'dm' in keys:
+            return usb_plot(channels, records, title, label_format, save_file)
+        elif 'clk' in keys and ('data_io' in keys or 'miso' in keys or 'mosi' in keys):
+            return spi_plot(channels, records, title, label_format, save_file)
+        elif 'scl' in keys and 'sda' in keys:
+            return i2c_plot(channels, records, title, label_format, save_file)
+        elif len(keys) == 1:
+            return usb_plot(channels, records, title, label_format, save_file)
+        
+    except AttributeError:
+        return uart_plot(channels, records, title, label_format, save_file)
     
     
 def usb_plot(channels, records, title='', label_format='text', save_file=None):
     import ripyl.protocol.usb as usb
     from ripyl.util.bitops import join_bits
-    
-    dp = channels['dp']
-    dm = channels['dm']
-    dp_t, dp_wf = zip(*dp)
-    dm_t, dm_wf = zip(*dm)
-    
-    dp_b = waveform_bounds(dp_wf)
-    dm_b = waveform_bounds(dm_wf)
-    
-    text_ypos = (dm_b['max'] + dm_b['ovl_top']) / 2.0
 
-    fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, sharey=True)
-
-    ax1.plot(dp_t, dp_wf, color='green')
-    ax1.set_ylabel('D+ (V)')
-    ax1.set_title(title)
+    if len(channels.keys()) == 1:
+        diff_usb = True
+        dm = channels[channels.keys()[0]]
+        
+        dm_t, dm_wf = zip(*dm)
+        dm_b = waveform_bounds(dm_wf)
     
-    ax2.plot(dm_t, dm_wf)
-    ax2.set_xlabel('Time (s)')
-    ax2.set_ylabel('D- (V)')
+        text_ypos = (dm_b['max'] + dm_b['ovl_top']) / 2.0
+
+        fig, ax1 = plt.subplots(1, 1)
+
+        ax1.plot(dm_t, dm_wf)
+        ax1.set_title(title)
+
+        ax1.set_xlabel('Time (s)')
+        ax1.set_ylabel('D+ - D- (V)')
+        
+        ann_ax = ax1
+        
+    else:
+        diff_usb = False
+        dp = channels['dp']
+        dm = channels['dm']
+        dp_t, dp_wf = zip(*dp)
+        dm_t, dm_wf = zip(*dm)
+    
+        #dp_b = waveform_bounds(dp_wf)
+        dm_b = waveform_bounds(dm_wf)
+    
+        text_ypos = (dm_b['max'] + dm_b['ovl_top']) / 2.0
+
+        fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, sharey=True)
+
+        ax1.plot(dp_t, dp_wf, color='green')
+        ax1.set_ylabel('D+ (V)')
+        ax1.set_title(title)
+        
+        ax2.plot(dm_t, dm_wf)
+        ax2.set_xlabel('Time (s)')
+        ax2.set_ylabel('D- (V)')
+        
+        ann_ax = ax2
     
     for r in records:
         if not (r.kind == 'USB packet'):
             continue
-            
-        # # There are 9-bits in every byte so we can infer the clock period
-        # # FIX: handle 10-bit addresses
-        # if len(r.subrecords) == 0:
-            # clock_period = (r.end_time - r.start_time) / 9.0
-        # else:
-            # clock_period = (r.subrecords[0].end_time - r.subrecords[0].start_time) / 9.0
             
         # Packet frame rectangle
         f_start = r.start_time
         f_end = r.end_time
         f_rect = patches.Rectangle((f_start, dm_b['ovl_bot']), width=f_end - f_start, \
             height=dm_b['ovl_top'] - dm_b['ovl_bot'], facecolor='orange', alpha=0.2)
-        ax2.add_patch(f_rect)
+        ann_ax.add_patch(f_rect)
         
         offsets = r.field_offsets()
         
@@ -105,8 +141,8 @@ def usb_plot(channels, records, title='', label_format='text', save_file=None):
         p_end = offsets['PID'][1]
         p_rect = patches.Rectangle((p_start, dm_b['i_ovl_bot']), width=p_end - p_start, \
             height=dm_b['i_ovl_top'] - dm_b['i_ovl_bot'], facecolor='red', alpha=0.3)
-        ax2.add_patch(p_rect)
-        ax2.text((p_start + p_end) / 2.0, text_ypos, usb.USBPID(r.packet.pid), \
+        ann_ax.add_patch(p_rect)
+        ann_ax.text((p_start + p_end) / 2.0, text_ypos, usb.USBPID(r.packet.pid), \
             size='small', ha='center', color='black')
         
         used_fields = ['PID']
@@ -124,10 +160,10 @@ def usb_plot(channels, records, title='', label_format='text', save_file=None):
         if c_start > 0.0:
             c_rect = patches.Rectangle((c_start, dm_b['i_ovl_bot']), width=c_end - c_start, \
                 height=dm_b['i_ovl_top'] - dm_b['i_ovl_bot'], facecolor='yellow', alpha=0.3)
-            ax2.add_patch(c_rect)
+            ann_ax.add_patch(c_rect)
             
             crc = join_bits(r.crc)
-            ax2.text((c_start + c_end) / 2.0, text_ypos, hex(crc), \
+            ann_ax.text((c_start + c_end) / 2.0, text_ypos, hex(crc), \
                 size='small', ha='center', color='black')
             
         # Draw the remaining fields
@@ -145,7 +181,7 @@ def usb_plot(channels, records, title='', label_format='text', save_file=None):
             color = colors[color_ix]
             d_rect = patches.Rectangle((d_start, dm_b['i_ovl_bot']), width=d_end - d_start, \
                 height=dm_b['i_ovl_top'] - dm_b['i_ovl_bot'], facecolor=color, alpha=0.3)
-            ax2.add_patch(d_rect)
+            ann_ax.add_patch(d_rect)
         
         if 'Data' in offsets.keys():
             chars = []
@@ -160,49 +196,10 @@ def usb_plot(channels, records, title='', label_format='text', save_file=None):
             decoded_msg = ''.join(chars)
             d_start = offsets['Data'][0]
             d_end = offsets['Data'][1]
-            ax2.text((d_start + d_end) / 2.0, text_ypos, decoded_msg, \
+            ann_ax.text((d_start + d_end) / 2.0, text_ypos, decoded_msg, \
                 size='small', ha='center', color='black')            
-            
-        
-        # # Ack bit rectangle
-        # ack_start = r.end_time - 0.25 * clock_period
-        # ack_end = r.end_time + 0.25 * clock_period
-        # try:
-            # ack_bit = r.ack_bit
-        # except AttributeError:
-            # ack_bit = r.subrecords[0].ack_bit
-        # color = 'yellow' if ack_bit == 0 else 'red'
-        # a_rect = patches.Rectangle((ack_start, sda_b['i_ovl_bot']), width=ack_end - ack_start, \
-            # height=sda_b['i_ovl_top'] - sda_b['i_ovl_bot'], facecolor=color, alpha=0.3)
-        # ax2.add_patch(a_rect)
 
-        # # Data bits rectangle
-        # d_start = r.start_time - 0.25 * clock_period
-        # d_end = d_start + 8.5 * clock_period
-        # d_rect = patches.Rectangle((d_start, sda_b['i_ovl_bot']), width=d_end - d_start, \
-            # height=sda_b['i_ovl_top'] - sda_b['i_ovl_bot'], facecolor='blue', alpha=0.3)
-        # ax2.add_patch(d_rect)
-
-        # color = 'black'
-        # angle = 'horizontal'
-        # if label_format == 'text':
-            # char = chr(r.data)
-            # if char not in string.printable:
-                # char = hex(r.data)
-                # color='red'
-                # angle = 45
-
-        # elif label_format == 'hex':
-            # char = hex(r.data)
-            # angle = 45
-        # else:
-            # raise ValueError('Unrecognized label format: "{}"'.format(label_format))
-
-        # ax2.text((r.start_time + r.end_time) / 2.0, text_ypos, char, \
-            # size='large', ha='center', color=color, rotation=angle)
-
-
-    ax2.set_ylim(dm_b['ovl_bot'] * 1.05, dm_b['ovl_top'] * 1.05)
+    ann_ax.set_ylim(dm_b['ovl_bot'] * 1.05, dm_b['ovl_top'] * 1.05)
     
     if save_file is None:
         plt.show()
@@ -242,13 +239,6 @@ def spi_plot(channels, records, title='', label_format='text', save_file=None):
         if not (r.kind == 'SPI frame'):
             continue
             
-        # # There are 9-bits in every byte so we can infer the clock period
-        # # FIX: handle 10-bit addresses
-        # if len(r.subrecords) == 0:
-            # clock_period = (r.end_time - r.start_time) / 9.0
-        # else:
-            # clock_period = (r.subrecords[0].end_time - r.subrecords[0].start_time) / 9.0
-            
         # Frame rectangle
         f_start = r.start_time
         f_end = r.end_time
@@ -256,25 +246,6 @@ def spi_plot(channels, records, title='', label_format='text', save_file=None):
             height=data_io_b['ovl_top'] - data_io_b['ovl_bot'], facecolor='orange', alpha=0.2)
         ax3.add_patch(f_rect)
         
-        # # Ack bit rectangle
-        # ack_start = r.end_time - 0.25 * clock_period
-        # ack_end = r.end_time + 0.25 * clock_period
-        # try:
-            # ack_bit = r.ack_bit
-        # except AttributeError:
-            # ack_bit = r.subrecords[0].ack_bit
-        # color = 'yellow' if ack_bit == 0 else 'red'
-        # a_rect = patches.Rectangle((ack_start, data_io_b['i_ovl_bot']), width=ack_end - ack_start, \
-            # height=data_io_b['i_ovl_top'] - data_io_b['i_ovl_bot'], facecolor=color, alpha=0.3)
-        # ax2.add_patch(a_rect)
-
-        # # Data bits rectangle
-        # d_start = r.start_time - 0.25 * clock_period
-        # d_end = d_start + 8.5 * clock_period
-        # d_rect = patches.Rectangle((d_start, data_io_b['i_ovl_bot']), width=d_end - d_start, \
-            # height=data_io_b['i_ovl_top'] - data_io_b['i_ovl_bot'], facecolor='blue', alpha=0.3)
-        # ax2.add_patch(d_rect)
-
         color = 'black'
         angle = 'horizontal'
         if label_format == 'text':
@@ -330,11 +301,12 @@ def i2c_plot(channels, records, title='', label_format='text', save_file=None):
             continue
             
         # There are 9-bits in every byte so we can infer the clock period
-        # FIX: handle 10-bit addresses
         if len(r.subrecords) == 0:
             clock_period = (r.end_time - r.start_time) / 9.0
+            byte_set = [r]
         else:
             clock_period = (r.subrecords[0].end_time - r.subrecords[0].start_time) / 9.0
+            byte_set = r.subrecords
             
         # Frame rectangle
         f_start = r.start_time - 0.4 * clock_period
@@ -342,25 +314,27 @@ def i2c_plot(channels, records, title='', label_format='text', save_file=None):
         f_rect = patches.Rectangle((f_start, sda_b['ovl_bot']), width=f_end - f_start, \
             height=sda_b['ovl_top'] - sda_b['ovl_bot'], facecolor='orange', alpha=0.2)
         ax2.add_patch(f_rect)
-        
-        # Ack bit rectangle
-        ack_start = r.end_time - 0.25 * clock_period
-        ack_end = r.end_time + 0.25 * clock_period
-        try:
-            ack_bit = r.ack_bit
-        except AttributeError:
-            ack_bit = r.subrecords[0].ack_bit
-        color = 'yellow' if ack_bit == 0 else 'red'
-        a_rect = patches.Rectangle((ack_start, sda_b['i_ovl_bot']), width=ack_end - ack_start, \
-            height=sda_b['i_ovl_top'] - sda_b['i_ovl_bot'], facecolor=color, alpha=0.3)
-        ax2.add_patch(a_rect)
 
-        # Data bits rectangle
-        d_start = r.start_time - 0.25 * clock_period
-        d_end = d_start + 8.5 * clock_period
-        d_rect = patches.Rectangle((d_start, sda_b['i_ovl_bot']), width=d_end - d_start, \
-            height=sda_b['i_ovl_top'] - sda_b['i_ovl_bot'], facecolor='blue', alpha=0.3)
-        ax2.add_patch(d_rect)
+        for b in byte_set:
+        
+            # Ack bit rectangle
+            ack_start = b.end_time - 0.25 * clock_period
+            ack_end = b.end_time + 0.25 * clock_period
+            # try:
+            ack_bit = b.ack_bit
+            # except AttributeError:
+                # ack_bit = r.subrecords[0].ack_bit
+            color = 'yellow' if ack_bit == 0 else 'red'
+            a_rect = patches.Rectangle((ack_start, sda_b['i_ovl_bot']), width=ack_end - ack_start, \
+                height=sda_b['i_ovl_top'] - sda_b['i_ovl_bot'], facecolor=color, alpha=0.3)
+            ax2.add_patch(a_rect)
+
+            # Data bits rectangle
+            d_start = b.start_time - 0.25 * clock_period
+            d_end = d_start + 8.5 * clock_period
+            d_rect = patches.Rectangle((d_start, sda_b['i_ovl_bot']), width=d_end - d_start, \
+                height=sda_b['i_ovl_top'] - sda_b['i_ovl_bot'], facecolor='blue', alpha=0.3)
+            ax2.add_patch(d_rect)
 
         color = 'black'
         angle = 'horizontal'
