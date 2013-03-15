@@ -1,6 +1,14 @@
 #!/usr/bin/python
 
-'''Protocol decode library'''
+'''Ripyl protocol decode library'''
 
-__version__ = '1.0'
+import util
+import protocol
+
+__version__ = '0.6'
+
+
+import sigproc
+import decode
+import streaming
 
