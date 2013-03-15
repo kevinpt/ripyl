@@ -134,6 +134,15 @@ class USBStreamPacket(StreamSegment):
         self.packet = packet # USBPacket object
         self.crc = crc
 
+    @classmethod
+    def status_text(cls, status):
+        if status >= USBStreamStatus.ShortPacketError and \
+            status <= USBStreamStatus.CRCError:
+            
+            return USBStreamStatus(status)
+        else:
+            return StreamSegment.status_text(status)
+
 
     def field_offsets(self):
         '''Get a dict of packet field bit offsets
@@ -163,7 +172,9 @@ class USBStreamPacket(StreamSegment):
         return fields
         
     def __repr__(self):
-        return 'USBStreamPacket({}, {})'.format(self.packet, self.status)
+        status_text = USBStreamPacket.status_text(self.status)
+        return 'USBStreamPacket({}, {})'.format(self.packet, status_text)
+
 
 class USBStreamError(StreamSegment):
     '''Contains partially decoded packet data after an error has been found
@@ -189,10 +200,10 @@ class USBStreamError(StreamSegment):
         self.pid = pid
         
     def __repr__(self):
-        return 'USBStreamError({}, {})'.format(self.data, hex(self.pid))
+        status_text = StreamSegment.status_text(self.status)
+        return 'USBStreamError({}, {}, {})'.format(self.data, hex(self.pid), status_text)
     
 
-    
         
 class USBPacket(object):
     '''Base class for USB packet objects

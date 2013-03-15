@@ -45,7 +45,16 @@ class UARTFrame(StreamSegment):
     def __init__(self, bounds, data=None, status=StreamStatus.Ok):
         StreamSegment.__init__(self, bounds, data, status=status)
         self.kind = 'UART frame'
-        
+
+    @classmethod
+    def status_text(cls, status):
+        if status >= UARTStreamStatus.FramingError and \
+            status <= UARTStreamStatus.ParityError:
+            
+            return UARTStreamStatus(status)
+        else:
+            return StreamSegment.status_text(status)
+
     def __str__(self):
         return chr(self.data & 0xFF)
         
