@@ -294,7 +294,8 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, pola
         
     
 
-def uart_synth(data, bits = 8, baud=115200, parity=None, stop_bits=1.0, idle_start=0.0, word_interval=100.0e-7):
+def uart_synth(data, bits = 8, baud=115200, parity=None, stop_bits=1.0, idle_start=0.0, idle_end=0.0, \
+    word_interval=100.0e-7):
     '''Generate synthesized UART waveform
     
     This function simulates a single, unidirectional channel of a UART serial
@@ -321,7 +322,9 @@ def uart_synth(data, bits = 8, baud=115200, parity=None, stop_bits=1.0, idle_sta
     
     idle_start
         The amount of idle time before the transmission of data begins
-    
+
+    idle_end
+        The amount of idle time after the transmission of data ends
     word_interval
         The amount of time between data words
 
@@ -376,5 +379,7 @@ def uart_synth(data, bits = 8, baud=115200, parity=None, stop_bits=1.0, idle_sta
             yield (t, txd)
         t += stop_bits * bit_period # add stop bit
         t += word_interval
+        
+    t += idle_end - word_interval
         
     yield (t, txd)
