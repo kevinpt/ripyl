@@ -30,7 +30,7 @@ import scipy.stats
 import math
 import collections
 
-from ripyl.stats import OnlineStats
+from ripyl.util.stats import OnlineStats
 from ripyl.streaming import StreamError
 
 #import matplotlib.pyplot as plt
@@ -156,7 +156,7 @@ def find_hist_peaks(hist):
         if b > 0 and b < t1:
             os.accumulate(b)
         
-    t2 = pop_mean + 1.5 * os.std(ddof=1)
+    t2 = pop_mean + 1.5 * os.std(ddof=1) # Lecroy uses 2*std but that can be unreliable
     
     #print('@@@@@ t2', t2, pop_mean, os.std(ddof=1))
     
@@ -247,6 +247,8 @@ def find_logic_levels(samples, max_samples=5000, buf_size=2000):
         
     max_samples
         The maximum number of samples to consume from the samples iterable.
+        This should be at least 2x buf_size and will be coreced to that value
+        if it is less.
         
     buf_size
         The maximum size of the sample buffer to analyze for logic levels.
@@ -269,35 +271,45 @@ def find_logic_levels(samples, max_samples=5000, buf_size=2000):
     state = S_FIND_EDGE
     sc = 0
     
-    while sc < max_samples:
-        try:
-            ns = next(samples)[1]
-            buf.append(ns)
-            sc += 1
+    if max_samples < 2 * buf_size:
+        max_samples = 2 * buf_size
+    
+    # while sc < max_samples:
+        # try:
+            # ns = next(samples)[1]
             
-            if state == S_FIND_EDGE:
-                # build stats on the samples seen so far
-                os.accumulate(ns)
-                os_init += 1
-                if os_init > 3 and abs(ns - os.mean()) > (3 * os.std()):
-                    # The sample is more than 3 std. devs. from the mean
-                    # This is likely an edge event
-                    state = S_FINISH_BUF
-                    if len(buf) < buf_size // 2:
-                        buf_remaining = buf_size - len(buf)
-                    else:
-                        buf_remaining = buf_size // 2
-                        
-            else: # S_FINISH_BUF
-                # Accumulate samples until the edge event is in the middle of the
-                # buffer or the buffer is filled
-                #print('S_FINISH_BUF', buf_remaining, len(buf))
-                buf_remaining -= 1
-                if buf_remaining <= 0 and len(buf) >= buf_size:
-                    break
+    for sample in samples:
+        ns = sample[1]
+        sc += 1
+    
+        buf.append(ns)
+        
+        if state == S_FIND_EDGE:
+            if sc > (max_samples - buf_size):
+                break
+            
+            # build stats on the samples seen so far
+            os.accumulate(ns)
+            os_init += 1
+            if os_init > 3 and abs(ns - os.mean()) > (3 * os.std()):
+                # The sample is more than 3 std. devs. from the mean
+                # This is likely an edge event
+                state = S_FINISH_BUF
+                if len(buf) < buf_size // 2:
+                    buf_remaining = buf_size - len(buf)
+                else:
+                    buf_remaining = buf_size // 2
+                    
+        else: # S_FINISH_BUF
+            # Accumulate samples until the edge event is in the middle of the
+            # buffer or the buffer is filled
+            #print('S_FINISH_BUF', buf_remaining, len(buf))
+            buf_remaining -= 1
+            if buf_remaining <= 0 and len(buf) >= buf_size:
+                break
 
-        except StopIteration:
-            break
+        # except StopIteration:
+            # break
 
     #plt.plot(buf)
     #plt.show()
