@@ -63,6 +63,16 @@ class StreamRecord(object):
             cur_status = nstat if nstat > cur_status else cur_status
             
         return cur_status
+        
+    @classmethod
+    def status_text(cls, status):
+        if status == StreamStatus.Ok or status == StreamStatus.Warning or \
+            status == StreamStatus.Error:
+            
+            return StreamStatus(status)
+        else:
+            return 'unknown <{}>'.format(status)
+
 
     def __repr__(self):
         return 'StreamRecord(\'{0}\')'.format(self.kind)
@@ -89,3 +99,62 @@ class StreamEvent(StreamRecord):
     def __repr__(self):
         return 'StreamEvent({0}, {1}, \'{2}\')'.format(self.time, \
             repr(self.data), self.kind)
+
+
+def save_stream(records, fh):
+    '''Save a stream to a file
+    
+    records
+        A list of StreamRecord objects
+    
+    fh
+        Either a file-like object or a string file name. If a file handle is
+        passed it should have been opened in 'wb' mode.
+    '''
+    import pickle
+    
+    # Make sure the stream is not an iterator
+    if hasattr(records, '__iter__') and not hasattr(records, '__len__'):
+        raise TypeError('records parameter must be a sequence, not an iterator')
+    
+    
+    opened_file = False
+    try:
+        if len(fh) > 0:
+            fh = open(fh, 'wb')
+            opened_file = True
+    except TypeError:
+        # fh isn't a string assume to be an already open handle
+        pass
+        
+    pickle.dump(records, fh, -1)
+    
+    if opened_file:
+        fh.close()
+
+
+def load_stream(fh):
+    '''Restore a stream from a file
+    
+    fh
+        Either a file-like object or a string file name. If a file handle is
+        passed it should have been opened in 'rb' mode.
+        
+    Returns a list of StreamRecord objects
+    '''
+    import pickle
+    opened_file = False
+    try:
+        if len(fh) > 0:
+            fh = open(fh, 'rb')
+            opened_file = True
+    except TypeError:
+        # fh isn't a string assume to be an already open handle
+        pass
+        
+    records = pickle.load(fh)
+    
+    if opened_file:
+        fh.close()
+        
+    return records
