@@ -1146,7 +1146,6 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
             if len(packet_states) == 8:
                 # Decode the PID
                 packet_pid_bits = _decode_NRZI(packet_states)
-                print('#### PID:', packet_pid_bits, packet_states)
                 
                 # Validate the PID
                 packet_pid_check = packet_pid_bits[4:8]
