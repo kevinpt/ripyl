@@ -197,10 +197,12 @@ def usb_plot(channels, records, title='', label_format='text', save_file=None):
             d_start = offsets['Data'][0]
             d_end = offsets['Data'][1]
             ann_ax.text((d_start + d_end) / 2.0, text_ypos, decoded_msg, \
-                size='small', ha='center', color='black')            
+                size='small', ha='center', color='black', weight='bold')            
 
     ann_ax.set_ylim(dm_b['ovl_bot'] * 1.05, dm_b['ovl_top'] * 1.05)
     
+    plt.tight_layout()
+    plt.subplots_adjust(bottom=0.12)
     if save_file is None:
         plt.show()
     else:
@@ -266,7 +268,9 @@ def spi_plot(channels, records, title='', label_format='text', save_file=None):
 
 
     ax3.set_ylim(data_io_b['ovl_bot'] * 1.05, data_io_b['ovl_top'] * 1.05)
-    
+
+    plt.tight_layout()
+    plt.subplots_adjust(bottom=0.12)
     if save_file is None:
         plt.show()
     else:
@@ -359,7 +363,9 @@ def i2c_plot(channels, records, title='', label_format='text', save_file=None):
 
 
     ax2.set_ylim(sda_b['ovl_bot'] * 1.05, sda_b['ovl_top'] * 1.05)
-    
+
+    plt.tight_layout()
+    plt.subplots_adjust(bottom=0.12)
     if save_file is None:
         plt.show()
     else:
@@ -432,7 +438,9 @@ def uart_plot(samples, records, title='', label_format='text', save_file=None):
     # Plot the waveform
     plt.plot(t, wf)
     plt.ylim(ovl_bot * 1.05, ovl_top * 1.05)
-    
+
+    plt.tight_layout()
+    plt.subplots_adjust(bottom=0.12)
     if save_file is None:
         plt.show()
     else:

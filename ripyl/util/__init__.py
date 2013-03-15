@@ -4,4 +4,5 @@
 
 import enum
 import bitops
+import stats
 
