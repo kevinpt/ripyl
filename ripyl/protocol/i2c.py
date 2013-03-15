@@ -183,7 +183,6 @@ def i2c_decode(scl, sda, stream_type=StreamType.Samples):
                     se = StreamEvent(es.cur_time(), data=None, kind='I2C restart')
                     yield se
                     bits = []
-                    start_time = None
                     state = S_ADDR
                     continue
 
@@ -191,7 +190,7 @@ def i2c_decode(scl, sda, stream_type=StreamType.Samples):
                 # rising edge of SCL
                 
                 # accumulate the bit
-                if start_time is None:
+                if len(bits) == 0:
                     start_time = es.cur_time()
     
                 bits.append(es.cur_state('sda'))
@@ -226,7 +225,6 @@ def i2c_decode(scl, sda, stream_type=StreamType.Samples):
                                 na.subrecords.append(nb)
                                 yield na
                                 bits = []
-                                start_time = None
                                 
                                 state = S_DATA
                             
@@ -242,7 +240,6 @@ def i2c_decode(scl, sda, stream_type=StreamType.Samples):
                             na.subrecords.append(nb)
                             yield na
                             bits = []
-                            start_time = None
 
                             state = S_DATA
 
@@ -257,7 +254,6 @@ def i2c_decode(scl, sda, stream_type=StreamType.Samples):
                         prev_10b_addr = na
                         yield na
                         bits = []
-                        start_time = None
 
                         state = S_DATA
                                     
@@ -266,7 +262,6 @@ def i2c_decode(scl, sda, stream_type=StreamType.Samples):
                         nb = I2CByte((start_time, end_time), word, ack_bit)
                         yield nb
                         bits = []
-                        start_time = None               
 
 
 class I2CTransfer(object):
