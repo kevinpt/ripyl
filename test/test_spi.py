@@ -59,12 +59,8 @@ class TestSPIFuncs(unittest.TestCase):
             # cpha = 1
             # use_edges = False
             
-            clk, mosi, cs = zip(*list(spi.spi_synth(msg, word_size, clock_freq, cpol, cpha, lsb_first, 4.0 / clock_freq, 0.0)))
-            
-            clk = sigp.remove_excess_edges(iter(clk))
-            mosi = sigp.remove_excess_edges(iter(mosi))
-            cs = sigp.remove_excess_edges(iter(cs))
-            
+            clk, mosi, cs = spi.spi_synth(msg, word_size, clock_freq, cpol, cpha, lsb_first, 4.0 / clock_freq, 0.0)
+
             if use_edges:
                 records_it = spi.spi_decode(clk, mosi, cs, cpol=cpol, cpha=cpha, lsb_first=lsb_first, stream_type=streaming.StreamType.Edges)
                 

@@ -52,7 +52,6 @@ class TestI2CFuncs(unittest.TestCase):
                     data.append(random.randint(0, 255))
                     
                 r_wn = random.choice((i2c.I2C.Write, i2c.I2C.Read))
-                #r_wn = 1
                 
                 # reads with 10-bit addressing are special
                 if r_wn == i2c.I2C.Read and addr > 0x77:
@@ -63,9 +62,7 @@ class TestI2CFuncs(unittest.TestCase):
             
             use_edges = random.choice((True, False))                
             
-            scl, sda = zip(*list(i2c.i2c_synth(transfers, clock_freq, idle_start=3.0e-5, idle_end=3.0e-5)))
-            scl = sigp.remove_excess_edges(iter(scl))
-            sda = sigp.remove_excess_edges(iter(sda))
+            scl, sda = i2c.i2c_synth(transfers, clock_freq, idle_start=3.0e-5, idle_end=3.0e-5)
 
             if use_edges:
                 records_it = i2c.i2c_decode(scl, sda, stream_type=streaming.StreamType.Edges)
@@ -78,7 +75,6 @@ class TestI2CFuncs(unittest.TestCase):
                 
             records = list(records_it)
             
-            #print('Decoded:', [str(r) for r in records])
             
             d_txfers = list(i2c.reconstruct_i2c_transfers(iter(records)))
             
