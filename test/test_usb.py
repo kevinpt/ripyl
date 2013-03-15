@@ -61,6 +61,9 @@ class TestUSBFuncs(unittest.TestCase):
             #print('\nGEN PACKETS:', packet_num)
             
             
+            use_single_ended_sim = random.choice((True, False))
+            
+            
             packets = []
             for _ in xrange(packet_num):
                 pid = random.randint(0,15)
@@ -110,14 +113,17 @@ class TestUSBFuncs(unittest.TestCase):
                     pkt.swap_jk = True
                     packets.append(pkt)
 
-                
-            # Synthesize edge waveforms
-            dp, dm = zip(*list(usb.usb_synth(packets, 1.0e-7, 3.0e-7)))
-            dp = list(sigp.remove_excess_edges(iter(dp)))
-            dm = list(sigp.remove_excess_edges(iter(dm)))            
-            
-            # Do the decode
-            records_it = usb.usb_decode(iter(dp), iter(dm), stream_type=streaming.StreamType.Edges)
+
+            if use_single_ended_sim:
+                # Synthesize edge waveforms
+                dp, dm = usb.usb_synth(packets, 1.0e-7, 3.0e-7)
+                # Do the decode
+                records_it = usb.usb_decode(iter(dp), iter(dm), stream_type=streaming.StreamType.Edges)
+            else:
+                # Synthesize a differential edge waveform
+                diff_d = usb.usb_diff_synth(packets, 1.0e-7, 3.0e-7)
+                # Do the decode
+                records_it = usb.usb_diff_decode(diff_d, stream_type=streaming.StreamType.Edges)
             
             records = list(records_it)
             
