@@ -27,7 +27,7 @@ from __future__ import print_function, division
 import unittest
 import random
 
-import ripyl.stats as stats
+import ripyl.util.stats as stats
     
 # def fequal(a, b, epsilon=0.0001):
     # '''Compare floating point values for relative equality'''
