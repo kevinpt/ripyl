@@ -285,6 +285,30 @@ def noisify(samples, snr_db=30.0):
             yield (s[0], s[1] + noise)
 
 
+def quantize(samples, full_scale, bits=8):
+    '''Quantize samples to simulate oscilloscope quantization error
+    
+    This should be applied to a noisy signal to have notable results.
+    
+    samples
+        An iterable sample stream of (time, value) pairs.
+        
+    full_scale
+        The full scale range for the signal. 
+    
+    bits
+        The number of bits to quantize to
+
+    Yields a sample stream.
+    '''
+
+    ulp = full_scale / 2**bits
+    
+    for s in samples:
+        q = int(s[1] / full_scale * 2**bits) * ulp
+        yield (s[0], q)
+
+
 def amplify(samples, gain=1.0, offset=0.0):
     '''Apply gain and offset to a sample stream
     
