@@ -47,7 +47,7 @@ class SPIFrame(StreamSegment):
     def __str__(self):
         return str(self.data)
 
-def spi_decode(clk, data_io, cs=None, cpol=0, cpha=0, lsb_first=True, stream_type=StreamType.Samples):
+def spi_decode(clk, data_io, cs=None, cpol=0, cpha=0, lsb_first=True, logic_levels=None, stream_type=StreamType.Samples):
     '''Decode an SPI data stream
     
     This is a generator function that can be used in a pipeline of waveform
@@ -78,7 +78,12 @@ def spi_decode(clk, data_io, cs=None, cpol=0, cpha=0, lsb_first=True, stream_typ
     
     lsb_first
         Boolean indicating whether the Least Significant Bit is transmitted first.
-    
+
+    logic_levels
+        Optional pair of floats that indicate (low, high) logic levels of the sample
+        stream. When present, auto level detection is disabled. This has no effect on
+        edge streams.
+
     stream_type
         A StreamType value indicating that the clk, data_io, and cs parameters represent either Samples
         or Edges
@@ -89,19 +94,22 @@ def spi_decode(clk, data_io, cs=None, cpol=0, cpha=0, lsb_first=True, stream_typ
       be determined.
     '''
     if stream_type == StreamType.Samples:
-        # tee off an iterator to determine logic thresholds
-        s_clk_it, thresh_it = itertools.tee(clk)
-        
-        logic = find_logic_levels(thresh_it)
-        if logic is None:
-            raise StreamError('Unable to find avg. logic levels of waveform')
-        del thresh_it
+        if logic_levels is None:
+            # tee off an iterator to determine logic thresholds
+            s_clk_it, thresh_it = itertools.tee(clk)
+            
+            logic_levels = find_logic_levels(thresh_it)
+            if logic_levels is None:
+                raise AutoLevelError
+            del thresh_it
+        else:
+            s_clk_it = stream
         
         hyst = 0.4
-        clk_it = find_edges(s_clk_it, logic, hysteresis=hyst)
-        data_io_it = find_edges(data_io, logic, hysteresis=hyst)
+        clk_it = find_edges(s_clk_it, logic_levels, hysteresis=hyst)
+        data_io_it = find_edges(data_io, logic_levels, hysteresis=hyst)
         if cs is not None:
-            cs_it = find_edges(cs, logic, hysteresis=hyst)
+            cs_it = find_edges(cs, logic_levels, hysteresis=hyst)
         else:
             cs_it = None
     else: # the streams are already lists of edges

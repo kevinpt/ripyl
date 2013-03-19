@@ -824,7 +824,7 @@ class USBEXTPacket(USBPacket):
 
 
             
-def usb_decode(dp, dm, stream_type=StreamType.Samples):
+def usb_decode(dp, dm, logic_levels=None, stream_type=StreamType.Samples):
     '''Decode a USB data stream
     
     This is a generator function that can be used in a pipeline of waveform
@@ -849,7 +849,12 @@ def usb_decode(dp, dm, stream_type=StreamType.Samples):
     
     dm
         USB D- stream
-    
+
+    logic_levels
+        Optional pair of floats that indicate (low, high) logic levels of the sample
+        stream. When present, auto level detection is disabled. This has no effect on
+        edge streams.
+
     stream_type
         A StreamType value indicating that the dp, and dm parameters represent either Samples
         or Edges
@@ -861,17 +866,20 @@ def usb_decode(dp, dm, stream_type=StreamType.Samples):
     '''
     
     if stream_type == StreamType.Samples:
-        # tee off an iterator to determine logic thresholds
-        s_dp_it, thresh_it = itertools.tee(dp)
-        
-        logic = find_logic_levels(thresh_it)
-        if logic is None:
-            raise StreamError('Unable to find avg. logic levels of waveform')
-        del thresh_it
-        
+        if logic_levels is None:
+            # tee off an iterator to determine logic thresholds
+            s_dp_it, thresh_it = itertools.tee(dp)
+            
+            logic_levels = find_logic_levels(thresh_it)
+            if logic_levels is None:
+                raise AutoLevelError
+            del thresh_it
+        else:
+            s_dp_it = dp
+
         hyst = 0.4
-        dp_it = find_edges(s_dp_it, logic, hysteresis=hyst)
-        dm_it = find_edges(dm, logic, hysteresis=hyst)
+        dp_it = find_edges(s_dp_it, logic_levels, hysteresis=hyst)
+        dm_it = find_edges(dm, logic_levels, hysteresis=hyst)
         
     else: # the streams are already lists of edges
         dp_it = dp
@@ -901,7 +909,7 @@ def usb_decode(dp, dm, stream_type=StreamType.Samples):
 
     
     
-def usb_diff_decode(d_diff, stream_type=StreamType.Samples):
+def usb_diff_decode(d_diff, logic_levels=None, stream_type=StreamType.Samples):
     '''Decode a differential USB data stream
     
     This is a generator function that can be used in a pipeline of waveform
@@ -922,7 +930,12 @@ def usb_diff_decode(d_diff, stream_type=StreamType.Samples):
     
     d_diff
         USB differential D stream
-    
+
+    logic_levels
+        Optional pair of floats that indicate (low, high) logic levels of the sample
+        stream. When present, auto level detection is disabled. This has no effect on
+        edge streams.
+
     stream_type
         A StreamType value indicating that the dp, and dm parameters represent either Samples
         or Edges
@@ -934,16 +947,19 @@ def usb_diff_decode(d_diff, stream_type=StreamType.Samples):
     '''
     
     if stream_type == StreamType.Samples:
-        # tee off an iterator to determine logic thresholds
-        s_diff_it, thresh_it = itertools.tee(d_diff)
-        
-        logic = find_logic_levels(thresh_it)
-        if logic is None:
-            raise AutoLevelError
-        del thresh_it
+        if logic_levels is None:
+            # tee off an iterator to determine logic thresholds
+            s_diff_it, thresh_it = itertools.tee(d_diff)
+            
+            logic_levels = find_logic_levels(thresh_it)
+            if logic_levels is None:
+                raise AutoLevelError
+            del thresh_it
+        else:
+            s_diff_it = d_diff
 
         hyst = 0.1
-        d_diff_it = find_differential_edges(s_diff_it, logic, hysteresis=hyst)
+        d_diff_it = find_differential_edges(s_diff_it, logic_levels, hysteresis=hyst)
 
     else: # The stream is already a list of edges
         d_diff_it = d_diff

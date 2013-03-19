@@ -75,7 +75,7 @@ class I2CAddress(StreamSegment):
         return str(hex(self.data))
 
 
-def i2c_decode(scl, sda, stream_type=StreamType.Samples):
+def i2c_decode(scl, sda, logic_levels=None, stream_type=StreamType.Samples):
     '''Decode an I2C data stream
     
     This is a generator function that can be used in a pipeline of waveform
@@ -86,7 +86,12 @@ def i2c_decode(scl, sda, stream_type=StreamType.Samples):
     
     sda
         An iterable representing the I2C serial data
-    
+
+    logic_levels
+        Optional pair of floats that indicate (low, high) logic levels of the sample
+        stream. When present, auto level detection is disabled. This has no effect on
+        edge streams.
+
     stream_type
         Indicates the type of stream used for scl and sda.
         
@@ -119,17 +124,21 @@ def i2c_decode(scl, sda, stream_type=StreamType.Samples):
     '''
     
     if stream_type == StreamType.Samples:
-        # tee off an iterator to determine logic thresholds
-        s_scl_it, thresh_it = itertools.tee(scl)
-        
-        logic = find_logic_levels(thresh_it)
-        if logic is None:
-            raise AutoLevelError
-        del thresh_it
+        if logic_levels is None:
+            # tee off an iterator to determine logic thresholds
+            s_scl_it, thresh_it = itertools.tee(scl)
+            
+            logic_levels = find_logic_levels(thresh_it)
+            if logic_levels is None:
+                raise AutoLevelError
+            del thresh_it
+        else:
+            s_scl_it = scl
+    
         
         hyst = 0.4
-        scl_it = find_edges(s_scl_it, logic, hysteresis=hyst)
-        sda_it = find_edges(sda, logic, hysteresis=hyst)
+        scl_it = find_edges(s_scl_it, logic_levels, hysteresis=hyst)
+        sda_it = find_edges(sda, logic_levels, hysteresis=hyst)
 
     else: # the streams are already lists of edges
         scl_it = scl
