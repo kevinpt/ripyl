@@ -65,7 +65,7 @@ class UARTConfig(Enum):
     IdleLow = 2
 
 def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, polarity=UARTConfig.IdleHigh, \
-    baud_rate=None, use_std_baud=True, stream_type=StreamType.Samples, baud_deque=None):
+    baud_rate=None, use_std_baud=True, logic_levels=None, stream_type=StreamType.Samples, baud_deque=None):
     
     '''Decode a UART data stream
 
@@ -107,6 +107,11 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, pola
     use_std_baud
         Boolean that forces coercion of automatically detected baud rate to the set of
         standard rates
+        
+    logic_levels
+        Optional pair of floats that indicate (low, high) logic levels of the sample
+        stream. When present, auto level detection is disabled. This has no effect on
+        edge streams.
     
     stream_type
         A StreamType value indicating that the stream parameter represents either Samples
@@ -120,7 +125,8 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, pola
         
     Yields a series of UARTFrame objects. Each frame contains subrecords marking the location
       of sub-elements within the frame (start, data, parity, stop). Parity errors are recorded
-      as an error status in the parity subrecord.
+      as an error status in the parity subrecord. BRK conditions are reported as a data value
+      0x00 with a framing error in the status code.
       
     Raises AutoLevelError if stream_type = Samples and the logic levels cannot
       be determined.
@@ -131,16 +137,21 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, pola
     Raises ValueError is the parity argument is invalid.
     '''
 
+    bits = int(bits)
+    
     if stream_type == StreamType.Samples:
-        # tee off an iterator to determine logic thresholds
-        samp_it, thresh_it = itertools.tee(stream)
+        if logic_levels is None:
+            # tee off an iterator to determine logic thresholds
+            samp_it, thresh_it = itertools.tee(stream)
+            
+            logic_levels = find_logic_levels(thresh_it)
+            if logic_levels is None:
+                raise AutoLevelError
+            del thresh_it
+        else:
+            samp_it = stream
         
-        logic = find_logic_levels(thresh_it)
-        if logic is None:
-            raise AutoLevelError
-        del thresh_it
-        
-        edges = find_edges(samp_it, logic, hysteresis=0.4)
+        edges = find_edges(samp_it, logic_levels, hysteresis=0.4)
     else: # the stream is already a list of edges
         edges = stream
         
@@ -193,7 +204,7 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, pola
     if baud_deque is not None:
         bd_dict = {'baud_rate': baud_rate, 'raw_symbol_rate': raw_symbol_rate}
         if stream_type == StreamType.Samples:
-            bd_dict['logic'] = logic
+            bd_dict['logic_levels'] = logic_levels
             
         edge_list = list(edges_it)
         bd_dict['edges'] = edge_list
@@ -222,6 +233,12 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, pola
         # Check if edge sequence is complete after our advance
         if es.at_end():
             break
+
+        # We should be at the start of the start bit (space)
+        # If not then the previous character was likely a BRK condition and
+        # we just now returned to idle (mark).
+        if es.cur_state() != space:
+            continue
         
         start_time = es.cur_time
         data_time = es.cur_time + bit_period
@@ -334,6 +351,9 @@ def uart_synth(data, bits = 8, baud=115200, parity=None, stop_bits=1.0, idle_sta
       tuples are edges where the txd state changes.
         
     '''
+    
+    bits = int(bits)
+    
     bit_period = 1.0 / baud
     
     t = 0.0
