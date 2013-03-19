@@ -29,6 +29,7 @@
 from __future__ import print_function, division
 
 import itertools
+import math
 
 from ripyl.decode import *
 from ripyl.streaming import *
@@ -201,7 +202,7 @@ class USBStreamError(StreamSegment):
         
     def __repr__(self):
         status_text = StreamSegment.status_text(self.status)
-        return 'USBStreamError({}, {}, {})'.format(self.data, hex(self.pid), status_text)
+        return 'USBStreamError({}, {}, {})'.format(self.data, USBPID(self.pid), status_text)
     
 
         
@@ -478,7 +479,7 @@ class USBTokenPacket(USBPacket):
         return fields
         
     def __repr__(self):
-        return 'USBTokenPacket({}, {}, {}, {}, {})'.format(hex(self.pid), hex(self.addr), \
+        return 'USBTokenPacket({}, {}, {}, {}, {})'.format(USBPID(self.pid), hex(self.addr), \
             hex(self.endp), self.speed, self.delay)
 
     def __eq__(self, other):
@@ -527,7 +528,7 @@ class USBDataPacket(USBPacket):
         return fields
         
     def __repr__(self):
-        return 'USBDataPacket({}, {}, {}, {})'.format(hex(self.pid), self.data, \
+        return 'USBDataPacket({}, {}, {}, {})'.format(USBPID(self.pid), self.data, \
             self.speed, self.delay)
             
     def __eq__(self, other):
@@ -587,7 +588,7 @@ class USBHandshakePacket(USBPacket):
         return fields
 
     def __repr__(self):
-        return 'USBHandshakePacket({}, {}, {})'.format(hex(self.pid), self.speed, self.delay)        
+        return 'USBHandshakePacket({}, {}, {})'.format(USBPID(self.pid), self.speed, self.delay)        
 
     def __eq__(self, other):
         return self.pid == other.pid
@@ -630,7 +631,7 @@ class USBSOFPacket(USBPacket):
         return fields
         
     def __repr__(self):
-        return 'USBSOFPacket({}, {}, {}, {})'.format(hex(self.pid), hex(self.frame_num), \
+        return 'USBSOFPacket({}, {}, {}, {})'.format(USBPID(self.pid), hex(self.frame_num), \
             self.speed, self.delay)
 
     def __eq__(self, other):
@@ -705,7 +706,7 @@ class USBSplitPacket(USBPacket):
         return fields
         
     def __repr__(self):
-        return 'USBSplitPacket({}, {}, {}, {}, {}, {}, {}, {}, {})'.format(hex(self.pid), hex(self.addr), \
+        return 'USBSplitPacket({}, {}, {}, {}, {}, {}, {}, {}, {})'.format(USBPID(self.pid), hex(self.addr), \
             self.sc, hex(self.port), self.s, self.e, hex(self.et), self.speed, self.delay)
 
     def __eq__(self, other):
@@ -802,7 +803,7 @@ class USBEXTPacket(USBPacket):
         return tok_fields
         
     def __repr__(self):
-        return 'USBEXTPacket({}, {}, {}, {}, {}, {}, {})'.format(hex(self.pid), hex(self.addr), \
+        return 'USBEXTPacket({}, {}, {}, {}, {}, {}, {})'.format(USBPID(self.pid), hex(self.addr), \
             hex(self.endp), hex(self.sub_pid), hex(self.variable), self.speed, self.delay)
             
     def __eq__(self, other):
@@ -884,7 +885,7 @@ def usb_decode(dp, dm, stream_type=StreamType.Samples):
     # as the edges_it is advanced later on
     del speed_check_it
     
-    #print('### symbol rate:', bus_speed, USBClockPeriod[bus_speed])
+    #print('### symbol rate:', USBSpeed(bus_speed), USBClockPeriod[bus_speed])
 
     edge_sets = {
         'dp': dp_it,
@@ -892,7 +893,6 @@ def usb_decode(dp, dm, stream_type=StreamType.Samples):
     }
     
     es = MultiEdgeSequence(edge_sets, 0.0)
-    
     state_seq = EdgeSequence(_convert_single_ended_states(es, bus_speed), 0.0)
     
     records = _decode_usb_state(state_seq, bus_speed)
@@ -999,10 +999,21 @@ def _get_bus_speed(speed_check_it, remove_se0s=False):
     
     raw_symbol_rate = find_symbol_rate(iter(sre_list), spectra=2)
     
+    #print('## raw sym rate:', raw_symbol_rate)
+    
+    # There is a "packet of death" for USB HighSpeed:
+    #   USBTokenPacket(USBPID.TokenOut, 0xc, 0xf, speed=speed)
+    # This packet lacks a second harmonic which causes the HPS to
+    # be wrong and lower than normal symbol rate is selected (119880119).
+    # When present at the start of signal it causes the speed to be mis-guessed
+    # as FullSpeed. This can be force-fixed by increasing the HPS spectra to 3
+    # but we will use a logarithmic comparison to avoid the reliance on the
+    # 3rd harmonic signal.
+    
     std_bus_speeds = ((USBSpeed.LowSpeed, 1.5e6), (USBSpeed.FullSpeed, 12.0e6), \
         (USBSpeed.HighSpeed, 480.0e6))
     # find the bus speed closest to the raw rate
-    bus_speed = min(std_bus_speeds, key=lambda x: abs(x[1] - raw_symbol_rate))[0]
+    bus_speed = min(std_bus_speeds, key=lambda x: abs(math.log10(x[1]) - math.log10(raw_symbol_rate)))[0]
     
     del symbol_rate_edges
 
