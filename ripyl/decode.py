@@ -82,8 +82,8 @@ def find_bot_top_hist_peaks(raw_samples, bins, use_kde=False):
         bin_centers = np.arange(mnv, mxv, step)
         hist = 1000 * kde(bin_centers)
         
-    # plt.plot(bin_centers, hist)
-    # plt.show()
+    #plt.plot(bin_centers, hist)
+    #plt.show()
     peaks = find_hist_peaks(hist)
     
     # make sure we have at least two peaks
@@ -232,7 +232,7 @@ def find_hist_peaks(hist):
     
     
 
-def find_logic_levels(samples, max_samples=5000, buf_size=2000):
+def find_logic_levels(samples, min_edge_samples=3, max_samples=5000, buf_size=2000):
     '''Automatically determine the logic levels of a digital signal.
     
     This function consumes up to max_samples from samples in an attempt
@@ -245,9 +245,15 @@ def find_logic_levels(samples, max_samples=5000, buf_size=2000):
         An iterable representing a sequence of samples. Each sample is a
         2-tuple representing the time of the sample and the sample's value.
         
+    min_edge_samples
+        The minimum number of samples that must exceed 3 std. devs. before an
+        edge is accepted as valid. This should be no less than 1. The purpose
+        of this parameter is to filter out spurious noise that would be
+        mis-identified as an edge.
+        
     max_samples
         The maximum number of samples to consume from the samples iterable.
-        This should be at least 2x buf_size and will be coreced to that value
+        This should be at least 2x buf_size and will be coerced to that value
         if it is less.
         
     buf_size
@@ -263,7 +269,7 @@ def find_logic_levels(samples, max_samples=5000, buf_size=2000):
     # the chance that our buffer doesn't contain any edge transmissions.
     buf = collections.deque(maxlen=buf_size)
     os = OnlineStats()
-    os_init = 0
+    stats_valid = 0
     
     S_FIND_EDGE = 0
     S_FINISH_BUF = 1
@@ -271,45 +277,51 @@ def find_logic_levels(samples, max_samples=5000, buf_size=2000):
     state = S_FIND_EDGE
     sc = 0
     
+    if min_edge_samples < 1:
+        min_edge_samples = 1
+
+    impulse_filter = min_edge_samples
+
+    # Coerce max samples to ensure that an edge occuring toward the end of an initial
+    # buf_size samples can be centered in the buffer.
     if max_samples < 2 * buf_size:
         max_samples = 2 * buf_size
     
-    # while sc < max_samples:
-        # try:
-            # ns = next(samples)[1]
-            
     for sample in samples:
         ns = sample[1]
         sc += 1
-    
-        buf.append(ns)
         
+        buf.append(ns)
+
         if state == S_FIND_EDGE:
             if sc > (max_samples - buf_size):
                 break
             
             # build stats on the samples seen so far
             os.accumulate(ns)
-            os_init += 1
-            if os_init > 3 and abs(ns - os.mean()) > (3 * os.std()):
-                # The sample is more than 3 std. devs. from the mean
-                # This is likely an edge event
+            stats_valid += 1
+            if stats_valid > 3 and abs(ns - os.mean()) > (3 * os.std()):
+                impulse_filter -= 1
+                #print('###', impulse_filter, abs(ns - os.mean()), 3 * os.std(), ns, sc)
+            else:
+                impulse_filter = min_edge_samples
+
+            if impulse_filter == 0:
+                # The previous min_edge_samples number of samples are more
+                # than 3 std. devs. from the mean. This is likely an edge event.
                 state = S_FINISH_BUF
                 if len(buf) < buf_size // 2:
                     buf_remaining = buf_size - len(buf)
                 else:
                     buf_remaining = buf_size // 2
-                    
+
+
         else: # S_FINISH_BUF
             # Accumulate samples until the edge event is in the middle of the
             # buffer or the buffer is filled
-            #print('S_FINISH_BUF', buf_remaining, len(buf))
             buf_remaining -= 1
             if buf_remaining <= 0 and len(buf) >= buf_size:
                 break
-
-        # except StopIteration:
-            # break
 
     #plt.plot(buf)
     #plt.show()
@@ -572,16 +584,11 @@ def remove_short_diff_0s(diff_edges, min_diff_0_time):
     
     # Get the first edge
     try:
-        edge = next(diff_edges)
+        prev_edge = next(diff_edges)
     except StopIteration:
         raise StreamError('Unable to initialize edge stream')
 
-    while True:
-        prev_edge = edge
-        try:
-            edge = next(diff_edges)
-        except StopIteration:
-            break
+    for edge in diff_edges:
 
         if edge[1] != 0:
             merged_edge = False
@@ -605,6 +612,8 @@ def remove_short_diff_0s(diff_edges, min_diff_0_time):
 
         if not merged_edge:
             yield prev_edge
+            
+        prev_edge = edge
 
     yield prev_edge # last edge
 
