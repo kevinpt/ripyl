@@ -232,7 +232,7 @@ def find_hist_peaks(hist):
     
     
 
-def find_logic_levels(samples, min_edge_samples=3, max_samples=5000, buf_size=2000):
+def find_logic_levels(samples, min_edge_samples=3, max_samples=20000, buf_size=2000):
     '''Automatically determine the logic levels of a digital signal.
     
     This function consumes up to max_samples from samples in an attempt
