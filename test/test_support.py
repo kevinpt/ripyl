@@ -24,16 +24,26 @@
 
 from __future__ import print_function, division
 
+import struct
+        
+def write_bin_file(fname, samples, sample_period, start_time):
+    with open(fname, 'wb') as fo:
+        fo.write(struct.pack('<f', sample_period))
+        fo.write(struct.pack('<f', start_time))
+        for s in samples:
+            fo.write(struct.pack('<f', s))
+            
 def read_bin_file(fname):
-    import struct
     with open(fname, 'rb') as fo:
-        sample_period = struct.unpack('<d', fo.read(8))[0]
+        sample_period = struct.unpack('<f', fo.read(4))[0]
+        start_time = struct.unpack('<f', fo.read(4))[0]
+        #TODO: precompute length from file size and use an array.array object
         samples = []
         while True:
-            s = fo.read(8)
+            s = fo.read(4)
             if len(s) > 0:
-                samples.append(struct.unpack('<d', s)[0])
+                samples.append(struct.unpack('<f', s)[0])
             else:
                 break
     
-        return (samples, sample_period)
+        return (samples, sample_period, start_time)
