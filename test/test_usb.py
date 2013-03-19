@@ -165,8 +165,8 @@ class TestUSBFuncs(unittest.TestCase):
         # Read files containing 100 Full-speed SOF packets
         # Note that these packets were collected with segmented acquisition and are ~5us
         # apart rather than the proper 1ms.
-        dp_samples, sample_period = tsup.read_bin_file('test/data/usb_100segs_dp.bin')
-        dm_samples, sample_period = tsup.read_bin_file('test/data/usb_100segs_dm.bin')
+        dp_samples, sample_period, start_time = tsup.read_bin_file('test/data/usb_100segs_dp.bin')
+        dm_samples, sample_period, start_time = tsup.read_bin_file('test/data/usb_100segs_dm.bin')
         
         time_samples = [i*sample_period for i in xrange(len(dp_samples))]
         
@@ -189,8 +189,8 @@ class TestUSBFuncs(unittest.TestCase):
         # Read files containing 100 Full-speed SOF packets
         # Note that these packets were collected with segmented acquisition and are ~5us
         # apart rather than the proper 1ms.
-        dp_samples, sample_period = tsup.read_bin_file('test/data/usb_100segs_dp.bin')
-        dm_samples, sample_period = tsup.read_bin_file('test/data/usb_100segs_dm.bin')
+        dp_samples, sample_period, start_time = tsup.read_bin_file('test/data/usb_100segs_dp.bin')
+        dm_samples, sample_period, start_time = tsup.read_bin_file('test/data/usb_100segs_dm.bin')
         
         time_samples = [i*sample_period for i in xrange(len(dp_samples))]
         
