@@ -49,7 +49,7 @@ def samples_to_sample_stream(raw_samples, sample_period, start_time=0.0):
       that expect a sample stream as input.
     '''
     t = start_time
-    for s in samples:
+    for s in raw_samples:
         yield(t, s)
         t += sample_period
 
