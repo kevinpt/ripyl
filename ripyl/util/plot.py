@@ -355,6 +355,9 @@ def i2c_plot(channels, records, title='', label_format='text', save_file=None):
         elif label_format == 'hex':
             char = hex(r.data)
             angle = 45
+            
+            if r.kind == 'I2C address':
+                char = hex(r.data) + (' r' if r.r_wn else ' w')
         else:
             raise ValueError('Unrecognized label format: "{}"'.format(label_format))
 
