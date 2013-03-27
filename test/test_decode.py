@@ -51,12 +51,26 @@ def nearly_equal(a, b, epsilon):
 
 
 class TestDecodeFuncs(unittest.TestCase):
+    def setUp(self):
+        import time
+        import os
+        
+        # Use seed from enviroment if it is set
+        try:
+            seed = long(os.environ['TEST_SEED'])
+        except KeyError:
+            random.seed()
+            seed = long(random.random() * 1e9)
+
+        print('\n * Random seed: {} *'.format(seed))
+        random.seed(seed)
+
     def test_find_bot_top_hist_peaks(self):
         pass
 
     def test_find_symbol_rate(self):
         print('')
-        trials = 20
+        trials = 40
         for i in xrange(trials):
             print('\r  find_symbol_rate() trial {0} / {1}  '.format(i+1, trials), end='')
             
@@ -65,7 +79,7 @@ class TestDecodeFuncs(unittest.TestCase):
             # construct a list of edges with random spans
             e = []
             t = 0.0
-            for _ in xrange(100):
+            for _ in xrange(200):
                 n = random.randrange(1, 5)
                 t += n / freq
                 e.append((t,1)) # we maintain state at constant 1 since find_symbol_rate() doesn't care
@@ -76,7 +90,8 @@ class TestDecodeFuncs(unittest.TestCase):
             # assertAlmostEqual() can't evaluate the closeness of two integers
             # since it doesn't incorporate relative error
             equal = nearly_equal(detected_rate, freq, epsilon=0.01)
-            #print('sr', detected_rate, freq, equal)
+            # print('sr', detected_rate, freq, equal)
+                
             self.assertTrue(equal, msg='symbol rate mismatch {0} != {1}'.format(detected_rate, freq))
             
 

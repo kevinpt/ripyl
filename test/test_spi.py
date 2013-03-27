@@ -32,8 +32,21 @@ import ripyl.sigproc as sigp
 import ripyl.streaming as streaming
 
 class TestSPIFuncs(unittest.TestCase):
+    def setUp(self):
+        import time
+        import os
+        
+        # Use seed from enviroment if it is set
+        try:
+            seed = long(os.environ['TEST_SEED'])
+        except KeyError:
+            random.seed()
+            seed = long(random.random() * 1e9)
+
+        print('\n * Random seed: {} *'.format(seed))
+        random.seed(seed)
+
     def test_spi_decode(self):
-        print('')
         trials = 20
         for i in xrange(trials):
             print('\r  SPI message {0} / {1}  '.format(i+1, trials), end='')
