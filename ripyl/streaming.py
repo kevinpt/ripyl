@@ -158,3 +158,89 @@ def load_stream(fh):
         fh.close()
         
     return records
+    
+    
+def merge_streams(records_a, records_b, id_a=0, id_b=1):
+    ''' Combine two streams of StreamRecord objects.
+    Records with time signatures from each input stream are kept in chronological order.
+        
+    records_a
+        Source records from stream a
+        
+    records_b
+        Source records from stream b
+        
+    id_a
+        stream_id assigned to records from records_a
+        
+    id_b
+        stream_id assigned to records from records_b
+        
+    Yields a stream of StreamRecord objects.
+    '''
+            
+    cur_ra = None
+    cur_rb = None
+    
+    while True:
+        if cur_ra is None: # Get next record a
+            try:
+                cur_ra = next(records_a)
+            except StopIteration:
+                # Nothing left to merge
+                if cur_rb is not None:
+                    cur_rb.stream_id = id_b
+                    yield cur_rb
+                    
+                for r in records_b:
+                    r.stream_id = id_b
+                    yield r
+                break
+
+        if cur_rb is None: # Get next record b
+            try:
+                cur_rb = next(records_b)
+            except StopIteration:
+                # Nothing left to merge
+                if cur_ra is not None:
+                    cur_ra.stream_id = id_a
+                    yield cur_ra
+
+                for r in records_a:
+                    r.stream_id = id_a
+                    yield r
+                break
+
+        # Find the time markers
+        try:
+            ra_time = cur_ra.start_time # StreamSegment
+        except AttributeError:
+            try:
+                ra_time = cur_ra.time # StreamEvent
+            except AttributeError: # No time marker
+                cur_ra.stream_id = id_a
+                yield cur_ra
+                cur_ra = None
+                continue
+
+        try:
+            rb_time = cur_rb.start_time # StreamSegment
+        except AttributeError:
+            try:
+                rb_time = cur_rb.time # StreamEvent
+            except AttributeError: # No time marker
+                cur_rb.stream_id = id_b
+                yield cur_rb
+                cur_rb = None
+                continue
+
+        # Determine record chronological order
+        if ra_time <= rb_time:
+            cur_ra.stream_id = id_a
+            yield cur_ra
+            cur_ra = None
+            
+        else:
+            cur_rb.stream_id = id_b
+            yield cur_rb
+            cur_rb = None
