@@ -25,6 +25,9 @@
 from __future__ import print_function, division
 
 import struct
+import os
+import array
+import sys
         
 def write_bin_file(fname, samples, sample_period, start_time):
     with open(fname, 'wb') as fo:
@@ -37,13 +40,16 @@ def read_bin_file(fname):
     with open(fname, 'rb') as fo:
         sample_period = struct.unpack('<f', fo.read(4))[0]
         start_time = struct.unpack('<f', fo.read(4))[0]
-        #TODO: precompute length from file size and use an array.array object
-        samples = []
-        while True:
-            s = fo.read(4)
-            if len(s) > 0:
-                samples.append(struct.unpack('<f', s)[0])
-            else:
-                break
-    
+
+        num_samples = (os.path.getsize(fname) - (2 * 4)) // 4
+        samples = array.array('f')
+        try:
+            samples.fromfile(fo, num_samples)
+        except EOFError:
+            raise EOFError('Missing samples in file')
+            
+        # On a big-endian machine the samples need to be byteswapped
+        if sys.byteorder == 'big':
+            samples.byteswap()
+        
         return (samples, sample_period, start_time)
