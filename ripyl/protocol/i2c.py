@@ -289,6 +289,7 @@ class I2CTransfer(object):
         self.r_wn = r_wn
         self.address = address
         self.data = data
+        self.subrecords = []
         
     def bytes(self):
         '''Get a list of raw bytes including the formatted address'''
@@ -345,13 +346,14 @@ class I2CTransfer(object):
 
         
 def reconstruct_i2c_transfers(records):
-    '''Recreate a I2CTransfer objects from the output of i2c_decode()
+    '''Recreate I2CTransfer objects using the output of i2c_decode()
 
     This is a generator function that can be used in a pipeline of waveform
     processing operations.
 
     records
-        An iterable of I2CByte and I2CAddress records as produced by i2c_decode()
+        An iterable of I2CByte and I2CAddress records as produced by i2c_decode().
+        All StreamEvent records are discarded.
         
     Yields a stream of I2CTransfer objects containing aggregated address and data
       from the input records.
@@ -362,29 +364,35 @@ def reconstruct_i2c_transfers(records):
     state = S_ADDR
     cur_addr = None
     cur_data = []
+    subrecords = []
 
     for r in records:
         
         if state == S_ADDR:
             if r.kind == 'I2C address':
                 cur_addr = r
+                subrecords.append(r)
                 state = S_DATA
                
         elif state == S_DATA:
             if r.kind == 'I2C byte':
                 cur_data.append(r)
+                subrecords.append(r)
             
             if r.kind == 'I2C address':
                 # reconstruct previous transfer
                 tfer = I2CTransfer(cur_addr.r_wn, cur_addr.address, [b.data for b in cur_data])
+                tfer.subrecords = subrecords
                 yield tfer
                 
                 cur_addr = r
                 cur_data = []
+                subrecords = [r]
             
     if cur_addr is not None:
         # reconstruct last transfer
         tfer = I2CTransfer(cur_addr.r_wn, cur_addr.address, [b.data for b in cur_data])
+        tfer.subrecords = subrecords
         yield tfer
 
 
