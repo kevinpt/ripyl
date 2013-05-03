@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 '''Ripyl protocol decode library
-   LM73 protocol decoder
+   LM73 (temperature sensor) protocol decoder
 '''
 
 # Copyright © 2013 Kevin Thibedeau
@@ -31,6 +31,7 @@ from ripyl.util.enum import Enum
 import ripyl.protocol.i2c as i2c
 
 class LM73Register(Enum):
+    '''Enumeration for LM73 registers'''
     Temperature = 0
     Configuration = 1
     THigh = 2
@@ -39,34 +40,80 @@ class LM73Register(Enum):
     Identification = 7
     
 LM73ID = 0x190
-LM73Addresses = (0x48, 0x49, 0x4A, 0x4C, 0x4D, 0x4E)
+LM73Addresses = set([0x48, 0x49, 0x4A, 0x4C, 0x4D, 0x4E])
 
 class LM73Operation(Enum):
+    '''Enumeration for LM73 bus operations'''
     SetPointer = 0
     WriteData = 1
     ReadData = 2
     
 class LM73Transfer(object):
+    '''Represent a transaction for the LM73'''
     def __init__(self, address, op, reg=LM73Register.Temperature, data=None):
+        '''
+        address
+            Address of the transfer
+            
+        op
+            One of the operations from LM73Operation
+            
+        reg
+            One of the Registers from LM73Register
+            
+        data
+            List of bytes read/written in the transfer
+        '''
         self.address = address
         self.op = op
         self.data = data
         self.reg = reg
+        self.i2c_tfer = None
         
     def __repr__(self):
+        if self.data is not None:
+            h_data = '[{}]'.format(', '.join(hex(d) for d in self.data))
+        else:
+            h_data = None
+            
         return 'LM73Transfer({}, {}, {}, {})'.format(hex(self.address), LM73Operation(self.op), \
-            LM73Register(self.reg), self.data)
+            LM73Register(self.reg), h_data)
             
     @property
     def temperature(self):
+        '''Compute the temperature in Celcius'''
         if self.reg in (LM73Register.Temperature, LM73Register.THigh, LM73Register.TLow) \
             and self.op == LM73Operation.ReadData:
             return float((self.data[0] << 8) + self.data[1]) * 0.25 / 32.0
         else:
             return None
+            
+    def __eq__(self, other):
+        match = True
         
+        if self.address != other.addres: match = False
+        if self.op != other.op: match = False
+        if self.data != other.data: match = False
+        if self.reg != other.reg: match = False
+        
+        return match
+    
+    def __ne__(self, other):
+        return not self == other       
+
 
 def lm73_decode(stream, addresses=LM73Addresses):
+    '''Decode an LM73 data stream
+    
+    stream
+        An iterable representing either a stream of I2C StreamRecord objects or
+        I2CTransfer objects.
+    
+    addresses
+        A collection identifying the valid LM73 addresses to decode
+        
+    Yields a series of LM73Transfer objects.
+    '''
     cur_reg = LM73Register.Temperature
     
     # check type of stream
@@ -104,5 +151,6 @@ def lm73_decode(stream, addresses=LM73Addresses):
 
         else: # Read data
             lm_tfer = LM73Transfer(tfer.address, LM73Operation.ReadData, cur_reg, tfer.data)
-            
+
+        lm_tfer.i2c_tfer = tfer
         yield lm_tfer
