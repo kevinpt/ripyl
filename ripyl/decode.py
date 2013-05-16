@@ -29,15 +29,16 @@ import scipy as sp
 import scipy.stats
 import math
 import collections
+import itertools
 
 from ripyl.util.stats import OnlineStats
-from ripyl.streaming import StreamError
+from ripyl.streaming import StreamError, AutoLevelError
 
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
-def find_bot_top_hist_peaks(raw_samples, bins, use_kde=False):
-    '''Find the bottom and top peaks in a histogram of data sample magnitudes.
-    These are the left-most and right-most of the two largest peaks in the histogram.
+
+def gen_histogram(raw_samples, bins, use_kde=False, kde_bw=0.05):
+    '''Generate a histogram using either normal binning or a KDE
     
     raw_samples
         A sequence representing the population of data samples that will be
@@ -51,21 +52,20 @@ def find_bot_top_hist_peaks(raw_samples, bins, use_kde=False):
         Estimate. This is useful for approximating normally distributed peaks on
         synthetic data sets lacking noise.
         
-    Returns a 2-tuple (bot, top) representing the bottom and top peaks. The value for
-      each peak is the center of the histogram bin that represents the midpoint of the
-      population for that peak.
-    Returns None if less than two peaks are found in the histogram
+    kde_bw
+        Float providing the bandwidth parameter for the KDE
     
-    Raises ValueError if a KDE cannot be constructed
+    Returns a tuple (hist, bin_centers) containing lists of the histogram bins and
+      the center value of each bin.
     '''
-    
     if not use_kde:
         hist, bin_edges = np.histogram(raw_samples, bins=bins)
         bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
     else:
     
         try:
-            kde = sp.stats.gaussian_kde(raw_samples, bw_method=0.05)
+            #print('#### len(raw_samples)', len(raw_samples))
+            kde = sp.stats.gaussian_kde(raw_samples, bw_method=kde_bw)
         except np.linalg.linalg.LinAlgError:
             # If the sample data set contains constant samples, gaussian_kde()
             # will raise this exception.
@@ -81,6 +81,38 @@ def find_bot_top_hist_peaks(raw_samples, bins, use_kde=False):
         step = (mxv - mnv) / bins
         bin_centers = np.arange(mnv, mxv, step)
         hist = 1000 * kde(bin_centers)
+        
+    return hist, bin_centers
+
+
+def find_bot_top_hist_peaks(raw_samples, bins, use_kde=False, kde_bw=0.05):
+    '''Find the bottom and top peaks in a histogram of data sample magnitudes.
+    These are the left-most and right-most of the two largest peaks in the histogram.
+    
+    raw_samples
+        A sequence representing the population of data samples that will be
+        analyzed for peaks
+    
+    bins
+        The number of bins to use for the histogram
+
+    use_kde
+        Boolean indicating whether to construct the histogram from a Kernel Density
+        Estimate. This is useful for approximating normally distributed peaks on
+        synthetic data sets lacking noise.
+        
+    kde_bw
+        Float providing the bandwidth parameter for the KDE
+        
+    Returns a 2-tuple (bot, top) representing the bottom and top peaks. The value for
+      each peak is the center of the histogram bin that represents the midpoint of the
+      population for that peak.
+    Returns None if less than two peaks are found in the histogram
+    
+    Raises ValueError if a KDE cannot be constructed
+    '''
+
+    hist, bin_centers = gen_histogram(raw_samples, bins, use_kde, kde_bw)
         
     #plt.plot(bin_centers, hist)
     #plt.show()
@@ -194,45 +226,47 @@ def find_hist_peaks(hist):
     # if the last bin was the start of a peak then we add it as a special case
     if peak_start == len(hist)-1:
         peaks.append((peak_start, peak_start))
-                
+        
     merge_gap = len(hist) / 100.0
     suppress_gap = len(hist) / 50.0
-    
-    prev_end = 0
+
+   
+    # look for peaks that are within the merge limit
+    peak_gaps = [b[0] - a[1] for a, b in zip(peaks[0:-1], peaks[1:])]
     merged = [0] * len(peaks)
-    suppressed = [0] * len(peaks)
-    
-    
-    for i, p in enumerate(peaks):
-        s, e = p
-        
-        if i == 0:
-            gap = 2.0 * suppress_gap # just a value big enough to ensure the first peak is preserved
-        else:
-            gap = s - prev_end
-            
+    for i, gap in enumerate(peak_gaps):
         if gap < merge_gap:
             # merge these two peaks
-            peaks[i] = (peaks[i-1][0], e) # put the prev peak start in this one
-            merged[i-1] = 1
+            peaks[i+1] = (peaks[i][0], peaks[i+1][1]) # put the prev peak start in this one
+            merged[i] = 1
+
+    merged_peaks = [p for i, p in enumerate(peaks) if merged[i] == 0]
+    
+    # look for peaks that are within the limit for suppression
+    peak_gaps = [b[0] - a[1] for a, b in zip(merged_peaks[0:-1], merged_peaks[1:])]
+    suppressed = [0] * len(merged_peaks)
+    
+    for i, gap in enumerate(peak_gaps):
+        if gap < suppress_gap:
+            # suppress the smallest of the two peaks
+            ix_l = i
+            ix_r = i+1
+            width_l = merged_peaks[ix_l][1] - merged_peaks[ix_l][0]
+            width_r = merged_peaks[ix_r][1] - merged_peaks[ix_r][0]
             
-        if gap >= merge_gap and gap < suppress_gap:
-            # suppress this peak
-            suppressed[i] = 1
-        
+            if width_l > width_r: # left peak is bigger
+                suppressed[ix_r] = 1
+            else: # right peak is bigger
+                suppressed[ix_l] = 1
+
     
-        prev_end = e
-    
-    filtered_peaks = []
-    for i, p in enumerate(peaks):
-        if merged[i] == 0 and suppressed[i] == 0:
-            filtered_peaks.append(p)
+    filtered_peaks = [p for i, p in enumerate(merged_peaks) if suppressed[i] == 0]
             
     return filtered_peaks
     
     
 
-def find_logic_levels(samples, min_edge_samples=3, max_samples=20000, buf_size=2000):
+def find_logic_levels(samples, max_samples=20000, buf_size=2000):
     '''Automatically determine the logic levels of a digital signal.
     
     This function consumes up to max_samples from samples in an attempt
@@ -244,13 +278,7 @@ def find_logic_levels(samples, min_edge_samples=3, max_samples=20000, buf_size=2
     samples
         An iterable representing a sequence of samples. Each sample is a
         2-tuple representing the time of the sample and the sample's value.
-        
-    min_edge_samples
-        The minimum number of samples that must exceed 3 std. devs. before an
-        edge is accepted as valid. This should be no less than 1. The purpose
-        of this parameter is to filter out spurious noise that would be
-        mis-identified as an edge.
-        
+
     max_samples
         The maximum number of samples to consume from the samples iterable.
         This should be at least 2x buf_size and will be coerced to that value
@@ -267,9 +295,11 @@ def find_logic_levels(samples, min_edge_samples=3, max_samples=20000, buf_size=2
     # Get a minimal pool of samples containing both logic levels
     # We use a statistical measure to find a likely first edge to minimize
     # the chance that our buffer doesn't contain any edge transmissions.
-    buf = collections.deque(maxlen=buf_size)
-    os = OnlineStats()
-    stats_valid = 0
+    
+    
+    et_buf_size = buf_size // 10 # accumulate stats on 1/10 buf_size samples before edge search
+    mvavg_size = 10
+    noise_filt_size = 3
     
     S_FIND_EDGE = 0
     S_FINISH_BUF = 1
@@ -277,44 +307,100 @@ def find_logic_levels(samples, min_edge_samples=3, max_samples=20000, buf_size=2
     state = S_FIND_EDGE
     sc = 0
     
-    if min_edge_samples < 1:
-        min_edge_samples = 1
-
-    impulse_filter = min_edge_samples
-
     # Coerce max samples to ensure that an edge occuring toward the end of an initial
     # buf_size samples can be centered in the buffer.
     if max_samples < 2 * buf_size:
         max_samples = 2 * buf_size
+
+    skip =  0 # 1150
+    for s in samples:
+        if not skip:
+            break
+        skip -= 1
+
+    # Perform an initial analysis to determine the edge threshold of the samples
+    samp_it, et_it = itertools.tee(samples)
+    edge_thresh_it = itertools.islice(et_it, et_buf_size)
     
-    for sample in samples:
+    et_samples = [s[1] for s in list(edge_thresh_it)] # extract just the samples
+
+
+    # We will create two moving averages of this pool of data
+    # The first has a short period (3 samples) meant to smooth out isolated spikes of
+    # noise. The second (10 samples) creates a smoother waveform representing the
+    # local median for the creation of the differences later.
+    nf_mvavg_buf = collections.deque(maxlen=noise_filt_size) # noise filter
+    noise_filtered = []
+    et_mvavg_buf = collections.deque(maxlen=mvavg_size)
+    et_mvavg = []
+    for ns in et_samples:
+        nf_mvavg_buf.append(ns)
+        noise_filtered.append(sum(nf_mvavg_buf) / len(nf_mvavg_buf)) # calculate moving avg.
+        et_mvavg_buf.append(ns)
+        et_mvavg.append(sum(et_mvavg_buf) / len(et_mvavg_buf)) # calculate moving avg.
+
+    # The magnitude difference between the samples and their moving average indicates where
+    # steady state samples are and where edge transitions are. 
+    mvavg_diff = [abs(x - y) for x, y in zip(noise_filtered, et_mvavg)]
+
+    # The "noise" difference is the same as above but with the moving average delay removed.
+    # This minimizes the peaks from edge transitions and is more representative of the noise level
+    # in the signal.
+    noise_diff = [abs(x - y) for x, y in zip(noise_filtered, et_mvavg[(mvavg_size//2)-1:])]
+    noise_threshold = max(noise_diff) * 1.5
+    
+    # The noise threshold gives us a simple test for the presence of edges in the initial
+    # pool of data. This will guide our determination of the edge threshold for filling the
+    # edge detection buffer.
+    edges_present = True if max(mvavg_diff) > noise_threshold else False
+
+    # FIX: This test will not work reliably for slowly changing edges (highly oversampled)
+    #      and for synthetic waveforms with no noise and no edges (noise_threshold will be 0.0)
+    
+    if edges_present:
+        #edge_threshold = max(mad2) * 0.75
+        edge_threshold = max(mvavg_diff) * 0.6
+    else:
+        # Just noise
+        #edge_threshold = max(mad2) * 10
+        edge_threshold = max(mvavg_diff) * 5
+        
+    
+    #print('### noise, edge threshold:', noise_threshold, edge_threshold)
+    
+    del edge_thresh_it
+    del et_it
+    
+    # We have established the edge threshold. We will now construct the moving avg. difference
+    # again. This time, any difference above the threshold will be an indicator of an edge
+    # transition.
+    
+    mvavg_buf = collections.deque(maxlen=mvavg_size)
+    buf = collections.deque(maxlen=buf_size)
+    
+    for sample in samp_it:
+    
         ns = sample[1]
         sc += 1
         
         buf.append(ns)
-
+        
         if state == S_FIND_EDGE:
             if sc > (max_samples - buf_size):
                 break
-            
-            # build stats on the samples seen so far
-            os.accumulate(ns)
-            stats_valid += 1
-            if stats_valid > 3 and abs(ns - os.mean()) > (3 * os.std()):
-                impulse_filter -= 1
-                #print('###', impulse_filter, abs(ns - os.mean()), 3 * os.std(), ns, sc)
-            else:
-                impulse_filter = min_edge_samples
 
-            if impulse_filter == 0:
-                # The previous min_edge_samples number of samples are more
-                # than 3 std. devs. from the mean. This is likely an edge event.
+            mvavg_buf.append(ns)
+            mvavg = sum(mvavg_buf) / len(mvavg_buf)  # calculate moving avg.
+            if abs(ns - mvavg) > edge_threshold:
+                # This is likely an edge event
                 state = S_FINISH_BUF
                 if len(buf) < buf_size // 2:
                     buf_remaining = buf_size - len(buf)
                 else:
                     buf_remaining = buf_size // 2
-
+                    
+                #print('##### Found edge {} {}'.format(len(buf), sc))
+            
 
         else: # S_FINISH_BUF
             # Accumulate samples until the edge event is in the middle of the
@@ -323,17 +409,23 @@ def find_logic_levels(samples, min_edge_samples=3, max_samples=20000, buf_size=2
             if buf_remaining <= 0 and len(buf) >= buf_size:
                 break
 
-    #plt.plot(buf)
+   
+    #plt.plot(et_samples)
+    #plt.plot(et_mvavg)
+    #plt.plot(mvavg_diff)
+    #plt.axhline(noise_threshold, color='r')
+    #plt.axhline(edge_threshold, color='g')
+    
     #plt.show()
-
-    # If we didn't see any edges in the buffered sample data then abort the
-    # histogram analysis
+    
+    # If we didn't see any edges in the buffered sample data then abort
+    # before the histogram analysis
     if state != S_FINISH_BUF:
         return None
 
     return find_bot_top_hist_peaks(buf, 100, use_kde=True)
 
-
+    
 
 def find_edges(samples, logic, hysteresis=0.4):
     '''Find the edges in a sampled digital waveform
