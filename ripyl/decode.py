@@ -312,14 +312,14 @@ def find_logic_levels(samples, max_samples=20000, buf_size=2000):
     if max_samples < 2 * buf_size:
         max_samples = 2 * buf_size
 
-    skip =  0 # 1150
-    for s in samples:
-        if not skip:
-            break
-        skip -= 1
+    #skip =  0 #675 # 1150
+    #for s in samples:
+    #    if not skip:
+    #        break
+    #    skip -= 1
 
     # Perform an initial analysis to determine the edge threshold of the samples
-    samp_it, et_it = itertools.tee(samples)
+    samp_it, samp_dly_it, et_it = itertools.tee(samples, 3)
     edge_thresh_it = itertools.islice(et_it, et_buf_size)
     
     et_samples = [s[1] for s in list(edge_thresh_it)] # extract just the samples
@@ -354,9 +354,16 @@ def find_logic_levels(samples, max_samples=20000, buf_size=2000):
     # edge detection buffer.
     edges_present = True if max(mvavg_diff) > noise_threshold else False
 
-    # FIX: This test will not work reliably for slowly changing edges (highly oversampled)
-    #      and for synthetic waveforms with no noise and no edges (noise_threshold will be 0.0)
-    
+    # NOTE: This test for edges present will not work reliably for slowly changing edges
+    # (highly oversampled) especially when the SNR is low (<20dB). This should not pose an issue
+    # as in this case the edge_threshold (set with 5x multiplier instead of 0.6x) will stay low
+    # enough to permit edge detection in the next stage.
+
+    #rev_mvavg = [(x - y) for x, y in zip(et_mvavg, reversed(et_mvavg))]
+    #os = OnlineStats()
+    #os.accumulate(rev_mvavg)
+    #rev_mvavg = [abs(x - os.mean()) for x in rev_mvavg]
+
     if edges_present:
         #edge_threshold = max(mad2) * 0.75
         edge_threshold = max(mvavg_diff) * 0.6
@@ -364,9 +371,15 @@ def find_logic_levels(samples, max_samples=20000, buf_size=2000):
         # Just noise
         #edge_threshold = max(mad2) * 10
         edge_threshold = max(mvavg_diff) * 5
+
+	# For synthetic waveforms with no noise present and no edges in the initial samples we will
+	# get an edge_threshold of 0.0. In this case we will just set the threshold high enough to
+	# detect a deviation from 0.0 for any reasonable real world input
+
+	edge_threshold = max(edge_threshold, 1.0e-9)
         
     
-    #print('### noise, edge threshold:', noise_threshold, edge_threshold)
+    #print('### noise, edge threshold:', noise_threshold, edge_threshold, edges_present)
     
     del edge_thresh_it
     del et_it
@@ -376,7 +389,12 @@ def find_logic_levels(samples, max_samples=20000, buf_size=2000):
     # transition.
     
     mvavg_buf = collections.deque(maxlen=mvavg_size)
+    mvavg_dly_buf = collections.deque(maxlen=mvavg_size)
     buf = collections.deque(maxlen=buf_size)
+
+    # skip initial samples to create disparity between samp_it and samp_dly_it
+    delay_samples = 100
+    next(itertools.islice(samp_it, delay_samples, delay_samples), None)
     
     for sample in samp_it:
     
@@ -391,7 +409,10 @@ def find_logic_levels(samples, max_samples=20000, buf_size=2000):
 
             mvavg_buf.append(ns)
             mvavg = sum(mvavg_buf) / len(mvavg_buf)  # calculate moving avg.
-            if abs(ns - mvavg) > edge_threshold:
+            mvavg_dly_buf.append(next(samp_dly_it)[1])
+            mvavg_dly = sum(mvavg_dly_buf) / len(mvavg_dly_buf)  # calculate moving avg.
+            #if abs(ns - mvavg) > edge_threshold:
+            if abs(mvavg_dly - mvavg) > edge_threshold:
                 # This is likely an edge event
                 state = S_FINISH_BUF
                 if len(buf) < buf_size // 2:
@@ -413,6 +434,8 @@ def find_logic_levels(samples, max_samples=20000, buf_size=2000):
     #plt.plot(et_samples)
     #plt.plot(et_mvavg)
     #plt.plot(mvavg_diff)
+    #plt.plot(noise_diff)
+    #plt.plot(rev_mvavg)
     #plt.axhline(noise_threshold, color='r')
     #plt.axhline(edge_threshold, color='g')
     
