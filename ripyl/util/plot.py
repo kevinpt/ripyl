@@ -449,3 +449,92 @@ def uart_plot(samples, records, title='', label_format='text', save_file=None):
     else:
         print('Writing plot to file:', save_file)
         plt.savefig(fname)
+
+
+def ps2_plot(channels, records, title='', label_format='text', save_file=None):
+    clk = channels['clk']
+    data = channels['data']
+    clk_t, clk_wf = zip(*clk)
+    data_t, data_wf = zip(*data)
+    
+    clk_b = waveform_bounds(clk_wf)
+    data_b = waveform_bounds(data_wf)
+    
+    text_ypos = (data_b['max'] + data_b['ovl_top']) / 2.0
+
+    fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, sharey=True)
+
+    ax1.plot(clk_t, clk_wf, color='green')
+    ax1.set_ylabel('CLK (V)')
+    ax1.set_title(title)
+    
+    ax2.plot(data_t, data_wf, color='blue')
+    ax2.set_xlabel('Time (s)')
+    ax2.set_ylabel('DATA (V)')
+    
+    for r in records:
+        if not (r.kind == 'PS/2 frame'):
+            continue
+            
+        # Frame rectangle
+        f_start = r.start_time
+        f_end = r.end_time
+        f_rect = patches.Rectangle((f_start, data_b['ovl_bot']), width=f_end - f_start, \
+            height=data_b['ovl_top'] - data_b['ovl_bot'], facecolor='orange', alpha=0.2)
+        ax2.add_patch(f_rect)
+
+
+        # Data bits rectangle
+        d_sr = [sr for sr in r.subrecords if sr.kind == 'data bits'][0]
+        d_rect = patches.Rectangle((d_sr.start_time, data_b['i_ovl_bot']), width=d_sr.end_time - d_sr.start_time, \
+            height=data_b['i_ovl_top'] - data_b['i_ovl_bot'], facecolor='blue', alpha=0.2)
+        ax2.add_patch(d_rect)
+        
+        # Parity bit
+        p_sr = [sr for sr in r.subrecords if sr.kind == 'parity'][0]
+        color = 'yellow' if p_sr.status < stream.StreamStatus.Error else 'red'
+        p_rect = patches.Rectangle((p_sr.start_time, data_b['i_ovl_bot']), width=p_sr.end_time - p_sr.start_time, \
+            height=data_b['i_ovl_top'] - data_b['i_ovl_bot'], facecolor=color, alpha=0.3)
+        ax2.add_patch(p_rect)
+
+        # Try to find any ack bit
+        a_sr = [sr for sr in r.subrecords if sr.kind == 'ack bit']
+        if len(a_sr) > 0:
+            a_sr = a_sr[0]
+            color = 'green' if a_sr.status < stream.StreamStatus.Error else 'red'
+            a_rect = patches.Rectangle((a_sr.start_time, data_b['i_ovl_bot']), width=a_sr.end_time - a_sr.start_time, \
+                height=data_b['i_ovl_top'] - data_b['i_ovl_bot'], facecolor=color, alpha=0.3)
+            ax2.add_patch(a_rect)
+
+
+
+        
+        color = 'black'
+        angle = 'horizontal'
+        if label_format == 'text':
+            char = chr(r.data)
+            if char not in string.printable:
+                char = hex(r.data)
+                color='red'
+                angle = 45
+
+        elif label_format == 'hex':
+            char = hex(r.data)
+            angle = 45
+        else:
+            raise ValueError('Unrecognized label format: "{}"'.format(label_format))
+
+        ax2.text((r.start_time + r.end_time) / 2.0, text_ypos, char, \
+            size='large', ha='center', color=color, rotation=angle)
+
+
+    ax2.set_ylim(data_b['ovl_bot'] * 1.05, data_b['ovl_top'] * 1.05)
+
+    plt.tight_layout()
+    plt.subplots_adjust(bottom=0.12)
+    if save_file is None:
+        plt.show()
+    else:
+        print('Writing plot to file:', save_file)
+        plt.savefig(fname)
+
