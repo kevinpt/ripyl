@@ -71,10 +71,10 @@ def spi_decode(clk, data_io, cs=None, cpol=0, cpha=0, lsb_first=True, logic_leve
         SPI chip select stream. Can be None if cs is not available.
     
     cpol
-        Clock polarity: 0 or 1
+        Clock polarity: 0 or 1 (the idle state of the clock signal)
     
     cpha
-        Clock phase: 0 or 1
+        Clock phase: 0 or 1 (data is sampled on the 1st clock edge (0) or the 2nd (1))
     
     lsb_first
         Boolean indicating whether the Least Significant Bit is transmitted first.
@@ -103,7 +103,7 @@ def spi_decode(clk, data_io, cs=None, cpol=0, cpha=0, lsb_first=True, logic_leve
                 raise AutoLevelError
             del thresh_it
         else:
-            s_clk_it = stream
+            s_clk_it = clk
         
         hyst = 0.4
         clk_it = find_edges(s_clk_it, logic_levels, hysteresis=hyst)
