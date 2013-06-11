@@ -65,10 +65,15 @@ def plot(channels, records, title='', label_format='text', save_file=None):
         keys = channels.keys()
         if 'dp' in keys and 'dm' in keys:
             return usb_plot(channels, records, title, label_format, save_file)
+        elif 'strobe' in keys and 'data' in keys:
+            return usb_plot(channels, records, title, label_format, save_file)
         elif 'clk' in keys and ('data_io' in keys or 'miso' in keys or 'mosi' in keys):
             return spi_plot(channels, records, title, label_format, save_file)
         elif 'scl' in keys and 'sda' in keys:
             return i2c_plot(channels, records, title, label_format, save_file)
+        elif 'clk' in keys and 'data' in keys:
+            return ps2_plot(channels, records, title, label_format, save_file)
+
         elif len(keys) == 1:
             return usb_plot(channels, records, title, label_format, save_file)
         
