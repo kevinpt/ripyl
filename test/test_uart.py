@@ -49,7 +49,7 @@ class TestUARTFuncs(unittest.TestCase):
         print('\n * Random seed: {} *'.format(seed))
         random.seed(seed)
 
-    @unittest.skip('debug')
+    #@unittest.skip('debug')
     def test_uart_decode(self):
         trials = 10
         for i in xrange(trials):
