@@ -37,6 +37,7 @@ class PS2StreamStatus(Enum):
     FramingError = StreamStatus.Error + 1
     ParityError = StreamStatus.Error + 2
     AckError = StreamStatus.Error + 3
+    TimingError = StreamStatus.Error + 4
 
 
 class PS2Dir(Enum):
@@ -154,11 +155,15 @@ def ps2_decode(clk, data, logic_levels=None, stream_type=StreamType.Samples):
             # Some sort of framing error happened. Start over to resynchronize
             find_frame_start = True
             bits = []
+            ne = StreamEvent(es.cur_time(), kind='PS/2 resynch', \
+                status=PS2StreamStatus.FramingError)
+            yield ne
+            
 
         if find_frame_start == True and (d_val == 0):
             bits_remaining = 10
             start_time = es.cur_time()
-            framing_error = False
+            timing_error = False
             if clk_val == 0: # falling edge
                 direction = PS2Dir.DeviceToHost
                 find_frame_start = False
@@ -173,7 +178,7 @@ def ps2_decode(clk, data, logic_levels=None, stream_type=StreamType.Samples):
             # Confirm that the clock rate is fast enough
             # We should always be advancing by no more than 1/2 the minimum clock period
             if ts > (min_period / 2):
-                framing_error = True
+                timing_error = True
 
             if direction == PS2Dir.DeviceToHost:
                 if clk_val == 0: # this is a falling edge, capture data
@@ -230,10 +235,11 @@ def ps2_decode(clk, data, logic_levels=None, stream_type=StreamType.Samples):
 
                 parity_error = True if p != bits[8] else False
                 
-                framing_error = True if bits[9] != 1 else framing_error # missing stop bit
+                framing_error = True if bits[9] != 1 else False # missing stop bit
 
 
-                status = PS2StreamStatus.FramingError if framing_error else StreamStatus.Ok
+                status = PS2StreamStatus.FramingError if framing_error else \
+                    PS2StreamStatus.TimingError if timing_error else StreamStatus.Ok
 
                 nf = PS2Frame((start_time, end_time), direction, data, status=status)
 
