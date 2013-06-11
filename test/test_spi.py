@@ -26,6 +26,7 @@ from __future__ import print_function, division
 
 import unittest
 import random
+import sys
 
 import ripyl.protocol.spi as spi
 import ripyl.sigproc as sigp
@@ -50,6 +51,7 @@ class TestSPIFuncs(unittest.TestCase):
         trials = 20
         for i in xrange(trials):
             print('\r  SPI message {0} / {1}  '.format(i+1, trials), end='')
+            sys.stdout.flush()
             
             cpol = random.choice((0, 1))
             cpha = random.choice((0, 1))

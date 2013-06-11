@@ -27,6 +27,7 @@ from __future__ import print_function, division
 import unittest
 import random
 import math
+import sys
 
 import ripyl.decode as decode
 
@@ -73,6 +74,7 @@ class TestDecodeFuncs(unittest.TestCase):
         trials = 40
         for i in xrange(trials):
             print('\r  find_symbol_rate() trial {0} / {1}  '.format(i+1, trials), end='')
+            sys.stdout.flush()
             
             freq = random.randrange(100, 10000)
             

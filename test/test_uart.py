@@ -27,6 +27,7 @@ from __future__ import print_function, division
 import unittest
 import random
 from collections import deque
+import sys
 
 import ripyl.protocol.uart as uart
 import ripyl.sigproc as sigp
@@ -54,6 +55,7 @@ class TestUARTFuncs(unittest.TestCase):
         trials = 10
         for i in xrange(trials):
             print('\r  UART message {0} / {1}  '.format(i+1, trials), end='')
+            sys.stdout.flush()
             
             msg = []
             for _ in xrange(20):

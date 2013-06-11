@@ -26,6 +26,7 @@ from __future__ import print_function, division
 
 import unittest
 import random
+import sys
 
 import ripyl.protocol.i2c as i2c
 import ripyl.sigproc as sigp
@@ -50,6 +51,7 @@ class TestI2CFuncs(unittest.TestCase):
         trials = 20
         for i in xrange(trials):
             print('\r  I2C transfer {0} / {1}  '.format(i+1, trials), end='')
+            sys.stdout.flush()
     
             clock_freq = 100.0e3
 
