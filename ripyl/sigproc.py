@@ -22,6 +22,8 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with Ripyl. If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
+
 import itertools
 
 import numpy as np
@@ -241,9 +243,9 @@ def synth_wave(edges, sample_rate, rise_time, ripple_db=60.0):
     Returns an iterator for the synthesized sample stream
     '''
     sample_period = 1.0 / sample_rate
-    
+
     samples = edges_to_sample_stream(edges, sample_period)
-    
+
     return filter_waveform(samples, sample_rate, rise_time, ripple_db)
 
     
@@ -399,3 +401,5 @@ def sum_streams(stream1, stream2):
             
         except StopIteration:
             break
+
+
