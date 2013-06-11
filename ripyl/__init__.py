@@ -5,7 +5,7 @@
 import util
 import protocol
 
-__version__ = '0.9'
+__version__ = '0.95'
 
 
 import sigproc
