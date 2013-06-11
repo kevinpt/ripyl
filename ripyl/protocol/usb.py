@@ -1495,6 +1495,7 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
                             # Save the first packet of the EXT token
                             ext_packet_bits = unstuffed_bits
                             sop_end1 = sop_end
+                            ext_packet_start = packet_start
 
                         # The whole EXT packet is decoded below once we get the next half
 
@@ -1527,7 +1528,7 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
                             # Construct the stream record
                             raw_packet = USBEXTPacket(USBPID.EXT, addr, endp, sub_pid, variable, pkt_speed)
                             status = max(status1, status2)
-                            packet = USBStreamPacket((packet_start, packet_end), sop_end1, raw_packet, crc5_1_bits, status=status)
+                            packet = USBStreamPacket((ext_packet_start, packet_end), sop_end1, raw_packet, crc5_1_bits, status=status)
                             packet.crc2 = crc5_2_bits
                             packet.sop_end2 = sop_end
                             yield packet
