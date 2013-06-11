@@ -6,7 +6,7 @@
    
    This Supports all of USB 2.0 including Low, Full, and High speed;
    Link Power Management extended tokens; and USB 1.x mixed Low and
-   Full speed transmissions.
+   Full speed transmissions. HSIC protocol is also supported.
 '''
 
 # Copyright © 2013 Kevin Thibedeau
@@ -399,6 +399,34 @@ class USBPacket(object):
             edges_diff.append((t, diff))
             
         return edges_diff
+
+    def get_hsic_edges(self, cur_time=0.0):
+        '''Produce a set of edges corresponding to USB HSIC (strobe, data) signals
+        
+        Returns a 2-tuple containing the strobe and data edge lists
+        '''
+        edges_s = []
+        edges_d = []
+        strobe = 1
+        data = 0
+        
+        for s in self._get_NRZI():
+            t = s[0] + self.delay + cur_time
+            strobe = 1 - strobe # toggle for J and K
+            if s[1] == USBState.J:
+                data = 0
+            elif s[1] == USBState.K:
+                data = 1
+            else: # SE0
+                strobe = 1 # revert back to idle
+                data = 0
+
+            edges_s.append((t, strobe))
+            edges_d.append((t + 1000.0e-12, data)) # delay data by 1000ps
+            
+        return (edges_s, edges_d)
+
+
 
     def _adjust_stuffing(self, fields):
         import bisect
@@ -902,7 +930,7 @@ def usb_decode(dp, dm, logic_levels=None, stream_type=StreamType.Samples):
     
     es = MultiEdgeSequence(edge_sets, 0.0)
     state_seq = EdgeSequence(_convert_single_ended_states(es, bus_speed), 0.0)
-    
+
     records = _decode_usb_state(state_seq, bus_speed)
     
     return records
@@ -982,6 +1010,81 @@ def usb_diff_decode(d_diff, logic_levels=None, stream_type=StreamType.Samples):
 
     es = EdgeSequence(d_diff_it, 0.0)
     state_seq = EdgeSequence(_convert_differential_states(es, bus_speed), 0.0)
+   
+    records = _decode_usb_state(state_seq, bus_speed)
+    
+    return records
+
+
+def usb_hsic_decode(strobe, data, logic_levels=None, stream_type=StreamType.Samples):
+    '''Decode a USB HSIC data stream
+    
+    This is a generator function that can be used in a pipeline of waveform
+    processing operations.
+    
+    This function decodes USB HSIC data captured from the two single-ended strobe and data
+    signals.
+    
+    The strobe and data parameters are edge or sample streams.
+    Each is a stream of 2-tuples of (time, value) pairs. The type of stream is identified
+    by the stream_type parameter. Either a series of real valued samples that will be
+    analyzed to find edge transitions or a set of pre-processed edge transitions
+    representing the 0 and 1 logic states of the waveforms. When this is a sample
+    stream, an initial block of data on the strobe stream is consumed to determine the most
+    likely logic levels in the signal. The bus speed is fixed at 480Mb/s.
+    
+    strobe
+        HSIC strobe stream
+    
+    data
+        HSIC data stream
+
+    logic_levels
+        Optional pair of floats that indicate (low, high) logic levels of the sample
+        stream. When present, auto level detection is disabled. This has no effect on
+        edge streams.
+
+    stream_type
+        A StreamType value indicating that the strobe, and data parameters represent either Samples
+        or Edges
+        
+    Yields a series of USBStreamPacket and USBStreamError objects
+    
+    Raises StreamError if stream_type = Samples and the logic levels cannot
+      be determined.
+    '''
+    
+    if stream_type == StreamType.Samples:
+        if logic_levels is None:
+            # tee off an iterator to determine logic thresholds
+            s_stb_it, thresh_it = itertools.tee(strobe)
+            
+            logic_levels = find_logic_levels(thresh_it)
+            if logic_levels is None:
+                raise AutoLevelError
+            del thresh_it
+        else:
+            s_stb_it = strobe
+
+        hyst = 0.4
+        stb_it = find_edges(s_stb_it, logic_levels, hysteresis=hyst)
+        d_it = find_edges(data, logic_levels, hysteresis=hyst)
+        
+    else: # the streams are already lists of edges
+        stb_it = strobe
+        d_it = data
+
+    bus_speed = USBSpeed.HighSpeed # Fixed speed for HSIC
+    
+    #print('### symbol rate:', USBSpeed(bus_speed), USBClockPeriod[bus_speed])
+
+    edge_sets = {
+        'strobe': stb_it,
+        'data': d_it
+    }
+    
+    es = MultiEdgeSequence(edge_sets, 0.0)
+    state_seq = EdgeSequence(_convert_hsic_states(es, bus_speed), 0.0)
     
     records = _decode_usb_state(state_seq, bus_speed)
     
@@ -1038,8 +1141,8 @@ def _get_bus_speed(speed_check_it, remove_se0s=False):
 
 
 def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
-    '''This routine does the bulk of the decode work. It is called by both the
-    single-ended decoder and the differential decoder once they have completed
+    '''This routine does the bulk of the decode work. It is called by the
+    single-ended, differential, and HSIC decoders once they have completed
     the preliminary work of extracting the bus states (J, K, SE0) from their
     input streams.
     '''
@@ -1209,12 +1312,16 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
         
         # A USB 2.0 hub chain can add up to 20 random bits to the end of a HighSpeed packet.
         # We need to strip the HighSpeed EOP fom the end of the packet_bits before unstuffing
-        # so that we can determine the length of a data packet later. If we wait, the unstuffing
-        # will mangle the EOP and make things less dependable.
+        # If we wait, the unstuffing will mangle the EOP and make things less dependable.
         eop_bits = 0
-        if pkt_speed == USBSpeed.HighSpeed and packet_kind == USBPacketKind.Data:
+        if pkt_speed == USBSpeed.HighSpeed:
+            if pid == USBPID.SOF:
+                max_eop_trail = 40 + 20
+            else:
+                max_eop_trail = 8 + 20
+
             # We need to find the *start* of the EOP
-            trailing_data = list(reversed(packet_bits[-28:]))
+            trailing_data = list(reversed(packet_bits[-max_eop_trail:]))
             # look for reversed EOP pattern in trailing data
             eop_pat = [1,1,1,1,1,1,1,0]
             eop_bits = 0
@@ -1229,32 +1336,29 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
                 status = USBStreamStatus.MissingEOPError
                 yield USBStreamError((packet_start, packet_end), packet_bits, pid=pid, status=status)
                 continue
-        
+
+        # NOTE: It is possible that extra random bits on the end just happen to match the EOP
+        # pattern rather than the real EOP itself. We will ignore this for now.
+
+        # With the HSIC encoding and an odd number of packet bits (due to bit stuffing)
+        # there will be an extra rising edge on strobe that ends up as an additional
+        # bit tacked onto the EOP. This will be stripped away before unstuffing.
+
         
         # Unstuff the bits
         # Technically the final 1 in the sync participates in the stuffing
         # but there is guaranteed to be a 0 in the PID field before 6 1's go by
         # so we don't bother including it in packet_bits.
         unstuffed_bits, stuffed_bits, stuffing_errors = _unstuff(packet_bits[0:len(packet_bits)-eop_bits])
+
         
         # Low and Full speed packets should have no stuffing errors
-        # HighSpeed packets will have stuffing errors from their EOP.
+        # HighSpeed packets will have stuffing errors from their EOP but that should have been
+        # stripped off before unstuffing.
         continue_decode = True
         #print('@@@@@@@@@@@@@ STUFFING ERRORS', stuffing_errors, len(packet_bits), len(stuffed_bits))
         if len(stuffing_errors) > 0:
-            if (pkt_speed == USBSpeed.LowSpeed or pkt_speed == USBSpeed.FullSpeed):
-                continue_decode = False # there was a stuffing error
-            else: # HighSpeed
-                # For all packets except SOF there should be one stuffing error
-                # before the end.
-                if pid != USBPID.SOF:
-                    if stuffing_errors[0] != len(packet_bits)-1:
-                        continue_decode = False # there was a stuffing error not in the EOP
-                else: #SOF HighSpeed will have multiple stuffing errors in EOP
-                    # The first stuffing error should have been on bit-31 in the
-                    # unstuffed data
-                    if stuffing_errors[0] - len(stuffed_bits) != 31:
-                        continue_decode = False # there was a stuffing error not in the EOP
+            continue_decode = False # there was a stuffing error
                 
         if continue_decode:
             ####### Now we decode the different packet types based on kind and PID
@@ -1582,6 +1686,49 @@ def _convert_differential_states(es, bus_speed):
         cur_bus = decode_state(es.cur_state())
         yield (es.cur_time, cur_bus)
 
+
+def _convert_hsic_states(es, bus_speed):
+    '''Convert a stream of single-ended states for HSIC strobe, data to
+    logical states (J, K, SE0).
+    
+    This is a generator function.
+    
+    Yields a 2-tuple (time, state) representing the logical state of strobe and data
+    '''
+
+    clk_period = USBClockPeriod[USBSpeed.HighSpeed]
+
+    # set initial state
+    if es.cur_state('strobe') == 1 and es.cur_state('data') == 0:
+        cur_bus = USBState.SE0 # idle
+    else: # indeterminate, just go with J
+        cur_bus = USBState.J
+
+    yield (es.cur_time(), cur_bus)
+    prev_bus = cur_bus
+    
+    while not es.at_end('strobe'):
+        ts, cname = es.advance_to_edge('strobe')
+
+        if ts > (clk_period * 2): # strobe ended
+            prev_bus = USBState.SE0
+            yield (es.cur_time() - ts + clk_period * 2, USBState.SE0)
+
+        if prev_bus == USBState.SE0 and es.cur_state('strobe') == 0:
+            # skip first falling edge on strobe
+            continue
+
+        cur_bus = USBState.K if es.cur_state('data') == 1 else USBState.J
+
+        if cur_bus != prev_bus:
+            yield (es.cur_time(), cur_bus)
+            prev_bus = cur_bus
+
+    # Finish off after last strobe edge by looking for SE0 state
+    es.advance(clk_period * 2)
+    if es.cur_state('strobe') == 1 and es.cur_state('data') == 0:
+        yield (es.cur_time(), USBState.SE0)
+
     
 
 def usb_synth(packets, idle_start=0.0, idle_end=0.0):
@@ -1612,7 +1759,7 @@ def usb_synth(packets, idle_start=0.0, idle_end=0.0):
     return dp, dm
 
 def _usb_synth(packets, idle_start=0.0, idle_end=0.0):
-    '''Core USB sunthesizer
+    '''Core USB synthesizer
     
     This is a generator function.
     '''
@@ -1686,6 +1833,65 @@ def _usb_diff_synth(packets, idle_start=0.0, idle_end=0.0):
     yield (t, diff_d)
     t += idle_end
     yield (t, diff_d) # final state
+
+
+def usb_hsic_synth(packets, idle_start=0.0, idle_end=0.0):
+    '''Generate synthesized USB HSIC waveforms
+
+    This function simulates USB packet transmission on the HSIC strobe and data signals.
+    
+    packets
+        A sequence of USBPacket objects that are to be simulated
+    
+    idle_start
+        The amount of idle time before the transmission of packets begins
+    
+    idle_end
+        The amount of idle time after the last packet
+
+    Returns a pair of iterators (strobe, data) for the strobe and data channels. Each
+      iterator is a 2-tuple (time, value) representing the time and the
+      logic value (0 or 1) for each edge transition on strobe and data. The first tuple
+      yielded is the initial state of the waveform. All remaining tuples are
+      edges where the state changes.
+    '''
+
+    # This is a wrapper around the actual synthesis code in _usb_hsic_synth()
+    # It unzips the yielded tuple and removes unwanted artifact edges
+    strobe, data = itertools.izip(*_usb_hsic_synth(packets, idle_start, idle_end))
+
+    strobe = remove_excess_edges(strobe)
+    data = remove_excess_edges(data)
+
+    return strobe, data
+
+def _usb_hsic_synth(packets, idle_start=0.0, idle_end=0.0):
+    '''USB HSIC synthesizer
+    
+    This is a generator function.
+    '''
+    
+    t = 0.0
+    strobe = 1 # idle state
+    data = 0
+    
+    yield ((t, strobe), (t, data)) # initial conditions
+    t += idle_start
+
+    for p in packets:
+        edges_s, edges_d = p.get_hsic_edges(t)
+
+        for strobe, data in zip(edges_s, edges_d):
+            yield (strobe, data)
+        
+        # update time to end of edge sequence plus a clock period
+        t = edges_s[-1][0] + USBClockPeriod[p.speed]
+ 
+    strobe = 1
+    data = 0
+    yield ((t, strobe), (t, data))
+    t += idle_end
+    yield ((t, strobe), (t, data)) # final state
 
 
 

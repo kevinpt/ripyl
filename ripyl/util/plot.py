@@ -80,8 +80,8 @@ def usb_plot(channels, records, title='', label_format='text', save_file=None):
     import ripyl.protocol.usb as usb
     from ripyl.util.bitops import join_bits
 
+
     if len(channels.keys()) == 1:
-        diff_usb = True
         dm = channels[channels.keys()[0]]
         
         dm_t, dm_wf = zip(*dm)
@@ -99,29 +99,50 @@ def usb_plot(channels, records, title='', label_format='text', save_file=None):
         
         ann_ax = ax1
         
-    else:
-        diff_usb = False
-        dp = channels['dp']
-        dm = channels['dm']
-        dp_t, dp_wf = zip(*dp)
-        dm_t, dm_wf = zip(*dm)
-    
-        #dp_b = waveform_bounds(dp_wf)
-        dm_b = waveform_bounds(dm_wf)
-    
-        text_ypos = (dm_b['max'] + dm_b['ovl_top']) / 2.0
-
-        fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, sharey=True)
-
-        ax1.plot(dp_t, dp_wf, color='green')
-        ax1.set_ylabel('D+ (V)')
-        ax1.set_title(title)
+    else: # normal USB or HSIC
+        if 'dp' in channels.keys(): # normal USB
+            dp = channels['dp']
+            dm = channels['dm']
+            dp_t, dp_wf = zip(*dp)
+            dm_t, dm_wf = zip(*dm)
         
-        ax2.plot(dm_t, dm_wf)
-        ax2.set_xlabel('Time (s)')
-        ax2.set_ylabel('D- (V)')
+            dm_b = waveform_bounds(dm_wf)
         
-        ann_ax = ax2
+            text_ypos = (dm_b['max'] + dm_b['ovl_top']) / 2.0
+
+            fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, sharey=True)
+
+            ax1.plot(dp_t, dp_wf, color='green')
+            ax1.set_ylabel('D+ (V)')
+            ax1.set_title(title)
+            
+            ax2.plot(dm_t, dm_wf)
+            ax2.set_xlabel('Time (s)')
+            ax2.set_ylabel('D- (V)')
+            
+            ann_ax = ax2
+        else: # HSIC
+            strobe = channels['strobe']
+            data = channels['data']
+            stb_t, stb_wf = zip(*strobe)
+            dm_t, dm_wf = zip(*data)
+        
+            dm_b = waveform_bounds(dm_wf)
+        
+            text_ypos = (dm_b['max'] + dm_b['ovl_top']) / 2.0
+
+            fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, sharey=True)
+
+            ax1.plot(stb_t, stb_wf, color='green')
+            ax1.set_ylabel('STROBE (V)')
+            ax1.set_title(title)
+            
+            ax2.plot(dm_t, dm_wf)
+            ax2.set_xlabel('Time (s)')
+            ax2.set_ylabel('DATA (V)')
+            
+            ann_ax = ax2
+
     
     for r in records:
         if not (r.kind == 'USB packet'):

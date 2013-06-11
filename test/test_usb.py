@@ -27,6 +27,7 @@ from __future__ import print_function, division
 import unittest
 import random
 from collections import deque
+import sys
 
 import ripyl.protocol.usb as usb
 import ripyl.sigproc as sigp
@@ -49,9 +50,10 @@ class TestUSBFuncs(unittest.TestCase):
         random.seed(seed)
         
     def test_usb_decode(self):
-        trials = 50
+        trials = 70
         for i in xrange(trials):
             print('\r  USB transmission {0} / {1}  '.format(i+1, trials), end='')
+            sys.stdout.flush()
 
             bus_speed = random.choice((usb.USBSpeed.LowSpeed, usb.USBSpeed.FullSpeed, usb.USBSpeed.HighSpeed))
             #print('\nBus speed', bus_speed)
@@ -60,8 +62,9 @@ class TestUSBFuncs(unittest.TestCase):
             packet_num = random.randint(1, 10)
             #print('\nGEN PACKETS:', packet_num)
             
-            
-            use_single_ended_sim = random.choice((True, False))
+            use_protocol = random.choice(('single-ended', 'differential'))
+            if use_protocol == 'hsic':
+                bus_speed = usb.USBSpeed.HighSpeed # force bus speed for HSIC
             
             
             packets = []
@@ -113,24 +116,31 @@ class TestUSBFuncs(unittest.TestCase):
                     pkt.swap_jk = True
                     packets.append(pkt)
 
-
-            if use_single_ended_sim:
+            if use_protocol == 'single-ended':
                 # Synthesize edge waveforms
                 dp, dm = usb.usb_synth(packets, 1.0e-7, 3.0e-7)
+
                 # Do the decode
-                records_it = usb.usb_decode(iter(dp), iter(dm), stream_type=streaming.StreamType.Edges)
-            else:
+                records_it = usb.usb_decode(dp, dm, stream_type=streaming.StreamType.Edges)
+            elif use_protocol == 'differential':
                 # Synthesize a differential edge waveform
                 diff_d = usb.usb_diff_synth(packets, 1.0e-7, 3.0e-7)
                 # Do the decode
                 records_it = usb.usb_diff_decode(diff_d, stream_type=streaming.StreamType.Edges)
+            else: # hsic
+                # Synthesize edge waveforms
+                strobe, data = usb.usb_hsic_synth(packets, 1.0e-7, 3.0e-7)
+
+                # Do the decode
+                records_it = usb.usb_hsic_decode(strobe, data, stream_type=streaming.StreamType.Edges)
+                
             
             records = list(records_it)
             
             # Check results
             pkt_cnt = 0
             pkt_ix = 0
-            match = True
+            match = True if len(records) > 0 else False
             #print('PACKETS:', len(records))
             for r in records:
                 if r.kind == 'USB packet':
@@ -143,8 +153,9 @@ class TestUSBFuncs(unittest.TestCase):
                 else:
                     pass
                     #print('ERROR:', repr(r))
-                    
+
             if not match:
+                print('\nProtocol:', use_protocol)
                 print('\nOriginal packets:')
                 for p in packets:
                     print('  ', p)
@@ -159,7 +170,10 @@ class TestUSBFuncs(unittest.TestCase):
             self.assertTrue(match, msg='Packets not decoded successfully')
             self.assertEqual(pkt_cnt, len(packets), \
                 'Missing or extra decoded packets (got {} , expected {})'.format(pkt_cnt, len(packets)))
-    
+
+
+
+    #@unittest.skip('debugging')
     def test_usb_sample_data(self):
     
         # Read files containing 100 Full-speed SOF packets
@@ -183,7 +197,8 @@ class TestUSBFuncs(unittest.TestCase):
         for r in records[1:]:
             cur_frame += 1
             self.assertEqual(r.packet.frame_num, cur_frame, 'SOF frame_num not decoded properly')
-  
+
+    #@unittest.skip('debugging')  
     def test_usb_diff_sample_data(self):
     
         # Read files containing 100 Full-speed SOF packets
