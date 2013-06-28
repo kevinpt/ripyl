@@ -564,3 +564,84 @@ def ps2_plot(channels, records, title='', label_format='text', save_file=None):
         print('Writing plot to file:', save_file)
         plt.savefig(fname)
 
+
+def iso_k_line_plot(samples, records, title='', label_format='text', save_file=None):
+
+    t, wf = zip(*samples)
+    
+    kline_b = waveform_bounds(wf)
+    
+    text_ypos = (kline_b['max'] + kline_b['ovl_top']) / 2.0
+    
+    ax = plt.axes()
+    
+    plt.xlabel('Time (s)')
+    plt.ylabel('Volts')
+    plt.title(title)
+    
+    for r in records:
+
+        # Frame rectangle
+        r_rect = patches.Rectangle((r.start_time, kline_b['ovl_bot']), width=r.end_time - r.start_time, \
+            height=kline_b['ovl_top'] - kline_b['ovl_bot'], facecolor='orange', alpha=0.2)
+        ax.add_patch(r_rect)
+
+        if r.kind != 'OBD-2 message': continue
+
+        # Header bytes rectangles
+        for hb in r.msg.header.bytes():
+            h_sr = [sr for sr in hb.subrecords if sr.kind == 'data bits'][0]
+            h_rect = patches.Rectangle((h_sr.start_time, kline_b['i_ovl_bot']), \
+                width=h_sr.end_time - h_sr.start_time, \
+                height=kline_b['i_ovl_top'] - kline_b['i_ovl_bot'], facecolor='green', alpha=0.2)
+            ax.add_patch(h_rect)
+
+        
+        # Data bytes rectangles
+        for db in r.msg.data:
+            d_sr = [sr for sr in db.subrecords if sr.kind == 'data bits'][0]
+            d_rect = patches.Rectangle((d_sr.start_time, kline_b['i_ovl_bot']), \
+                width=d_sr.end_time - d_sr.start_time, \
+                height=kline_b['i_ovl_top'] - kline_b['i_ovl_bot'], facecolor='blue', alpha=0.2)
+            ax.add_patch(d_rect)
+
+        # Checksum byte
+        cs_sr = [sr for sr in r.msg.checksum.subrecords if sr.kind == 'data bits'][0]
+        color = 'yellow' if r.msg.checksum_good() else 'red'
+        cs_rect = patches.Rectangle((cs_sr.start_time, kline_b['i_ovl_bot']), \
+            width=cs_sr.end_time - cs_sr.start_time, \
+            height=kline_b['i_ovl_top'] - kline_b['i_ovl_bot'], facecolor=color, alpha=0.2)
+        ax.add_patch(cs_rect)
+
+        msg_bytes = r.msg.header.bytes() + r.msg.data + [r.msg.checksum]
+
+        for b in msg_bytes:
+            color = 'black'
+            angle = 'horizontal'
+            if label_format == 'text':
+                char = str(b)
+                if char not in string.printable:
+                    char = hex(b.data)
+                    color='red'
+                    angle = 45
+            elif label_format == 'hex':
+                char = hex(b.data)
+                angle = 45
+            else:
+                raise ValueError('Unrecognized label format: "{}"'.format(label_format))
+
+            plt.text((b.start_time + b.end_time) / 2.0, text_ypos, char, \
+                size='large', ha='center', color=color, rotation=angle)
+
+    # Plot the waveform
+    plt.plot(t, wf)
+    plt.ylim(kline_b['ovl_bot'] * 1.05, kline_b['ovl_top'] * 1.05)
+
+    plt.tight_layout()
+    plt.subplots_adjust(bottom=0.12)
+    if save_file is None:
+        plt.show()
+    else:
+        print('Writing plot to file:', save_file)
+        plt.savefig(fname)
+
