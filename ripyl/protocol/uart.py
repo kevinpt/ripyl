@@ -228,6 +228,7 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, pola
     while not es.at_end():
         # look for start bit falling edge
         es.advance_to_edge()
+        #print('### advance:', es.cur_time)
         
         # We could have an anamolous edge at the end of the edge list
         # Check if edge sequence is complete after our advance
@@ -306,8 +307,8 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, pola
             
         nf.subrecords.append(StreamSegment((stop_time, end_time), kind='stop bit'))
             
-        #print(byte, bin(byte), chr(byte))
         yield nf
+        #print('### new byte:', es.cur_time, byte, bin(byte), chr(byte))
         
     
 
