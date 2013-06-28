@@ -381,7 +381,7 @@ def invert(stream):
 def sum_streams(stream1, stream2):
     '''Add two sample streams together
     
-    The time elements of each stream will not be aligned if they do not patch.
+    The time elements of each stream will not be aligned if they do not match.
     Instead the time values from stream1 are used for the result. The iterator
     terminates when either of the two streams ends.
     
@@ -401,5 +401,28 @@ def sum_streams(stream1, stream2):
             
         except StopIteration:
             break
+
+
+def chain(stream_gap_time, *streams):
+    '''Combine a sequence of streams together.
+
+    A set of sample or edge streams are concatenated together with updated time
+    stamps to maintain monotonically increasing time.
+
+    stream_gap_time
+        A float value indicating the time interval added between successive streams
+
+    streams
+        A sequence of streams
+
+    Yields a stream representing the data from each stream in order
+    '''
+    offset = 0.0
+    fixed_time = 0.0
+    for s in streams:
+        for p in s:
+            fixed_time = p[0] + offset
+            yield (fixed_time, p[1])
+        offset = fixed_time + stream_gap_time
 
 
