@@ -34,7 +34,6 @@ import ripyl.streaming as streaming
 
 class TestSPIFuncs(unittest.TestCase):
     def setUp(self):
-        import time
         import os
         
         # Use seed from enviroment if it is set

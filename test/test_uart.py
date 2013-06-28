@@ -37,7 +37,6 @@ import test.test_support as tsup
 
 class TestUARTFuncs(unittest.TestCase):
     def setUp(self):
-        import time
         import os
         
         # Use seed from enviroment if it is set

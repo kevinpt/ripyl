@@ -36,7 +36,6 @@ import test_support as tsup
 
 class TestUSBFuncs(unittest.TestCase):
     def setUp(self):
-        import time
         import os
         
         # Use seed from enviroment if it is set
