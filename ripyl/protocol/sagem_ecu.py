@@ -1,9 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Ripyl protocol decode library
-
-    Sagem ECU protocol support
+'''Sagem ECU protocol support
 
     This module should be included along with ripyl.protocol.obd2.
     The Sagem decode functions will be registered with the OBD-2 decoder

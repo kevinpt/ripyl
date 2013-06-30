@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Ripyl protocol decode library
-   UART protocol decoder
+'''UART protocol decoder
 '''
 
 # Copyright © 2013 Kevin Thibedeau
@@ -97,7 +96,7 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, pola
         meaning. Use this when the input stream derives from an inverting driver such
         as those used for RS-232.
     polarity
-        FIX
+        Set the polarity (idle state high or low) to a UARTConfig enumeration.
     
     baud_rate
         The baud rate of the stream. If None, the first 50 edges will be analyzed to
@@ -134,7 +133,7 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, pola
     Raises AutoBaudError if auto-baud is active and the baud rate cannot
       be determined.
       
-    Raises ValueError is the parity argument is invalid.
+    Raises ValueError if the parity argument is invalid.
     '''
 
     bits = int(bits)

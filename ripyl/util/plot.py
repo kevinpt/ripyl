@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Ripyl protocol decode library
-   USB protocol decoder
+'''Annotated protocol plotting
 '''
 
 # Copyright © 2013 Kevin Thibedeau
@@ -233,7 +232,7 @@ def usb_plot(channels, records, title='', label_format='text', save_file=None):
         plt.show()
     else:
         print('Writing plot to file:', save_file)
-        plt.savefig(fname)
+        plt.savefig(save_file)
 
 
 def spi_plot(channels, records, title='', label_format='text', save_file=None):
@@ -301,7 +300,7 @@ def spi_plot(channels, records, title='', label_format='text', save_file=None):
         plt.show()
     else:
         print('Writing plot to file:', save_file)
-        plt.savefig(fname)
+        plt.savefig(save_file)
 
 
 
@@ -399,10 +398,10 @@ def i2c_plot(channels, records, title='', label_format='text', save_file=None):
         plt.show()
     else:
         print('Writing plot to file:', save_file)
-        plt.savefig(fname)
+        plt.savefig(save_file)
 
 
-def uart_plot(samples, records, title='', label_format='text', save_file=None):
+def uart_plot(samples, records, title='', label_format='text', save_file=None, figsize=None):
 
     t, wf = zip(*samples)
     
@@ -419,7 +418,7 @@ def uart_plot(samples, records, title='', label_format='text', save_file=None):
     i_ovl_bot = min_wf - span * 0.01
     
     text_ypos = (max_wf + ovl_top) / 2.0
-    
+
     ax = plt.axes()
     
     plt.xlabel('Time (s)')
@@ -474,7 +473,9 @@ def uart_plot(samples, records, title='', label_format='text', save_file=None):
         plt.show()
     else:
         print('Writing plot to file:', save_file)
-        plt.savefig(fname)
+        if figsize is not None:
+            plt.gcf().set_size_inches(figsize)
+        plt.savefig(save_file)
 
 
 def ps2_plot(channels, records, title='', label_format='text', save_file=None):
@@ -562,7 +563,7 @@ def ps2_plot(channels, records, title='', label_format='text', save_file=None):
         plt.show()
     else:
         print('Writing plot to file:', save_file)
-        plt.savefig(fname)
+        plt.savefig(save_file)
 
 
 def iso_k_line_plot(samples, records, title='', label_format='text', save_file=None):
@@ -643,5 +644,5 @@ def iso_k_line_plot(samples, records, title='', label_format='text', save_file=N
         plt.show()
     else:
         print('Writing plot to file:', save_file)
-        plt.savefig(fname)
+        plt.savefig(save_file)
 

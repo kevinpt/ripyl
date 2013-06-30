@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Ripyl protocol decode library
-   PS/2 and AT keyboard protocol decoder
+'''PS/2 and AT keyboard protocol decoder
 '''
 
 # Copyright © 2013 Kevin Thibedeau

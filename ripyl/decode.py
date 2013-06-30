@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Ripyl protocol decode library
-   General routines shared between decoders
+'''General routines shared between decoders
 '''
 
 # Copyright © 2013 Kevin Thibedeau
@@ -40,19 +39,19 @@ import matplotlib.pyplot as plt
 def gen_histogram(raw_samples, bins, use_kde=False, kde_bw=0.05):
     '''Generate a histogram using either normal binning or a KDE
     
-    raw_samples
+    raw_samples (sequence of numbers)
         A sequence representing the population of data samples that will be
         analyzed for peaks
     
-    bins
+    bins (int)
         The number of bins to use for the histogram
 
-    use_kde
+    use_kde (bool)
         Boolean indicating whether to construct the histogram from a Kernel Density
         Estimate. This is useful for approximating normally distributed peaks on
         synthetic data sets lacking noise.
         
-    kde_bw
+    kde_bw (float)
         Float providing the bandwidth parameter for the KDE
     
     Returns a tuple (hist, bin_centers) containing lists of the histogram bins and
@@ -89,19 +88,19 @@ def find_bot_top_hist_peaks(raw_samples, bins, use_kde=False, kde_bw=0.05):
     '''Find the bottom and top peaks in a histogram of data sample magnitudes.
     These are the left-most and right-most of the two largest peaks in the histogram.
     
-    raw_samples
+    raw_samples (sequence of numbers)
         A sequence representing the population of data samples that will be
         analyzed for peaks
     
-    bins
+    bins (int)
         The number of bins to use for the histogram
 
-    use_kde
+    use_kde (bool)
         Boolean indicating whether to construct the histogram from a Kernel Density
         Estimate. This is useful for approximating normally distributed peaks on
         synthetic data sets lacking noise.
         
-    kde_bw
+    kde_bw (float)
         Float providing the bandwidth parameter for the KDE
         
     Returns a 2-tuple (bot, top) representing the bottom and top peaks. The value for
@@ -161,7 +160,7 @@ def find_hist_peaks(hist):
     are not valid. The threshold t2 ends up being too large and valid peaks may be
     excluded. To avoid this problem the histogram can be sampled from a KDE instead.
     
-    hist
+    hist (sequence of ints)
         A sequence representing the histogram bin counts. Typically the first parameter
         returned by numpy.histogram() or a KDE from scipy.stats.gaussian_kde().
         
@@ -275,16 +274,16 @@ def find_logic_levels(samples, max_samples=20000, buf_size=2000):
     is found and the remaining half of the buffer is filled before the
     max_samples threshold is reached.
     
-    samples
+    samples (sequence of (float, number) tuples)
         An iterable representing a sequence of samples. Each sample is a
         2-tuple representing the time of the sample and the sample's value.
 
-    max_samples
+    max_samples (int)
         The maximum number of samples to consume from the samples iterable.
         This should be at least 2x buf_size and will be coerced to that value
         if it is less.
         
-    buf_size
+    buf_size (int)
         The maximum size of the sample buffer to analyze for logic levels.
         This should be less than max_samples. 
         
@@ -456,14 +455,14 @@ def find_edges(samples, logic, hysteresis=0.4):
     This is a generator function that can be used in a pipeline of waveform
     procesing operations.
     
-    samples
+    samples (sequence of (float, number) tuples)
         An iterable representing a sequence of samples. Each sample is a
         2-tuple representing the time of the sample and the sample's value.
 
-    logic
+    logic ((float, float))
         A 2-tuple (low, high) representing the mean logic levels in the sampled waveform
         
-    hysteresis
+    hysteresis (float)
         A value between 0.0 and 1.0 representing the amount of hysteresis the use for
         detecting valid edge crossings.
         
@@ -547,7 +546,7 @@ def find_edges(samples, logic, hysteresis=0.4):
                     yield (t, zone_to_logic_state(zone))
 
             state = zone
-            
+
 
 def find_differential_edges(samples, logic, hysteresis=0.1):
     '''Find the edges in a sampled differential digital waveform
@@ -564,15 +563,15 @@ def find_differential_edges(samples, logic, hysteresis=0.1):
     should be removed but this requires knowledge of the minimum time for a 0 state
     to be valid. This is performed by the remove_short_diff_0s() function.
     
-    samples
+    samples (sequence of (float, number) tuples)
         An iterable representing a sequence of samples. Each sample is a
         2-tuple representing the time of the sample and the sample's value.
 
-    logic
+    logic ((float, float))
         A 2-tuple (low, high) representing the mean logic levels in the sampled waveform
         for -1 and +1. The logic level for 0 is assumed to be midway between these two.
         
-    hysteresis
+    hysteresis (float)
         A value between 0.0 and 1.0 representing the amount of hysteresis the use for
         detecting valid edge crossings.
         
@@ -677,13 +676,13 @@ def remove_short_diff_0s(diff_edges, min_diff_0_time):
     This is a generator function that can be used in a pipeline of waveform
     procesing operations.
     
-    diff_edges
+    diff_edges (sequence of (float, int) tuples)
         An iterable of 2-tuples representing each edge transition.
         The 2-tuples *must* be in the absolute time form (time, logic level).
         The logic levels should be in the set (-1, 0, 1) as produced by
         find_differential_edges().
     
-    min_diff_0_time
+    min_diff_0_time (float)
         The threshold for differential 0 states. A diff 0 lasting less than this
         threshold will be filtered out of the edge stream.
 
@@ -746,30 +745,30 @@ def find_symbol_rate(edges, sample_rate=1.0, spectra=2, auto_span_limit=True, ma
     edges
         An iterable of 2-tuples representing each edge transition.
         The tuples are in one of two forms:
-            * absolute time  (time, logic level)
-            * sample indexed (index, logic level)
+          * absolute time  (time, logic level)
+          * sample indexed (index, logic level)
             
         This function will consume all elements of the edges iterable.
         It must have a finite length
         
-    sample_rate
+    sample_rate (float)
         An adjustment to convert the raw symbol rate from samples to time.
         If the edges parameter is based on absolute time units then this
         should remain the default value of 1.0.
         
-    spectra
+    spectra (int)
         The number of spectra to include in the calculation of the HPS. This
         number should not larger than the highest harmonic in the edge span
         data.
         
-    auto_span_limit
+    auto_span_limit (bool)
         Excessively long edge spans can impair the symbol rate detection by
         reducing the resolution of the HPS. They are typically the result of
         long idle periods between the interesting parts we want to estimate
         the symbol rate from. When this parameter is True, an attempt is made
         to find the ideal limit for the spans included in the HPS.
         
-    max_span_limit
+    max_span_limit (int)
         An optional upper limit for span length to include in the HPS.
         auto_span_limit must be False for this to take effect.
     
@@ -856,15 +855,15 @@ class EdgeSequence(object):
 
     def __init__(self, edges, time_step, start_time=None):
         '''
-        edges
+        edges (sequence of (float, int) tuples)
             An iterable of 2-tuples representing each edge transition.
             The 2-tuples *must* be in the absolute time form (time, logic level).
         
-        time_step
+        time_step (float)
             The default time step for advance() when it is called
             without an argument.
         
-        start_time
+        start_time (float)
             The initial starting time for the sequence.
             
         Raises StreamError when there are less than two elements to the edges iterable
@@ -891,7 +890,7 @@ class EdgeSequence(object):
     def advance(self, time_step=None):
         '''Move forward through edges by a given amount of time.
         
-        time_step
+        time_step (float)
             The amount of time to move forward. If None, the default
             time_step from the constructor is used.
         '''
@@ -946,14 +945,14 @@ class MultiEdgeSequence(object):
     '''Utility class to walk through a group of edge iterators in arbitrary time steps'''
     def __init__(self, edge_sets, time_step, start_time=None):
         '''
-        edge_sets
+        edge_sets (dict)
             A dict of edge sequence iterators keyed by the string name of the channel
         
-        time_step
+        time_step (float)
             The default time step for advance() when it is called
             without an argument.
         
-        start_time
+        start_time (float)
             The initial starting time for the sequence.
         '''
 
@@ -968,7 +967,7 @@ class MultiEdgeSequence(object):
     def advance(self, time_step=None):
         '''Move forward through edges by a given amount of time.
         
-        time_step
+        time_step (float)
             The amount of time to move forward. If None, the default
             time_step from the constructor is used.
         '''
@@ -979,7 +978,7 @@ class MultiEdgeSequence(object):
         '''Advance to the next edge among the edge sets or in a named channel
         after the current time
         
-        channel_name
+        channel_name (string)
             If None, the edge sets are advanced to the closest edge after the current
             time. if a valid channel name is provided the edge sets are advanced to
             the closest edge on that channel.
@@ -1029,7 +1028,7 @@ class MultiEdgeSequence(object):
     def cur_state(self, channel_name=None):
         '''Get the current state of the edge sets
         
-        channel_name
+        channel_name (string)
             Name of the channel to retrieve state from
             
         Returns the value of the named channel's state. If channel_name is None
@@ -1053,11 +1052,11 @@ class MultiEdgeSequence(object):
     def at_end(self, channel_name=None):
         '''Test if the sequences have ended
         
-        channel_name
+        channel_name (string)
             The name of the channel to test for termination
             
         Returns True when the named edge iterator has terminated. If channel_name is
-          None, returns True then all channels in the set have terminated.
+          None, returns True when all channels in the set have terminated.
           
         Raises ValueError if channel_name is invalid
         '''
@@ -1068,3 +1067,5 @@ class MultiEdgeSequence(object):
                 return self.sequences[self.channel_ids[channel_name]].at_end()
             else:
                 raise ValueError("Invalid channel name '{0}'".format(channel_name))
+
+

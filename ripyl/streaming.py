@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Ripyl protocol decode library
-   Data streaming common classes
+'''Data streaming common classes
 '''
 
 # Copyright © 2013 Kevin Thibedeau
@@ -48,7 +47,11 @@ class StreamStatus(Enum):
     Error = 200
     
 class StreamRecord(object):
-    '''Base class for protocol decoder output stream objects'''
+    '''Base class for protocol decoder output stream objects
+
+	:ivar kind: A string identifying the kind of record
+	:ivar status: An integer status code
+	'''
     def __init__(self, kind='unknown', status=StreamStatus.Ok):
         self.kind = kind
         self.status = status

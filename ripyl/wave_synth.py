@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Protocol decode library
-   General routines for synthesizing basic waveforms
+'''General routines for synthesizing basic waveforms
 '''
 
 # Copyright © 2013 Kevin Thibedeau
@@ -33,16 +32,16 @@ def sine_synth(frequency=1.0e6, phase=0.0, sample_period=50.0e-9, samples=None):
     Will generate a continuous stream of samples from a sine wave.
     This generator will terminate if the number of output samples is specified.
         
-    frequency
+    frequency (float)
         Frequency in Hz of the sine wave
     
-    phase
+    phase (float)
         Phase in radians of the sine wave
     
-    sample_period
+    sample_period (float)
         Time interval between samples
     
-    samples
+    samples (int)
         Optional number of samples to generate
         
     Yields a series of raw samples.
@@ -65,19 +64,19 @@ def square_synth(frequency=1.0e6, duty=0.5, phase=0.0, sample_period=50.0e-9, sa
     Will generate a continuous stream of samples from a square wave.
     This generator will terminate if the number of output samples is specified.
         
-    frequency
+    frequency (float)
         Frequency in Hz of the square wave
         
-    duty
+    duty (float)
         Duty cycle of the square wave. Should be between 0.0 and 1.0.
     
-    phase
+    phase (float)
         Phase of the square wave in fractions of a period. Should be between 0.0 and 1.0.
     
-    sample_period
+    sample_period (float)
         Time interval between samples
     
-    samples
+    samples (int)
         Optional number of samples to generate
         
     Yields a series of raw samples.

@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Ripyl protocol decode library
-   engineering unit string formatting
+'''Engineering unit string formatting
 '''
 
 # Copyright © 2013 Kevin Thibedeau

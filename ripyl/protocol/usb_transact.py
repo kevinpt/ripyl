@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Ripyl protocol decode library
-   USB transaction decoder
+'''USB transaction decoder
    
    Processes a USB packet stream into a set of USBTransaction objects
 '''

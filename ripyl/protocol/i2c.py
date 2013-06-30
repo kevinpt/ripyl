@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Ripyl protocol decode library
-   I2C protocol decoder
+'''I2C protocol decoder
 '''
 
 # Copyright © 2013 Kevin Thibedeau

@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Ripyl protocol decode library
-   Enumeration support
+'''Enumeration support
 '''
 
 # Copyright © 2013 Kevin Thibedeau

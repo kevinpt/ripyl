@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Ripyl protocol decode library
-   USB protocol decoder
+'''USB protocol decoder
    
    This Supports all of USB 2.0 including Low, Full, and High speed;
    Link Power Management extended tokens; and USB 1.x mixed Low and
@@ -147,6 +146,7 @@ class USBStreamPacket(StreamSegment):
 
     def field_offsets(self):
         '''Get a dict of packet field bit offsets
+
         Returns a dict keyed by the field name and a pair (start, end) for each value.
           Start and end are the inclusive times for the start and end of a field.
         '''
@@ -458,6 +458,7 @@ class USBPacket(object):
         
     def field_offsets(self, with_stuffing=None):
         '''Get a dict of packet field bit offsets
+
         Returns a dict keyed by the field name and a pair (start, end) for each value.
           Start and end are the inclusive bit offsets for the start and end of a field
           relative to the end of SOP.
@@ -649,6 +650,7 @@ class USBSOFPacket(USBPacket):
 
     def field_offsets(self, with_stuffing=False):
         '''Get a dict of packet field bit offsets
+
         Returns a dict keyed by the field name and a pair (start, end) for each value.
           Start and end are the inclusive bit offsets for the start and end of a field
           relative to the end of SOP.
@@ -723,6 +725,7 @@ class USBSplitPacket(USBPacket):
 
     def field_offsets(self, with_stuffing=False):
         '''Get a dict of packet field bit offsets
+
         Returns a dict keyed by the field name and a pair (start, end) for each value.
           Start and end are the inclusive bit offsets for the start and end of a field
           relative to the end of SOP.
@@ -808,6 +811,7 @@ class USBEXTPacket(USBPacket):
 
     def field_offsets(self, with_stuffing=False):
         '''Get a dict of packet field bit offsets
+
         Returns a dict keyed by the field name and a pair (start, end) for each value.
           Start and end are the inclusive bit offsets for the start and end of a field
           relative to the end of SOP.

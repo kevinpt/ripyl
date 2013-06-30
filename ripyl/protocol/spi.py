@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Ripyl protocol decode library
-   SPI protocol decoder
+'''SPI protocol decoder
 '''
 
 # Copyright © 2013 Kevin Thibedeau

@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Ripyl protocol decode library
-   ISO K-line protocol decoder
+'''ISO K-line protocol decoder
 
    Decodes ISO9141 and ISO14230 automotive data bus protocols
 '''

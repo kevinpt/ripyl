@@ -1,10 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Ripyl protocol decode library
-   OBD-2 protocol support
-
-   
+'''OBD-2 protocol support
 '''
 
 # Copyright © 2013 Kevin Thibedeau
@@ -231,7 +228,7 @@ _obd2_command_decoders = {'obd-2 standard': _obd2_std_command_decoder}
 
 
 
-def get_supported_pids(offset, a, b, c, d):
+def _get_supported_pids(offset, a, b, c, d):
     '''Decode the response to SID 0x01 PID 0x00, 0x20, 0x40, 0x60 requests
 
     offset
@@ -252,7 +249,7 @@ def get_supported_pids(offset, a, b, c, d):
 
     return pids
 
-def get_status(a, b, c, d):
+def _get_status(a, b, c, d):
     '''Decode response for sid 0x01, pid 0x01'''
     r = {}
     r['DTC count'] = a & 0x7F
@@ -308,7 +305,7 @@ def decode_dtc(dtc):
     return dtc_class + ''.join(h_digits)    
 
 
-def get_freeze_dtc(a, b):
+def _get_freeze_dtc(a, b):
     '''Decode response for sid 0x01, pid 0x02'''
     code = a*256 + b
     if code > 0:
@@ -316,7 +313,7 @@ def get_freeze_dtc(a, b):
     else:
         return None
 
-def get_fuel_status(a, b):
+def _get_fuel_status(a, b):
     '''Decode response for sid 0x01, pid 0x03'''
     r = {}
 
@@ -341,7 +338,7 @@ def get_fuel_status(a, b):
 
     return r
 
-def get_sai_status(a):
+def _get_sai_status(a):
     '''Decode response for sid 0x01, pid 0x12'''
     status_codes = ['Upstream of catalytic converter', \
         'Downstream of catalytic converter', \
@@ -357,7 +354,7 @@ def get_sai_status(a):
 
     return r
 
-def get_o2_sensors_13(a):
+def _get_o2_sensors_13(a):
     '''Decode response from sid 0x01, pid 0x13'''
 
     sensors = {
@@ -394,7 +391,7 @@ _obd2_standards = {
     0x0D: 'JOBD, EOBD, and OBD II'
 }
 
-def get_supported_standards(a):
+def _get_supported_standards(a):
     '''Decode response from sid 0x01, pid 0x1C'''
 
     if a in _obd2_standards.iterkeys():
@@ -402,7 +399,7 @@ def get_supported_standards(a):
     else:
         return 'unknown'
 
-def get_o2_sensors_1d(a):
+def _get_o2_sensors_1d(a):
     '''Decode response from sid 0x01, pid 0x1D'''
 
     sensors = {
@@ -423,7 +420,7 @@ def get_o2_sensors_1d(a):
     return sensors
 
 
-def get_drive_cycle_status(a, b, c, d):
+def _get_drive_cycle_status(a, b, c, d):
     '''Decode response for sid 0x01, pid 0x41'''
 
     test_available = [bool(v) for v in split_bits(b & 0x0F, 4)]
@@ -459,10 +456,10 @@ class PIDTableEntry(object):
 PTE = PIDTableEntry
 
 sid_01_pids = {
-    0x00 : PTE(4, 'PIDs supported [01 - 20]', '', lambda a, b, c, d: get_supported_pids(0x00, a, b, c, d)),
-    0x01 : PTE(4, 'Monitor status since DTCs cleared', '', lambda a, b, c, d: get_status(a, b, c, d)),
-    0x02 : PTE(2, 'Freeze DTC', '', lambda a, b: get_freeze_dtc(a, b)),
-    0x03 : PTE(2, 'Fuel system status', '', lambda a, b: get_fuel_status(a, b)),
+    0x00 : PTE(4, 'PIDs supported [01 - 20]', '', lambda a, b, c, d: _get_supported_pids(0x00, a, b, c, d)),
+    0x01 : PTE(4, 'Monitor status since DTCs cleared', '', lambda a, b, c, d: _get_status(a, b, c, d)),
+    0x02 : PTE(2, 'Freeze DTC', '', lambda a, b: _get_freeze_dtc(a, b)),
+    0x03 : PTE(2, 'Fuel system status', '', lambda a, b: _get_fuel_status(a, b)),
     0x04 : PTE(1, 'Calculated engine load value', '%', lambda a: a*100.0/255.0),
     0x05 : PTE(1, 'Engine coolant temperature', 'C', lambda a: a-40.0),
     0x06 : PTE(1, 'Short term fuel % trim-Bank 1', '%', lambda a: (a-128)*100.0/128.0),
@@ -478,8 +475,8 @@ sid_01_pids = {
 
     0x10 : PTE(2, 'MAF air flow rate', 'g/s', lambda a, b: (a*256 + b) / 100.0),
     0x11 : PTE(1, 'Throttle position', '%', lambda a: a*100.0/255.0),
-    0x12 : PTE(1, 'Commanded secondary air status', '', lambda a: get_sai_status(a)),
-    0x13 : PTE(1, 'Oxygen sensors present', '', lambda a: get_o2_sensors_13(a)),
+    0x12 : PTE(1, 'Commanded secondary air status', '', lambda a: _get_sai_status(a)),
+    0x13 : PTE(1, 'Oxygen sensors present', '', lambda a: _get_o2_sensors_13(a)),
     0x14 : PTE(2, 'Bank 1, Sensor 1: Oxygen sensor voltage, Short term fuel trim', ('V', '%'), lambda a, b: (a/200.0, None if b == 0xFF else (b-128)*100.0/128.0)),
     0x15 : PTE(2, 'Bank 1, Sensor 2: Oxygen sensor voltage, Short term fuel trim', ('V', '%'), lambda a, b: (a/200.0, None if b == 0xFF else (b-128)*100.0/128.0)),
     0x16 : PTE(2, 'Bank 1, Sensor 3: Oxygen sensor voltage, Short term fuel trim', ('V', '%'), lambda a, b: (a/200.0, None if b == 0xFF else (b-128)*100.0/128.0)),
@@ -488,12 +485,12 @@ sid_01_pids = {
     0x19 : PTE(2, 'Bank 2, Sensor 2: Oxygen sensor voltage, Short term fuel trim', ('V', '%'), lambda a, b: (a/200.0, None if b == 0xFF else (b-128)*100.0/128.0)),
     0x1A : PTE(2, 'Bank 2, Sensor 3: Oxygen sensor voltage, Short term fuel trim', ('V', '%'), lambda a, b: (a/200.0, None if b == 0xFF else (b-128)*100.0/128.0)),
     0x1B : PTE(2, 'Bank 2, Sensor 4: Oxygen sensor voltage, Short term fuel trim', ('V', '%'), lambda a, b: (a/200.0, None if b == 0xFF else (b-128)*100.0/128.0)),
-    0x1C : PTE(1, 'OBD standards this vehicle conforms to', '', lambda a: get_supported_standards(a)),
-    0x1D : PTE(1, 'Oxygen sensors present', '', lambda a: get_o2_sensors_1d(a)),
+    0x1C : PTE(1, 'OBD standards this vehicle conforms to', '', lambda a: _get_supported_standards(a)),
+    0x1D : PTE(1, 'Oxygen sensors present', '', lambda a: _get_o2_sensors_1d(a)),
     0x1E : PTE(1, 'Auxiliary input status', '', lambda a: {'PTO active': bool(a & 0x01)}),
     0x1F : PTE(2, 'Run time since engine start', 's', lambda a, b: a*256 + b),
 
-    0x20 : PTE(4, 'PIDs supported [21 - 40]', '', lambda a, b, c, d: get_supported_pids(0x20, a, b, c, d)),
+    0x20 : PTE(4, 'PIDs supported [21 - 40]', '', lambda a, b, c, d: _get_supported_pids(0x20, a, b, c, d)),
     0x21 : PTE(2, 'Distance traveled with malfunction indicator lamp (MIL) on', 'km', lambda a, b: a*256 + b),
     0x22 : PTE(2, 'Fuel Rail Pressure (relative to manifold vacuum)', 'kPa', lambda a, b: (a*256 + b) * 0.079),
     0x23 : PTE(2, 'Fuel Rail Pressure (diesel, or gasoline direct inject)', 'kPa', lambda a, b: (a*256 + b) * 10.0),
@@ -527,8 +524,8 @@ sid_01_pids = {
     0x3E : PTE(2, 'Catalyst Temperature Bank 2, Sensor 1', 'C', lambda a, b: (a*256+b)/10.0 -40.0),
     0x3F : PTE(2, 'Catalyst Temperature Bank 2, Sensor 2', 'C', lambda a, b: (a*256+b)/10.0 -40.0),
 
-    0x40 : PTE(4, 'PIDs supported [41 - 60]', '', lambda a, b, c, d: get_supported_pids(0x40, a, b, c, d)),
-    0x41 : PTE(4, 'Monitor status this drive cycle', '', lambda a, b, c, d: get_drive_cycle_status(a, b, c, d)),
+    0x40 : PTE(4, 'PIDs supported [41 - 60]', '', lambda a, b, c, d: _get_supported_pids(0x40, a, b, c, d)),
+    0x41 : PTE(4, 'Monitor status this drive cycle', '', lambda a, b, c, d: _get_drive_cycle_status(a, b, c, d)),
     0x42 : PTE(2, 'Control module voltage', 'V', lambda a, b: (a*256+b)/1000.0),
     0x43 : PTE(2, 'Absolute load value', '%', lambda a, b: (a*256+b)*100.0/255.0),
     0x44 : PTE(2, 'Command equivalence ratio', '', lambda a, b: (a*255+b)/32768.0),
@@ -553,7 +550,7 @@ sid_02_pids = {
 
 
 
-def decode_obd_msg(sid, pid_table, msg_type, raw_data):
+def _decode_obd_msg(sid, pid_table, msg_type, raw_data):
     '''Generic decode of standard OBD-2 messages'''
     pid = raw_data[1]
     if pid in pid_table.iterkeys():
@@ -572,7 +569,7 @@ def decode_obd_msg(sid, pid_table, msg_type, raw_data):
 
     
 
-def decode_obd_sid_03_msg(msg_type, raw_data):
+def _decode_obd_sid_03_msg(msg_type, raw_data):
     '''Decode of OBD-2 SID 0x03 messages'''
     summary = 'sid: 03, "Request trouble codes"'
     if msg_type == OBD2MsgType.Response:
@@ -593,7 +590,7 @@ def decode_obd_sid_03_msg(msg_type, raw_data):
         return (summary, None, '')
 
 
-def decode_obd_sid_04_msg(msg_type, raw_data):
+def _decode_obd_sid_04_msg(msg_type, raw_data):
     '''Decode of OBD-2 SID 0x04 messages'''
     return ('sid: 04, "Clear trouble codes"', None, '')
 
@@ -608,7 +605,7 @@ _neg_response_codes = {
     0x78: 'response pending'
 }
 
-def decode_obd_neg_response(msg_type, raw_data):
+def _decode_obd_neg_response(msg_type, raw_data):
     # decode negative response codes defined in J1979 4.2.4
     if msg_type == OBD2MsgType.Response:
         req_sid = raw_data[1]
@@ -626,9 +623,9 @@ def decode_obd_neg_response(msg_type, raw_data):
     return (summary, None, '')
 
 sid_decoders = {
-    0x01: lambda mtype, d: decode_obd_msg(0x01, sid_01_pids, mtype, d),
-    0x02: lambda mtype, d: decode_obd_msg(0x02, sid_02_pids, mtype, d),
-    0x03: decode_obd_sid_03_msg,
-    0x04: decode_obd_sid_04_msg,
-    0x3F: decode_obd_neg_response # Only used as response 0x7F
+    0x01: lambda mtype, d: _decode_obd_msg(0x01, sid_01_pids, mtype, d),
+    0x02: lambda mtype, d: _decode_obd_msg(0x02, sid_02_pids, mtype, d),
+    0x03: _decode_obd_sid_03_msg,
+    0x04: _decode_obd_sid_04_msg,
+    0x3F: _decode_obd_neg_response # Only used as response 0x7F
 }

@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Ripyl protocol decode library
-   LM73 (temperature sensor) protocol decoder
+'''LM73 (temperature sensor) protocol decoder
 '''
 
 # Copyright © 2013 Kevin Thibedeau

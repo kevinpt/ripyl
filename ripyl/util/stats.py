@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Protocol decode library
-   Statistical operations
+'''Statistical operations
 '''
 
 # Copyright © 2013 Kevin Thibedeau

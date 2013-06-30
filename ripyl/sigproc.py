@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Protocol decode library
-   General routines for signal processing of streaming waveforms
+'''General routines for signal processing of streaming waveforms
 '''
 
 # Copyright © 2013 Kevin Thibedeau
@@ -37,14 +36,14 @@ def samples_to_sample_stream(raw_samples, sample_period, start_time=0.0):
     This is a generator function that can be used in a pipeline of waveform
     procesing operations
 
-    raw_samples
+    raw_samples (sequence of numbers)
         An iterable of sample values
     
-    sample_period
-        The floating point time interval between samples
+    sample_period (float)
+        The time interval between samples
     
-    start_time
-        The floating point time for the first sample
+    start_time (float)
+        The time for the first sample
 
     Yields a series of 2-tuples (time, value) representing the time and
       sample value for each input sample. This can be fed to functions
@@ -67,7 +66,7 @@ def remove_excess_edges(edges):
     This results in non-conforming edge streams that contain multiple consecutive
     pairs with a non-changing value.
     
-    edges
+    edges (sequence of (float, int) tuples)
         An edge stream to filter for extraneous non-edges
         
     Yields an edge stream.
@@ -92,13 +91,13 @@ def remove_excess_edges(edges):
 def edges_to_sample_stream(edges, sample_period, end_extension=None):
     '''Convert an edge stream to a sample stream
     
-    edges
+    edges (sequence of (float, int) tuples)
         An edge stream to sample
         
-    sample_rate
-        Floating point sample rate for converting the edge stream
+    sample_rate (float)
+        The sample rate for converting the edge stream
         
-    end_extension
+    end_extension (float)
         Optional amount of time to add to the end after the last edge transition
     
     Yields a sample stream.
@@ -137,20 +136,20 @@ def filter_waveform(samples, sample_rate, rise_time, ripple_db=60.0, pool_size=1
     
     This is a generator function.
     
-    samples
+    samples (sequence of (float, number) tuples)
         A sample stream to be filtered.
     
-    sample_rate
-        Floating point sample rate for converting the edge stream.
+    sample_rate (float)
+        The sample rate for converting the sample stream.
     
-    rise_time
+    rise_time (float)
         Rise (and fall) time for the filterd samples.
     
-    ripple_db
+    ripple_db (float)
         Noise suppression in dB for the bandwidth filter stop band. This should
         be a positive value.
         
-    pool_size
+    pool_size (int)
         Internal FIR filter sample pool size. This can generally be ignored. To support
         streaming of samples, the FIR filter operation is done piecewise so we don't have
         to consume the entire input before producing filtered output. Larger values will
@@ -226,16 +225,16 @@ def synth_wave(edges, sample_rate, rise_time, ripple_db=60.0):
     This is a convenience function combining edges_to_sample_stream() and
     filter_waveform().
     
-    edges
+    edges (sequence of (float, int) tuples)
         An edge stream to be sampled
     
-    sample_rate
-        Floating point sample rate for converting the edge stream
+    sample_rate (float)
+        The sample rate for converting the edge stream
     
-    rise_time
+    rise_time (float)
         Rise (and fall) time for the filterd samples
     
-    ripple_db
+    ripple_db (float)
         Noise suppression in dB for the bandwidth filter stop band. This should
         be a positive value.
 
@@ -256,10 +255,10 @@ def noisify(samples, snr_db=30.0):
     
     This is a generator function.
     
-    samples
+    samples (sequence of (float, number) tuples)
         An iterable sample stream of (time, value) pairs.
 
-    snr_db
+    snr_db (float)
         The Signal to Noise Ratio in dB. This value is only accurate if the
         input samples are normalized to the range 0.0 to 1.0. Any amplification
         should be applied after noisify() for the SNR to be correct.
@@ -292,13 +291,13 @@ def quantize(samples, full_scale, bits=8):
     
     This should be applied to a noisy signal to have notable results.
     
-    samples
+    samples (sequence of (float, number) tuples)
         An iterable sample stream of (time, value) pairs.
         
-    full_scale
+    full_scale (float)
         The full scale range for the signal. 
     
-    bits
+    bits (int)
         The number of bits to quantize to
 
     Yields a sample stream.
@@ -318,13 +317,13 @@ def amplify(samples, gain=1.0, offset=0.0):
     
     This is a generator function.
     
-    samples
+    samples (sequence of (float, number) tuples)
         An iterable sample stream of (time, value) pairs.
     
-    gain
+    gain (float)
         The gain multiplier for the samples
     
-    offset
+    offset (float)
         The additive offset for the samples
     
     Yields a sample stream.
@@ -341,16 +340,16 @@ def dropout(samples, start_time, end_time, val=0.0):
     
     This is a generator function.
     
-    samples
+    samples (sequence of (float, number) tuples)
         An iterable sample stream of (time, value) pairs.
     
-    start_time
+    start_time (float)
         Start of the dropout phase
     
-    end_time
+    end_time (float)
         End of the dropout phase
     
-    val
+    val (float)
         The sample value to substitute during the dropout phase
 
     Yields a sample stream.
@@ -367,7 +366,7 @@ def invert(stream):
     
     This is a generator function.
     
-    stream
+    stream (sequence of (float, number) tuples)
         An iterable of stream (time, value) pairs. The stream can either be samples
         or a diferential edge stream containing (-1, 0, 1) values that must be
         inverted.
@@ -387,8 +386,8 @@ def sum_streams(stream1, stream2):
     
     This is a generator function.
     
-    stream1
-    stream2
+    stream1 (sequence of (float, number) tuples)
+    stream2 (sequence of (float, number) tuples)
         The two sample streams to have their corresponding values added together.
         
     Yields a sample stream.
@@ -409,10 +408,10 @@ def chain(stream_gap_time, *streams):
     A set of sample or edge streams are concatenated together with updated time
     stamps to maintain monotonically increasing time.
 
-    stream_gap_time
+    stream_gap_time (float)
         A float value indicating the time interval added between successive streams
 
-    streams
+    streams (sequence of sequences containing (float, number) tuples)
         A sequence of streams
 
     Yields a stream representing the data from each stream in order
