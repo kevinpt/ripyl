@@ -19,6 +19,7 @@ All base level protocols in the library have functions to support the synthesis 
 The higher level protocols provided with Ripyl are:
 
 * :mod:`LM73 <.protocol.lm73>` temperature sensor (SMBus)
+* :mod:`OBD-2 <.protocol.obd2>` automotive ECU message format
 
 
 The protocol decoders do not check timing parameters to verify that they meet specifications. The emphasis is on getting usable data out of waveforms even if they depart from requirements.

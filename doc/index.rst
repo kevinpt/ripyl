@@ -30,7 +30,7 @@ Features include:
 Getting started
 ===============
 
-If you are new to Ripyl you can get started by reviewing the :doc:`introductory guide <intro>` and following the :doc:`tutorial <rst/tutorial>`.
+If you are new to Ripyl you can get started by reviewing the :doc:`introductory guide <rst/intro>` and following the :doc:`tutorial <rst/tutorial>`.
 
 
 Contents
@@ -42,8 +42,9 @@ Contents
    rst/installation
    rst/intro
    rst/tutorial
+   rst/reading_data
+   rst/data_structures
    rst/protocols
-   api_reference
    apidoc/modules
 
 
