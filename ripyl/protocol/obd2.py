@@ -48,11 +48,17 @@ class OBD2Message(object):
 
 
     def checksum_good(self):
-        '''Validate the message checksum'''
+        '''Validate the message checksum
+
+        Returns a bool that is True when checksum is valid.
+        '''
         raise NotImplementedError
 
     def raw_data(self):
-        '''Get the raw data (minus header and checksum) for the message'''
+        '''Get the raw data (minus header and checksum) for the message
+
+        Returns a list of bytes.
+        '''
         raise NotImplementedError
 
 
@@ -71,14 +77,14 @@ class OBD2StreamMessage(StreamSegment):
 
     def __init__(self, msg, status=StreamStatus.Ok):
         '''
-        bounds
+        bounds ((float, float))
             2-tuple (start_time, end_time) for the packet
             
-        msg
-            OBD2Message object
+        msg (OBD2Message)
+            OBD2Message object to wrap in a StreamSegment
 
-        status
-            status code for the packet
+        status (int)
+            Status code for the packet
 
         '''
         StreamSegment.__init__(self, (None, None), status=status)
@@ -116,8 +122,8 @@ class OBD2StreamTransfer(StreamSegment):
     '''Represent a collection of messages involved in a request/response transaction.'''
     def __init__(self, messages, status=StreamStatus.Ok):
         '''
-        messages
-            A sequence of OBD2StreamMessage objects
+        messages (sequence of OBD2StreamMessage)
+            A sequence of OBD2StreamMessage objects that form a transfer
         '''
         StreamSegment.__init__(self, (None, None), status=status)
         self.subrecords = messages
@@ -148,8 +154,8 @@ def reconstruct_obd2_transfers(records):
     each ECU on the bus. A new transfer starts with every request message. Objects
     other than OBD2StreamMessage are passed through unchanged
 
-    records
-        An iterable of OBD2StreamMessage objects.
+    records (sequence of OBD2StreamMessage)
+        The message objects to reconstruct the transfers from.
 
     Yields a stream of OBD2StreamTransfer objects containing aggregated messages
       from the input records and any additional non-message stream objects.
@@ -191,6 +197,13 @@ obd2_command_decoders = {}
 
 def decode_obd2_command(msg_type, raw_data):
     '''Decode the contents of an OBD-2 message
+
+    msg_type (OBD2MsgType)
+        The type of message (request or response) to be decoded.
+
+    raw_data (sequence of ints)
+        The bytes forming the message
+
     Returns a 3-tuple containing a string description, a parameter value, and a string for
       parameter units. The parameter value is None for request messages and for response
       messages with no defined decode routine.
@@ -204,7 +217,14 @@ def decode_obd2_command(msg_type, raw_data):
     return result
 
 def register_command_decoder(name, func):
-    '''Add a decoder function for additional manufacturer specific SIDs'''
+    '''Add a decoder function for additional manufacturer specific SIDs
+
+    name (string)
+        The name of the command set to register the decoder under.
+
+    func (function(OBD2MsgType, (int,...)))
+        A Python function object that will be called as a command decoder.
+    '''
     if name not in _obd2_command_decoders.iterkeys():
         _obd2_command_decoders[name] = func
 
@@ -212,7 +232,13 @@ def register_command_decoder(name, func):
 sid_decoders = {}
 
 def _obd2_std_command_decoder(msg_type, raw_data):
-    '''Decode the standard OBD-2 SIDs defined in the J1979 standard'''
+    '''Decode the standard OBD-2 SIDs defined in the J1979 standard
+    msg_type (OBD2MsgType)
+        The type of message (request or response) to be decoded.
+
+    raw_data (sequence of ints)
+        The bytes forming the message
+    '''
     sid = raw_data[0]
     if msg_type == OBD2MsgType.Response:
         sid -= 0x40
@@ -231,10 +257,10 @@ _obd2_command_decoders = {'obd-2 standard': _obd2_std_command_decoder}
 def _get_supported_pids(offset, a, b, c, d):
     '''Decode the response to SID 0x01 PID 0x00, 0x20, 0x40, 0x60 requests
 
-    offset
+    offset (int)
         The offset for the PID (0x00, 0x20, etc.)
 
-    a,b,c,d
+    a,b,c,d (sequence of ints)
         The four bytes of the response
 
     Returns a sequence of integers for each suported PID.
@@ -294,7 +320,13 @@ def _get_status(a, b, c, d):
 
 
 def decode_dtc(dtc):
-    '''Convert encoded DTC to a string'''
+    '''Convert encoded DTC to a string
+
+    dtc (int)
+        The binary coded DTC.
+
+    Returns a string representing the DTC in readable form.
+    '''
 
     class_codes = {0: 'P', 1:'C', 2:'B', 3:'U'}
     dtc_class = class_codes[(dtc >> 14) & 0x3]

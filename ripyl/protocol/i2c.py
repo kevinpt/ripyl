@@ -51,11 +51,11 @@ class I2CByte(StreamSegment):
 class I2CAddress(StreamSegment):
     '''Segment for an I2C address
     
-    The byte(s) conposing the address are contained as subrecords
+    The byte(s) composing the address are contained as subrecords
     '''
     def __init__(self, bounds, address=None, r_wn=None):
         '''
-        r_wn
+        r_wn (int)
             Read (1) / Write (0) bit
         '''
         StreamSegment.__init__(self, bounds, address)
@@ -64,6 +64,7 @@ class I2CAddress(StreamSegment):
         
     @property
     def address(self):
+        '''Alias of data attribute'''
         return self.data
         
     @address.setter
@@ -79,19 +80,27 @@ def i2c_decode(scl, sda, logic_levels=None, stream_type=StreamType.Samples):
     
     This is a generator function that can be used in a pipeline of waveform
     processing operations.
+
+    The scl, and sda parameters are edge or sample streams.
+    Each is a stream of 2-tuples of (time, value) pairs. The type of stream is identified
+    by the stream_type parameter. Either a series of real valued samples that will be
+    analyzed to find edge transitions or a set of pre-processed edge transitions
+    representing the 0 and 1 logic states of the waveforms. When this is a sample
+    stream, an initial block of data on the scl stream is consumed to determine the most
+    likely logic levels in the signal.
     
-    scl
+    scl (sequence of (float, number) pairs)
         An iterable representing the I2C serial clock
     
-    sda
+    sda (sequence of (float, number) pairs)
         An iterable representing the I2C serial data
 
-    logic_levels
-        Optional pair of floats that indicate (low, high) logic levels of the sample
+    logic_levels ((float, float) or None)
+        Optional pair that indicates (low, high) logic levels of the sample
         stream. When present, auto level detection is disabled. This has no effect on
         edge streams.
 
-    stream_type
+    stream_type (streaming.StreamType)
         Indicates the type of stream used for scl and sda.
         
         When StreamType.Samples, the iterators represent a sequence of samples.
@@ -107,6 +116,7 @@ def i2c_decode(scl, sda, logic_levels=None, stream_type=StreamType.Samples):
     Yields a series of StreamRecord-based objects. These will be one of three event types
       or two data types. The three events are represented by StreamEvent object with these
       obj.kind attribute values:
+
         * 'I2C start'   The start of an I2C transfer
         * 'I2C restart' A start condition during a transfer
         * 'I2C stop'    The end of a transfer
@@ -276,13 +286,13 @@ class I2CTransfer(object):
     '''Represent a transaction over the I2C bus'''
     def __init__(self, r_wn, address, data):
         '''
-        r_wn
+        r_wn (int)
             Read/write mode for the transfer
         
-        address
+        address (int)
             Address of the transfer. Can be either a 7-bit or 10-bit address.
         
-        data
+        data (sequence of ints)
             Array of bytes sent in the transfer
         '''
         self.r_wn = r_wn
@@ -291,7 +301,10 @@ class I2CTransfer(object):
         self.subrecords = []
         
     def bytes(self):
-        '''Get a list of raw bytes including the formatted address'''
+        '''Get a list of raw bytes for the transfer including the formatted address
+
+        Returns a list of ints
+        '''
         b = []
         
         if self.address <= 0x77: # 7-bit address
@@ -309,7 +322,10 @@ class I2CTransfer(object):
         return b
         
     def ack_bits(self):
-        '''Generate a list of ack bits for each byte of data'''
+        '''Generate a list of ack bits for each byte of data
+
+        Returns a list of ints
+        '''
         ack = []
         
         if self.address <= 0x77:
@@ -350,8 +366,8 @@ def reconstruct_i2c_transfers(records):
     This is a generator function that can be used in a pipeline of waveform
     processing operations.
 
-    records
-        An iterable of I2CByte and I2CAddress records as produced by i2c_decode().
+    records (sequence of I2CByte and I2CAddress)
+        An iterable of records produced by i2c_decode().
         All StreamEvent records are discarded.
         
     Yields a stream of I2CTransfer objects containing aggregated address and data
@@ -400,17 +416,17 @@ def i2c_synth(transfers, clock_freq, idle_start=0.0, idle_end=0.0):
     
     This function simulates I2C transfers on the SCL and SDA signals.
 
-    transfers
-        An iterable of I2CTransfer objects containing data to be synthesized.
+    transfers (sequence of I2CTransfer objects)
+        Data to be synthesized.
     
-    clock_freq
-        Floating point clock frequency for the I2C bus. Standard rates are 100kHz (100.0e3)
+    clock_freq (float)
+        Clock frequency for the I2C bus. Standard rates are 100kHz (100.0e3)
         and 400kHz (400.0e3) but any frequency can be specified.
     
-    idle_start
+    idle_start (float)
         The amount of idle time before the transmission of transfers begins
     
-    idle_end
+    idle_end (float)
         The amount of idle time after the last transfer
     
     Returns a pair of iterators representing the two edge streams for scl, and sda

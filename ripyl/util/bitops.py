@@ -22,7 +22,16 @@
 # License along with Ripyl. If not, see <http://www.gnu.org/licenses/>.
 
 def split_bits(n, num_bits):
-    '''Convert integer to an array of bits (MSB-first)'''
+    '''Convert integer to a list of bits (MSB-first)
+
+    n (int)
+        The number to convert to bits.
+
+    num_bits (int)
+        The number of bits in the result.
+
+    Returns a list of ints representing each bit in n.
+    '''
     bits = [0] * num_bits
     for i in xrange(num_bits-1, -1, -1):
         bits[i] = n & 0x01
@@ -32,7 +41,13 @@ def split_bits(n, num_bits):
     
    
 def join_bits(bits):
-    '''Convert an array of bits (MSB first) to an integer word'''
+    '''Convert an array of bits (MSB first) to an integer word
+
+    bits (sequence of ints)
+        The bits to be merged into an integer
+
+    Returns an int representing the bits contained in the bits parameter.
+    '''
     word = 0
     for b in bits:
         word = (word << 1) | b

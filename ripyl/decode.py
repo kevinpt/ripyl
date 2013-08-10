@@ -734,20 +734,20 @@ def remove_short_diff_0s(diff_edges, min_diff_0_time):
     
 def find_symbol_rate(edges, sample_rate=1.0, spectra=2, auto_span_limit=True, max_span_limit=None):
     '''Determine the base symbol rate from a set of edges
-    
+
     This function depends on the edge data containing a variety of spans between
     edges all related to the fundamental symbol rate. The Harmonic Product Spectrum
     (HPS) of the edge span values is calculated and used to isolate the fundamental
     symbol rate. This function will not work properly on a clock signal containing
     a single time span between edges due to the lack of higher fundementals needed
     by the HPS unless spectra=1 which effectively disables the HPS operation.
-    
-    edges
+
+    edges ([(float, int)...] or [(int, int)...])
         An iterable of 2-tuples representing each edge transition.
         The tuples are in one of two forms:
           * absolute time  (time, logic level)
           * sample indexed (index, logic level)
-            
+
         This function will consume all elements of the edges iterable.
         It must have a finite length
         

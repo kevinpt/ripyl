@@ -110,22 +110,22 @@ class USBStreamPacket(StreamSegment):
     '''Encapsulates a USBPacket object (see below) into a StreamSegment'''
     def __init__(self, bounds, sop_end, packet, crc=None, status=StreamStatus.Ok):
         '''
-        bounds
+        bounds ((float, float))
             2-tuple (start_time, end_time) for the packet
             
-        sop_end
+        sop_end (float)
             The time for the end of the SOP portion of the packet. Used to measure
             bit positions for the packet fields.
             
-        packet
-            USBPacket object
+        packet (USBPacket)
+            USBPacket object to encapsulate
 
-        crc
+        crc (int or None)
             Optional CRC extracted from a decoded packet. Not used for encoding
             with usb_synth().
             
-        status
-            status code for the packet
+        status (int)
+            Status code for the packet
         '''
         StreamSegment.__init__(self, bounds, data=None, status=status)
         self.kind = 'USB packet'
@@ -182,18 +182,18 @@ class USBStreamError(StreamSegment):
     in the data stream'''
     def __init__(self, bounds, error_data, pid=-1, status=StreamStatus.Error):
         '''
-        bounds
+        bounds ((float, float))
             2-tuple (start_time, end_time) for the packet
             
-        error_data
+        error_data (sequence of int)
             An array of bits (potentially unstuffed) for the packet
 
-        pid
+        pid (int)
             The PID for the packet if it was successfully extracted. -1 if the
             PID was invalid or unavailable.
         
-        status
-            status code for the packet
+        status (int)
+            Status code for the packet
         '''    
         StreamSegment.__init__(self, bounds, data=error_data, status=status)
         self.kind = 'USB error'
@@ -340,6 +340,9 @@ class USBPacket(object):
         
     def get_edges(self, cur_time = 0.0):
         '''Produce a set of edges corresponding to USB D+ and D- signals
+
+        cur_time (float)
+            The starting offset time for the edges
         
         Returns a 2-tuple containing the D+ and D- edge lists
         '''
@@ -375,6 +378,9 @@ class USBPacket(object):
 
     def get_diff_edges(self, cur_time = 0.0):
         '''Produce a set of edges corresponding to USB differential (D+ - D-) signal
+
+        cur_time (float)
+            The starting offset time for the edges
         
         Returns a list of differential edges
         '''
@@ -402,6 +408,9 @@ class USBPacket(object):
 
     def get_hsic_edges(self, cur_time=0.0):
         '''Produce a set of edges corresponding to USB HSIC (strobe, data) signals
+
+        cur_time (float)
+            The starting offset time for the edges
         
         Returns a 2-tuple containing the strobe and data edge lists
         '''
@@ -429,6 +438,7 @@ class USBPacket(object):
 
 
     def _adjust_stuffing(self, fields):
+        '''Correct field positions for presence of stuffed bits'''
         import bisect
         stuff_pos = self._bit_stuff_offsets(self.get_bits())
         
@@ -502,6 +512,16 @@ class USBTokenPacket(USBPacket):
         return start_bits + check_bits + crc_bits
         
     def field_offsets(self, with_stuffing=False):
+        '''Get a dict of packet field bit offsets
+
+        with_stuffing (bool)
+            Flag indicating whether to return fields adjusted for stuffed bits
+
+        Returns a dict keyed by the field name and a pair (start, end) for each value.
+          Start and end are the inclusive bit offsets for the start and end of a field
+          relative to the end of SOP.
+        '''
+
         fields = {'PID': (0, 7), 'Addr': (8, 14), 'Endp': (15, 18), 'CRC5': (19, 23)}
         if with_stuffing:
             fields = self._adjust_stuffing(fields)
@@ -550,6 +570,16 @@ class USBDataPacket(USBPacket):
         return start_bits + data_bits + crc_bits
         
     def field_offsets(self, with_stuffing=False):
+        '''Get a dict of packet field bit offsets
+
+        with_stuffing (bool)
+            Flag indicating whether to return fields adjusted for stuffed bits
+
+        Returns a dict keyed by the field name and a pair (start, end) for each value.
+          Start and end are the inclusive bit offsets for the start and end of a field
+          relative to the end of SOP.
+        '''
+
         data_bits = len(self.data) * 8
         fields = {'PID': (0, 7), 'Data': (8, 8 + data_bits-1), 'CRC16': (8 + data_bits, 8 + data_bits + 16 - 1)}
         if with_stuffing:
@@ -612,6 +642,16 @@ class USBHandshakePacket(USBPacket):
         return nrzi
 
     def field_offsets(self, with_stuffing=False):
+        '''Get a dict of packet field bit offsets
+
+        with_stuffing (bool)
+            Flag indicating whether to return fields adjusted for stuffed bits
+
+        Returns a dict keyed by the field name and a pair (start, end) for each value.
+          Start and end are the inclusive bit offsets for the start and end of a field
+          relative to the end of SOP.
+        '''
+
         # There can be no bit stuffing on just a PID
         fields = {'PID': (0, 7)}
         return fields
@@ -650,6 +690,9 @@ class USBSOFPacket(USBPacket):
 
     def field_offsets(self, with_stuffing=False):
         '''Get a dict of packet field bit offsets
+
+        with_stuffing (bool)
+            Flag indicating whether to return fields adjusted for stuffed bits
 
         Returns a dict keyed by the field name and a pair (start, end) for each value.
           Start and end are the inclusive bit offsets for the start and end of a field
@@ -725,6 +768,9 @@ class USBSplitPacket(USBPacket):
 
     def field_offsets(self, with_stuffing=False):
         '''Get a dict of packet field bit offsets
+
+        with_stuffing (bool)
+            Flag indicating whether to return fields adjusted for stuffed bits
 
         Returns a dict keyed by the field name and a pair (start, end) for each value.
           Start and end are the inclusive bit offsets for the start and end of a field
@@ -812,6 +858,9 @@ class USBEXTPacket(USBPacket):
     def field_offsets(self, with_stuffing=False):
         '''Get a dict of packet field bit offsets
 
+        with_stuffing (bool)
+            Flag indicating whether to return fields adjusted for stuffed bits
+
         Returns a dict keyed by the field name and a pair (start, end) for each value.
           Start and end are the inclusive bit offsets for the start and end of a field
           relative to the end of SOP.
@@ -876,18 +925,18 @@ def usb_decode(dp, dm, logic_levels=None, stream_type=StreamType.Samples):
     stream, an initial block of data on the dp stream is consumed to determine the most
     likely logic levels in the signal and the bus speed.
     
-    dp
+    dp (sequence of (float, number) pairs)
         USB D+ stream
     
-    dm
+    dm (sequence of (float, number) pairs)
         USB D- stream
 
-    logic_levels
-        Optional pair of floats that indicate (low, high) logic levels of the sample
+    logic_levels ((float, float) or None)
+        Optional pair that indicates (low, high) logic levels of the sample
         stream. When present, auto level detection is disabled. This has no effect on
         edge streams.
 
-    stream_type
+    stream_type (streaming.StreamType)
         A StreamType value indicating that the dp, and dm parameters represent either Samples
         or Edges
         
@@ -960,15 +1009,15 @@ def usb_diff_decode(d_diff, logic_levels=None, stream_type=StreamType.Samples):
     sample stream, an initial block of data is consumed to determine the most
     likely logic levels in the signal and the bus speed.
     
-    d_diff
+    d_diff (sequence of (float, number) pairs)
         USB differential D stream
 
-    logic_levels
-        Optional pair of floats that indicate (low, high) logic levels of the sample
+    logic_levels ((float, float) or None)
+        Optional pair that indicates (low, high) logic levels of the sample
         stream. When present, auto level detection is disabled. This has no effect on
         edge streams.
 
-    stream_type
+    stream_type (streaming.StreamType)
         A StreamType value indicating that the dp, and dm parameters represent either Samples
         or Edges
         
@@ -1037,18 +1086,18 @@ def usb_hsic_decode(strobe, data, logic_levels=None, stream_type=StreamType.Samp
     stream, an initial block of data on the strobe stream is consumed to determine the most
     likely logic levels in the signal. The bus speed is fixed at 480Mb/s.
     
-    strobe
+    strobe (sequence of (float, number) pairs)
         HSIC strobe stream
     
-    data
+    data (sequence of (float, number) pairs)
         HSIC data stream
 
-    logic_levels
-        Optional pair of floats that indicate (low, high) logic levels of the sample
+    logic_levels ((float, float) or None)
+        Optional pair that indicates (low, high) logic levels of the sample
         stream. When present, auto level detection is disabled. This has no effect on
         edge streams.
 
-    stream_type
+    stream_type (streaming.StreamType)
         A StreamType value indicating that the strobe, and data parameters represent either Samples
         or Edges
         
@@ -1741,13 +1790,13 @@ def usb_synth(packets, idle_start=0.0, idle_end=0.0):
     
     This function simulates USB packet transmission on the D+ and D- signals.
     
-    packets
-        A sequence of USBPacket objects that are to be simulated
+    packets (sequence of USBPacket)
+        The packet objects that are to be simulated
     
-    idle_start
+    idle_start (float)
         The amount of idle time before the transmission of packets begins
     
-    idle_end
+    idle_end (float)
         The amount of idle time after the last packet
 
     Returns a pair of iterators (dp, dm) for the D+ and D- channels. Each
@@ -1799,13 +1848,13 @@ def usb_diff_synth(packets, idle_start=0.0, idle_end=0.0):
     This function simulates USB packet transmission on the differential D+ - D-
     signal.
     
-    packets
-        A sequence of USBPacket objects that are to be simulated
+    packets (sequence of USBPacket)
+        The packet objects that are to be simulated
     
-    idle_start
+    idle_start (float)
         The amount of idle time before the transmission of packets begins
     
-    idle_end
+    idle_end (float)
         The amount of idle time after the last packet
 
     Returns an iterator of 2-tuples for the D+ - D- differential channel. Each
@@ -1845,13 +1894,13 @@ def usb_hsic_synth(packets, idle_start=0.0, idle_end=0.0):
 
     This function simulates USB packet transmission on the HSIC strobe and data signals.
     
-    packets
-        A sequence of USBPacket objects that are to be simulated
+    packets (sequence of USBPacket)
+        The packet objects that are to be simulated
     
-    idle_start
+    idle_start (float)
         The amount of idle time before the transmission of packets begins
     
-    idle_end
+    idle_end (float)
         The amount of idle time after the last packet
 
     Returns a pair of iterators (strobe, data) for the strobe and data channels. Each
@@ -1902,7 +1951,8 @@ def _usb_hsic_synth(packets, idle_start=0.0, idle_end=0.0):
 
 def usb_crc5(d):
     '''Calculate USB CRC-5 on data
-    d
+
+    d (sequence of int)
         Array of integers representing 0 or 1 bits in transmission order
         
     Returns array of integers for each bit in the CRC with LSB first
@@ -1924,7 +1974,8 @@ def usb_crc5(d):
 
 def usb_crc16(d):
     '''Calculate USB CRC-16 on data
-    d
+
+    d (sequence of int)
         Array of integers representing 0 or 1 bits in transmission order
         
     Returns array of integers for each bit in the CRC with LSB first
@@ -1976,7 +2027,7 @@ def table_usb_crc16(d):
     
     This is a table-based byte-wise implementation
     
-    d
+    d (sequence of int)
         Array of integers representing bytes
         
     Returns array of integers for each bit in the CRC with LSB first
@@ -1997,3 +2048,4 @@ def table_usb_crc16(d):
     
     # Note: crc is in LSB-first order
     return split_bits(crc, 16)
+

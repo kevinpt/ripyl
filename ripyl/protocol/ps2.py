@@ -80,18 +80,18 @@ def ps2_decode(clk, data, logic_levels=None, stream_type=StreamType.Samples):
     stream, an initial block of data on the clk stream is consumed to determine the most
     likely logic levels in the signal.
     
-    clk
+    clk (sequence of (float, number) pairs)
         PS/2 clk stream
     
-    data
+    data (sequence of (float, number) pairs)
         PS/2 data stream.
     
-    logic_levels
-        Optional pair of floats that indicate (low, high) logic levels of the sample
+    logic_levels ((float, float) or None)
+        Optional pair that indicates (low, high) logic levels of the sample
         stream. When present, auto level detection is disabled. This has no effect on
         edge streams.
 
-    stream_type
+    stream_type (streaming.StreamType)
         A StreamType value indicating that the clk and data parameters represent either Samples
         or Edges
 
@@ -272,21 +272,21 @@ def ps2_synth(bytes, direction, clock_freq, idle_start=0.0, word_interval=0.0):
     This is a generator function that can be used in a pipeline of waveform
     procesing operations.
     
-    bytes
+    bytes (sequence of int)
         A sequence of bytes that will be transmitted serially
 
-    direction
-        A scalar of type PS2Dir representing the direction for all bytes transmitted
-        or a sequence of PS2Dir values representing the direction of each corresponding
+    direction (PS2Dir or a sequence of PS2Dir)
+        If a scalar, the direction for all bytes transmitted.
+        If a sequence of PS2Dir values, the direction of each corresponding
         byte in the bytes sequence.
     
-    clock_freq
-        The PS/2 floating point clock frequency. 10kHz - 13KHz typ.
+    clock_freq (float)
+        The PS/2 clock frequency. 10kHz - 13KHz typ.
     
-    idle_start
+    idle_start (float)
         The amount of idle time before the transmission of data begins
     
-    word_interval
+    word_interval (float)
         The amount of time between data bytes
 
     Yields a set of pairs representing the two edge streams for clk and data

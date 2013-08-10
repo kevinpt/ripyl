@@ -34,10 +34,10 @@ class SPIFrame(StreamSegment):
     '''Frame object for SPI data'''
     def __init__(self, bounds, data=None):
         '''
-        bounds
+        bounds ((float, float))
             2-tuple (start_time, end_time) for the bounds of the frame
         
-        data
+        data (sequence of int or None)
             Optional data representing the contents of the frame
         '''
         StreamSegment.__init__(self, bounds, data)
@@ -60,30 +60,30 @@ def spi_decode(clk, data_io, cs=None, cpol=0, cpha=0, lsb_first=True, logic_leve
     stream, an initial block of data on the clk stream is consumed to determine the most
     likely logic levels in the signal.
     
-    clk
+    clk (sequence of (float, number) pairs)
         SPI clk stream
     
-    data_io
+    data_io (sequence of (float, number) pairs)
         SPI MOSI or MISO stream.
     
-    cs
+    cs (sequence of (float, float) pairs)
         SPI chip select stream. Can be None if cs is not available.
     
-    cpol
+    cpol (int)
         Clock polarity: 0 or 1 (the idle state of the clock signal)
     
-    cpha
+    cpha (int)
         Clock phase: 0 or 1 (data is sampled on the 1st clock edge (0) or the 2nd (1))
     
-    lsb_first
-        Boolean indicating whether the Least Significant Bit is transmitted first.
+    lsb_first (bool)
+        Flag indicating whether the Least Significant Bit is transmitted first.
 
-    logic_levels
-        Optional pair of floats that indicate (low, high) logic levels of the sample
+    logic_levels ((float, float) or None)
+        Optional pair that indicates (low, high) logic levels of the sample
         stream. When present, auto level detection is disabled. This has no effect on
         edge streams.
 
-    stream_type
+    stream_type (streaming.StreamType)
         A StreamType value indicating that the clk, data_io, and cs parameters represent either Samples
         or Edges
 
@@ -203,28 +203,28 @@ def spi_synth(data, word_size, clock_freq, cpol=0, cpha=0, lsb_first=True, idle_
     This is a generator function that can be used in a pipeline of waveform
     procesing operations.
     
-    data
+    data (sequence of int)
         A sequence of words that will be transmitted serially
     
-    word_size
+    word_size (int)
         The number of bits in each word
     
-    clock_freq
-        The SPI floating point clock frequency
+    clock_freq (float)
+        The SPI clock frequency
     
-    cpol
+    cpol (int)
         Clock polarity: 0 or 1
     
-    cpha
+    cpha (int)
         Clock phase: 0 or 1
     
-    lsb_first
-        Boolean indicating whether the Least Significant Bit is transmitted first.
+    lsb_first (bool)
+        Flag indicating whether the Least Significant Bit is transmitted first.
     
-    idle_start
+    idle_start (float)
         The amount of idle time before the transmission of data begins
     
-    word_interval
+    word_interval (float)
         The amount of time between data words
 
     Yields a triplet of pairs representing the three edge streams for clk, data_io, and cs

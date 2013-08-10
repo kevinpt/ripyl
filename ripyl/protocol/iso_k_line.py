@@ -81,26 +81,28 @@ class KLineStreamStatus(Enum):
     InvalidMessageError = StreamStatus.Error + 3
 
 class ISO9141Header(object):
-    '''
-    Header byte 1: option
-        7-5 priority: 000 = high, 111 = low
-        4   header type: 0 = 3-byte; 1 = 1-byte
-        3   in frame response: 0 = required (Ford); 1 = not allowed (GM)
-        2   addressing mode: 1 = physical; 0 = functional
-        1-0 message type
+    '''ISO9141 header object
 
-       message type:
-       bit: 3 2 1 0
-            -------
-            1 0 0 0 function
-            1 0 0 1 broadcast
-            1 0 1 0 query
-            1 0 1 1 read
-            1 1 0 0 node-to-node
-            1 1 0 1 reserved
-            1 1 1 0 reserved
-            1 1 1 1 reserved
-            
+    Header byte 1: option
+
+    |   7-5 priority: 000 = high, 111 = low
+    |   4   header type: 0 = 3-byte; 1 = 1-byte
+    |   3   in frame response: 0 = required (Ford); 1 = not allowed (GM)
+    |   2   addressing mode: 1 = physical; 0 = functional
+    |   1-0 message type
+    |
+    |  message type:
+    |  bit: 3 2 1 0
+    |       -------
+    |       1 0 0 0 function
+    |       1 0 0 1 broadcast
+    |       1 0 1 0 query
+    |       1 0 1 1 read
+    |       1 1 0 0 node-to-node
+    |       1 1 0 1 reserved
+    |       1 1 1 0 reserved
+    |       1 1 1 1 reserved
+    |       
 
     Header byte 2: target address
     Header byte 3: source address
@@ -115,7 +117,7 @@ class ISO9141Header(object):
         self.source = source
 
     def bytes(self):
-        '''Returns a list of the USBFrame objects in original order'''
+        '''Returns a list of header bytes in original order'''
         return [self.option, self.target, self.source]
 
 
@@ -128,7 +130,8 @@ class ISO9141Header(object):
 
 
 class ISO14230Header(object):
-    '''
+    '''ISO14230 header object
+
     Header byte 1: length 0x10nnnnnn
         5-0 data bytes in message
 
@@ -148,7 +151,7 @@ class ISO14230Header(object):
         self.length = length
 
     def bytes(self):
-        '''Returns a list of the USBFrame objects in original order'''
+        '''Returns a list of header bytes in original order'''
         if self.length is None:
             return [self.option, self.target, self.source]
         else:
@@ -182,14 +185,20 @@ class KLineMessage(obd.OBD2Message):
 
 
     def checksum_good(self):
-        '''Validate the message checksum'''
+        '''Validate the message checksum
+
+        Returns a bool that is True when checksum is valid.
+        '''
         bytes = self.header.bytes() + self.data
         cs = sum([b.data for b in bytes]) % 256
 
         return True if cs == self.checksum.data else False
 
     def raw_data(self):
-        '''Get the raw data (minus header and checksum) for the message'''
+        '''Get the raw data (minus header and checksum) for the message
+
+        Returns a list of bytes.
+        '''
         return [b.data for b in self.data]
 
 
@@ -221,6 +230,7 @@ class KLineStreamMessage(obd.OBD2StreamMessage):
 
     @classmethod
     def status_text(cls, status):
+        '''Returns the string representation of a status code'''
         if status >= KLineStreamStatus.ChecksumError and \
             status <= KLineStreamStatus.ChecksumError:
             
@@ -238,7 +248,7 @@ class KLineStreamMessage(obd.OBD2StreamMessage):
 class KLineWakeup(StreamSegment):
     '''Encapsulates BRK data values representing the wakeup pattern
     
-    This is used for the slow init (0x33 at 5-baud) and the fast init (25ms low 25ms high)
+    This is used for the slow init (0x33 at 5-baud) and the fast init (25ms low, 25ms high)
     ''' 
     def __init__(self, bounds, edges, status=StreamStatus.Ok):
         StreamSegment.__init__(self, bounds, None, status)
@@ -253,7 +263,7 @@ class KLineWakeup(StreamSegment):
 
 class ISO9141Init(StreamSegment):
     '''Encapsulates initialization exchange before messaging begins on ISO9141
-    These are the bytes in the 0x55, key1, key1, ~key ~wakeup init sequence.
+    These are the bytes in the 0x55, key1, key2, ~key2 ~wakeup init sequence.
     ''' 
     def __init__(self, recs, status=StreamStatus.Ok):
         bounds = (recs[0].start_time, recs[-1].end_time)
@@ -275,7 +285,7 @@ def iso_k_line_decode(stream, min_msg_gap=7.0e-3, logic_levels=None, stream_type
     This is a generator function that can be used in a pipeline of waveform
     procesing operations.
     
-    stream
+    stream (sequence of (float, number) pairs)
         A stream of 2-tuples of (time, value) pairs. The type of stream is identified
         by the stream_type parameter. Either a series of real valued samples that will
         be analyzed to find edge transitions or a set of pre-processed edge transitions
@@ -283,17 +293,17 @@ def iso_k_line_decode(stream, min_msg_gap=7.0e-3, logic_levels=None, stream_type
         stream, an initial block of data is consumed to determine the most likely logic
         levels in the signal.
 
-    min_msg_gap
-        Float representing the minimum time between bytes for identifying the end and start
+    min_msg_gap (float)
+        The minimum time between bytes for identifying the end and start
         of messages. For ISO14230 this is used in addition to the message length encoded
         in the header.
     
-    logic_levels
-        Optional pair of floats that indicate (low, high) logic levels of the sample
+    logic_levels ((float, float) or None)
+        Optional pair that indicates (low, high) logic levels of the sample
         stream. When present, auto level detection is disabled. This has no effect on
         edge streams.
     
-    stream_type
+    stream_type (streaming.StreamType)
         A StreamType value indicating that the stream parameter represents either Samples
         or Edges
         

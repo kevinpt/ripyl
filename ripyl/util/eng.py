@@ -24,7 +24,15 @@
 import math
 
 class Eng(object):
+    '''Base class for engineering unit string formatting'''
     def __init__(self, f, frac_digits=3):
+        '''
+        f (number)
+            The number to represent in engineering units.
+
+        frac_digits (int)
+            The number of fractional digits to display in a string.
+        '''
         self.f = f
         self.frac_digits = frac_digits
         if frac_digits < 0:
@@ -70,7 +78,21 @@ si_prefixes = {
 }
 
 class EngSI(Eng):
+    '''Class for engineering unit string formatting with SI units'''
     def __init__(self, f, units='', frac_digits=3, unit_sep=' '):
+        '''
+        f (number)
+            The number to represent in engineering units.
+
+        units (string)
+            The units that the number represents.
+
+        frac_digits (int)
+            The number of fractional digits to display in a string.
+
+        unit_sep (string)
+            The separator between the number and the units string
+        '''
         Eng.__init__(self, f, frac_digits)
         self.units = units
         self.unit_sep = unit_sep
@@ -112,6 +134,7 @@ si_uc_prefixes = {
 }
 
 class EngUSI(EngSI):
+    '''Class for engineering unit string formatting with SI units with unicode characters'''
     def __init__(self, f, units='', frac_digits=3, unit_sep=' '):
         EngSI.__init__(self, f, units, frac_digits, unit_sep)
         self.prefixes = si_uc_prefixes

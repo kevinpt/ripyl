@@ -70,7 +70,7 @@ sid_22_pids = {
     0x0008: PTE(2, 'Spark advance (angle BTDC)', 'degrees', lambda a, b: (a*256+b) / 2.0 - 64.0),
     0x0009: PTE(2, 'indicator???', '', lambda a, b: (a*256+b)),
     0x000A: PTE(2, 'indicator???', '', lambda a, b: (a*256+b)),
-    0x000F: PTE(2, 'indicator???', '', lambda a, b: (a*256+b) ^ 0xFF),
+    0x000F: PTE(2, 'Neutral switch', '', lambda a, b: (a*256+b) ^ 0xFF), # Byte b: 0=neutral, 0xff=in gear
     0x0015: PTE(2, 'Battery voltage', 'V', lambda a, b: (a*256+b) * 0.1),
     0x0017: PTE(2, 'TPS', '%'),
     0x0018: PTE(2, 'TPS voltage', 'V', lambda a, b: (a*256+b) / 51.0),

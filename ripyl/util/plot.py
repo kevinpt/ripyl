@@ -29,7 +29,7 @@ import string
 
 import ripyl.streaming as stream
 
-def waveform_bounds(raw_samples):
+def _waveform_bounds(raw_samples):
     max_wf = max(raw_samples)
     min_wf = min(raw_samples)
     span = max_wf - min_wf
@@ -53,34 +53,76 @@ def waveform_bounds(raw_samples):
     
     return bounds
 
-def plot(channels, records, title='', label_format='text', save_file=None):
+def plot(channels, records, title='', label_format='text', save_file=None, figsize=None):
     '''Generic plot function
     
     Dispatches to the protocol specific plotters based on the keys in the channels dict
-    
+
+    channels (dict)
+        A dict of waveform sample data keyed by channel name.
+
+    records (sequence of StreamRecord objects)
+        The StreamRecords used to annotate the waveforms.
+
+    title (string)
+        Title of the plot.
+
+    label_format (string)
+        Format for text annotations. One of 'text' or 'hex'.
+
+    save_file (string)
+        Name of file to save plot to. If None, the plot is displayed in a matplotlib
+        interactive window.
+
+    figsize ((int, int) tuple)
+        Dimensions of a saved image (w, h).
     '''
     
     try:
         keys = channels.keys()
         if 'dp' in keys and 'dm' in keys:
-            return usb_plot(channels, records, title, label_format, save_file)
+            return usb_plot(channels, records, title, label_format, save_file, figsize)
         elif 'strobe' in keys and 'data' in keys:
-            return usb_plot(channels, records, title, label_format, save_file)
+            return usb_plot(channels, records, title, label_format, save_file, figsize)
         elif 'clk' in keys and ('data_io' in keys or 'miso' in keys or 'mosi' in keys):
-            return spi_plot(channels, records, title, label_format, save_file)
+            return spi_plot(channels, records, title, label_format, save_file, figsize)
         elif 'scl' in keys and 'sda' in keys:
-            return i2c_plot(channels, records, title, label_format, save_file)
+            return i2c_plot(channels, records, title, label_format, save_file, figsize)
         elif 'clk' in keys and 'data' in keys:
-            return ps2_plot(channels, records, title, label_format, save_file)
+            return ps2_plot(channels, records, title, label_format, save_file, figsize)
 
         elif len(keys) == 1:
-            return usb_plot(channels, records, title, label_format, save_file)
+            return usb_plot(channels, records, title, label_format, save_file, figsize)
         
     except AttributeError:
-        return uart_plot(channels, records, title, label_format, save_file)
+        return uart_plot(channels, records, title, label_format, save_file, figsize)
     
     
-def usb_plot(channels, records, title='', label_format='text', save_file=None):
+def usb_plot(channels, records, title='', label_format='text', save_file=None, figsize=None):
+    '''Plot USB and HSIC waveforms
+    
+    channels (dict)
+        A dict of waveform sample data keyed by channel name. Each value is a sequence
+        of tuples representing (time, sample) pairs for a channel.
+        For single-ended USB the keys must be 'dp' and 'dm'. For HSIC the keys must be
+        'strobe' and 'data'. For differential USB the key can be anything.
+
+    records (sequence of StreamRecord objects)
+        The StreamRecords used to annotate the waveforms.
+
+    title (string)
+        Title of the plot.
+
+    label_format (string)
+        Format for text annotations. One of 'text' or 'hex'.
+
+    save_file (string)
+        Name of file to save plot to. If None, the plot is displayed in a matplotlib
+        interactive window.
+
+    figsize ((int, int) tuple)
+        Dimensions of a saved image (w, h).
+    '''
     import ripyl.protocol.usb as usb
     from ripyl.util.bitops import join_bits
 
@@ -89,7 +131,7 @@ def usb_plot(channels, records, title='', label_format='text', save_file=None):
         dm = channels[channels.keys()[0]]
         
         dm_t, dm_wf = zip(*dm)
-        dm_b = waveform_bounds(dm_wf)
+        dm_b = _waveform_bounds(dm_wf)
     
         text_ypos = (dm_b['max'] + dm_b['ovl_top']) / 2.0
 
@@ -110,7 +152,7 @@ def usb_plot(channels, records, title='', label_format='text', save_file=None):
             dp_t, dp_wf = zip(*dp)
             dm_t, dm_wf = zip(*dm)
         
-            dm_b = waveform_bounds(dm_wf)
+            dm_b = _waveform_bounds(dm_wf)
         
             text_ypos = (dm_b['max'] + dm_b['ovl_top']) / 2.0
 
@@ -131,7 +173,7 @@ def usb_plot(channels, records, title='', label_format='text', save_file=None):
             stb_t, stb_wf = zip(*strobe)
             dm_t, dm_wf = zip(*data)
         
-            dm_b = waveform_bounds(dm_wf)
+            dm_b = _waveform_bounds(dm_wf)
         
             text_ypos = (dm_b['max'] + dm_b['ovl_top']) / 2.0
 
@@ -232,20 +274,46 @@ def usb_plot(channels, records, title='', label_format='text', save_file=None):
         plt.show()
     else:
         print('Writing plot to file:', save_file)
+        if figsize is not None:
+            plt.gcf().set_size_inches(figsize)
         plt.savefig(save_file)
 
 
-def spi_plot(channels, records, title='', label_format='text', save_file=None):
+def spi_plot(channels, records, title='', label_format='text', save_file=None, figsize=None):
+    '''Plot SPI waveforms
+    
+    channels (dict)
+        A dict of waveform sample data keyed by channel name. Each value is a sequence
+        of tuples representing (time, sample) pairs for a channel.
+        The keys must be 'clk' and 'data_io'. If a chip select is included it must be
+        keyed with 'cs'.
+
+    records (sequence of StreamRecord objects)
+        The StreamRecords used to annotate the waveforms.
+
+    title (string)
+        Title of the plot.
+
+    label_format (string)
+        Format for text annotations. One of 'text' or 'hex'.
+
+    save_file (string)
+        Name of file to save plot to. If None, the plot is displayed in a matplotlib
+        interactive window.
+
+    figsize ((int, int) tuple)
+        Dimensions of a saved image (w, h).
+    '''
     clk = channels['clk']
     data_io = channels['data_io']
-    cs = channels['cs']
+    cs = channels['cs'] #FIX: make optional
     clk_t, clk_wf = zip(*clk)
     data_io_t, data_io_wf = zip(*data_io)
     cs_t, cs_wf = zip(*cs)
     
-    clk_b = waveform_bounds(clk_wf)
-    data_io_b = waveform_bounds(data_io_wf)
-    cs_b = waveform_bounds(cs_wf)
+    clk_b = _waveform_bounds(clk_wf)
+    data_io_b = _waveform_bounds(data_io_wf)
+    cs_b = _waveform_bounds(cs_wf)
     
     text_ypos = (data_io_b['max'] + data_io_b['ovl_top']) / 2.0
 
@@ -300,18 +368,43 @@ def spi_plot(channels, records, title='', label_format='text', save_file=None):
         plt.show()
     else:
         print('Writing plot to file:', save_file)
+        if figsize is not None:
+            plt.gcf().set_size_inches(figsize)
         plt.savefig(save_file)
 
 
 
-def i2c_plot(channels, records, title='', label_format='text', save_file=None):
+def i2c_plot(channels, records, title='', label_format='text', save_file=None, figsize=None):
+    '''Plot I2C waveforms
+    
+    channels (dict)
+        A dict of waveform sample data keyed by channel name. Each value is a sequence
+        of tuples representing (time, sample) pairs for a channel.
+        The keys must be 'scl' and 'sda'.
+
+    records (sequence of StreamRecord objects)
+        The StreamRecords used to annotate the waveforms.
+
+    title (string)
+        Title of the plot.
+
+    label_format (string)
+        Format for text annotations. One of 'text' or 'hex'.
+
+    save_file (string)
+        Name of file to save plot to. If None, the plot is displayed in a matplotlib
+        interactive window.
+
+    figsize ((int, int) tuple)
+        Dimensions of a saved image (w, h).
+    '''
     scl = channels['scl']
     sda = channels['sda']
     scl_t, scl_wf = zip(*scl)
     sda_t, sda_wf = zip(*sda)
     
-    scl_b = waveform_bounds(scl_wf)
-    sda_b = waveform_bounds(sda_wf)
+    scl_b = _waveform_bounds(scl_wf)
+    sda_b = _waveform_bounds(sda_wf)
     
     text_ypos = (sda_b['max'] + sda_b['ovl_top']) / 2.0
 
@@ -398,11 +491,33 @@ def i2c_plot(channels, records, title='', label_format='text', save_file=None):
         plt.show()
     else:
         print('Writing plot to file:', save_file)
+        if figsize is not None:
+            plt.gcf().set_size_inches(figsize)
         plt.savefig(save_file)
 
 
 def uart_plot(samples, records, title='', label_format='text', save_file=None, figsize=None):
+    '''Plot UART waveforms
+    
+    samples (sequence of (float, float) tuples)
+        A sequence of waveform sample data. Each element is a tuple of (time, sample) pairs.
 
+    records (sequence of StreamRecord objects)
+        The StreamRecords used to annotate the waveforms.
+
+    title (string)
+        Title of the plot.
+
+    label_format (string)
+        Format for text annotations. One of 'text' or 'hex'.
+
+    save_file (string)
+        Name of file to save plot to. If None, the plot is displayed in a matplotlib
+        interactive window.
+
+    figsize ((int, int) tuple)
+        Dimensions of a saved image (w, h).
+    '''
     t, wf = zip(*samples)
     
     max_wf = max(wf)
@@ -478,14 +593,37 @@ def uart_plot(samples, records, title='', label_format='text', save_file=None, f
         plt.savefig(save_file)
 
 
-def ps2_plot(channels, records, title='', label_format='text', save_file=None):
+def ps2_plot(channels, records, title='', label_format='text', save_file=None, figsize=None):
+    '''Plot SPI waveforms
+    
+    channels (dict)
+        A dict of waveform sample data keyed by channel name. Each value is a sequence
+        of tuples representing (time, sample) pairs for a channel.
+        The keys must be 'clk' and 'data'.
+
+    records (sequence of StreamRecord objects)
+        The StreamRecords used to annotate the waveforms.
+
+    title (string)
+        Title of the plot.
+
+    label_format (string)
+        Format for text annotations. One of 'text' or 'hex'.
+
+    save_file (string)
+        Name of file to save plot to. If None, the plot is displayed in a matplotlib
+        interactive window.
+
+    figsize ((int, int) tuple)
+        Dimensions of a saved image (w, h).
+    '''
     clk = channels['clk']
     data = channels['data']
     clk_t, clk_wf = zip(*clk)
     data_t, data_wf = zip(*data)
     
-    clk_b = waveform_bounds(clk_wf)
-    data_b = waveform_bounds(data_wf)
+    clk_b = _waveform_bounds(clk_wf)
+    data_b = _waveform_bounds(data_wf)
     
     text_ypos = (data_b['max'] + data_b['ovl_top']) / 2.0
 
@@ -563,14 +701,37 @@ def ps2_plot(channels, records, title='', label_format='text', save_file=None):
         plt.show()
     else:
         print('Writing plot to file:', save_file)
+        if figsize is not None:
+            plt.gcf().set_size_inches(figsize)
         plt.savefig(save_file)
 
 
-def iso_k_line_plot(samples, records, title='', label_format='text', save_file=None):
+def iso_k_line_plot(samples, records, title='', label_format='text', save_file=None, figsize=None):
+    '''Plot ISO9141 and ISO14230 waveforms
+    
+    samples (sequence of (float, float) tuples)
+        A sequence of waveform sample data. Each element is a tuple of (time, sample) pairs.
+
+    records (sequence of StreamRecord objects)
+        The StreamRecords used to annotate the waveforms.
+
+    title (string)
+        Title of the plot.
+
+    label_format (string)
+        Format for text annotations. One of 'text' or 'hex'.
+
+    save_file (string)
+        Name of file to save plot to. If None, the plot is displayed in a matplotlib
+        interactive window.
+
+    figsize ((int, int) tuple)
+        Dimensions of a saved image (w, h).
+    '''
 
     t, wf = zip(*samples)
     
-    kline_b = waveform_bounds(wf)
+    kline_b = _waveform_bounds(wf)
     
     text_ypos = (kline_b['max'] + kline_b['ovl_top']) / 2.0
     
@@ -644,5 +805,7 @@ def iso_k_line_plot(samples, records, title='', label_format='text', save_file=N
         plt.show()
     else:
         print('Writing plot to file:', save_file)
+        if figsize is not None:
+            plt.gcf().set_size_inches(figsize)
         plt.savefig(save_file)
 

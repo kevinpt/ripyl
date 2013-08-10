@@ -37,13 +37,13 @@ class Enum(object):
     >>> Colors.name(Colors.red)
     'red'
     
-    >>> Colors.name(1, True)
+    >>> Colors.name(1, full_name=True)
     'Colors.blue'
 
-    "Instantiating" the enum class calls the name() method as well:
+    "Instantiating" the Enum sub-class calls the name() method as well:
     
-    >>> Colors(3, True)
-    'Colors.green'
+    >>> Colors(3, full_name=False)
+    'green'
     
     If necesssary you can use non-integers as the values as long as they are hashable:
     
@@ -58,7 +58,16 @@ class Enum(object):
 
     @classmethod
     def name(cls, value, full_name=False):
-        '''Lookup the enumeration name with the provided value'''
+        '''Lookup the enumeration name with the provided value
+
+        value (hashable)
+            A hashable Enum value (typically int) to find a name for.
+
+        full_name (bool)
+            Include full name of Enum object in result
+
+        Returns a string for the Enum attribute associated with value.
+        '''
         
         try:
             enum_lookup = cls._enum_lookup

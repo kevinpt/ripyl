@@ -37,14 +37,15 @@ class USBTransaction(StreamRecord):
     '''
     def __init__(self, packets, status=StreamStatus.Ok):
         '''
-        packets
-            A sequence of USBStreamPacket objects
+        packets (USBStreamPacket)
+            A sequence of packet objects in the transaction
         '''
         StreamRecord.__init__(self, kind='USB transaction', status=status)
         self.subrecords = packets
         
     @property
     def packets(self):
+        '''A list of USBStreamPacket objects from this transaction'''
         return self.subrecords
     
     @packets.setter
@@ -53,6 +54,7 @@ class USBTransaction(StreamRecord):
 
     @property
     def start_time(self):
+        '''The start time of the first packet'''
         if len(self.packets) > 0:
             return self.packets[0].start_time
         else:
@@ -60,6 +62,7 @@ class USBTransaction(StreamRecord):
 
     @property
     def end_time(self):
+        '''The end time of the last packet'''
         if len(self.packets) > 0:
             return self.packets[-1].end_time
         else:
@@ -87,7 +90,7 @@ class USBTransaction(StreamRecord):
 def usb_transactions_decode(records):
     '''Convert a stream of USB packets into transactions
     
-    records
+    records (sequence of USBPacket)
         An iterator containing USBPacket objects as produced by usb.usb_decode()
         
     Yields a stream of USBTransaction objects containing packets merged into identifiable
@@ -184,7 +187,7 @@ def usb_transactions_decode(records):
 def extract_transaction_packets(records):
     '''Convert a stream of USB transactions into raw USBPacket objects
 
-    records
+    records (sequence of USBTransaction)
         Iterator of USBTransaction objects
         
     Yields a stream of USBPacket objects
@@ -203,3 +206,4 @@ def extract_transaction_packets(records):
         # This is a USBTransaction. Dump all of its packets.
         for pkt in rec.packets:
             yield pkt.packet
+

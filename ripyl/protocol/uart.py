@@ -31,6 +31,7 @@ from ripyl.util.enum import Enum
 
 
 class AutoBaudError(StreamError):
+    '''Error for failed baud rate detection'''
     pass
 
 
@@ -71,7 +72,7 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, pola
     This is a generator function that can be used in a pipeline of waveform
     procesing operations.
     
-    stream
+    stream (sequence of (float, number) pairs)
         A stream of 2-tuples of (time, value) pairs. The type of stream is identified
         by the stream_type parameter. Either a series of real valued samples that will
         be analyzed to find edge transitions or a set of pre-processed edge transitions
@@ -79,44 +80,44 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, pola
         stream, an initial block of data is consumed to determine the most likely logic
         levels in the signal.
     
-    bits
+    bits (int)
         The number of bits in each word. Typically 5, 7, 8, or 9.
     
-    parity
+    parity (string or None)
         The type of parity to use. One of None, 'even', or 'odd'
     
-    stop_bits
+    stop_bits (number)
         The number of stop bits. Typically 1, 1.5, or 2
     
-    lsb_first
-        Boolean indicating whether the Least Significant Bit is transmitted first.
+    lsb_first (bool)
+        Flag indicating whether the Least Significant Bit is transmitted first.
     
-    inverted
-        Boolean indicating if the signal levels have been inverted from their logical
+    inverted (bool)
+        Flag indicating if the signal levels have been inverted from their logical
         meaning. Use this when the input stream derives from an inverting driver such
         as those used for RS-232.
-    polarity
-        Set the polarity (idle state high or low) to a UARTConfig enumeration.
+    polarity (UARTConfig)
+        Set the polarity (idle state high or low).
     
-    baud_rate
+    baud_rate (int)
         The baud rate of the stream. If None, the first 50 edges will be analyzed to
         automatically determine the most likely baud rate for the stream. On average
         50 edges will occur after 11 frames have been captured.
     
-    use_std_baud
-        Boolean that forces coercion of automatically detected baud rate to the set of
+    use_std_baud (bool)
+        Flag that forces coercion of automatically detected baud rate to the set of
         standard rates
         
-    logic_levels
-        Optional pair of floats that indicate (low, high) logic levels of the sample
+    logic_levels ((float, float) or None)
+        Optional pair that indicates (low, high) logic levels of the sample
         stream. When present, auto level detection is disabled. This has no effect on
         edge streams.
     
-    stream_type
+    stream_type (streaming.StreamType)
         A StreamType value indicating that the stream parameter represents either Samples
         or Edges
         
-    baud_deque
+    baud_deque (collections.deque or None)
         An optional collections.deque object that is used to monitor the results of
         automatic baud detection. A dict containing the internal variables baud_rate
         and raw_symbol_rate is placed on the deque when uart_decode() is called.
@@ -322,27 +323,28 @@ def uart_synth(data, bits = 8, baud=115200, parity=None, stop_bits=1.0, idle_sta
     This is a generator function that can be used in a pipeline of waveform
     procesing operations.
     
-    data
+    data (sequence of int)
         A sequence of words that will be transmitted serially
     
-    bits
+    bits (int)
         The number of bits in each word. Typically 5, 7, 8, or 9.
     
-    baud
+    baud (int)
         The baud rate
         
-    parity
+    parity (string or None)
         The type of parity to use. One of None, 'even', or 'odd'
     
-    stop_bits
+    stop_bits (number)
         The number of stop bits. Typically 1, 1.5, or 2
     
-    idle_start
+    idle_start (float)
         The amount of idle time before the transmission of data begins
 
-    idle_end
+    idle_end (float)
         The amount of idle time after the transmission of data ends
-    word_interval
+
+    word_interval (float)
         The amount of time between data words
 
     Yields a series of 2-tuples (time, value) representing the time and
@@ -403,3 +405,4 @@ def uart_synth(data, bits = 8, baud=115200, parity=None, stop_bits=1.0, idle_sta
     t += idle_end - word_interval
         
     yield (t, txd)
+

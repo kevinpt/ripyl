@@ -51,16 +51,16 @@ class LM73Transfer(object):
     '''Represent a transaction for the LM73'''
     def __init__(self, address, op, reg=LM73Register.Temperature, data=None):
         '''
-        address
+        address (int)
             Address of the transfer
             
-        op
-            One of the operations from LM73Operation
+        op (LM73Operation)
+            The operation for this transfer
             
-        reg
-            One of the Registers from LM73Register
+        reg (LM73Register)
+            The register used in this transfer
             
-        data
+        data (sequence of ints)
             List of bytes read/written in the transfer
         '''
         self.address = address
@@ -80,7 +80,10 @@ class LM73Transfer(object):
             
     @property
     def temperature(self):
-        '''Compute the temperature in Celcius'''
+        '''Compute the temperature in Celcius
+
+        Returns a float
+        '''
         if self.reg in (LM73Register.Temperature, LM73Register.THigh, LM73Register.TLow) \
             and self.op == LM73Operation.ReadData:
             return float((self.data[0] << 8) + self.data[1]) * 0.25 / 32.0
@@ -104,12 +107,12 @@ class LM73Transfer(object):
 def lm73_decode(stream, addresses=LM73Addresses):
     '''Decode an LM73 data stream
     
-    stream
+    stream (sequence of StreamRecord or I2CTransfer)
         An iterable representing either a stream of I2C StreamRecord objects or
-        I2CTransfer objects.
+        I2CTransfer objects produced by i2c_decode() or reconstruct_i2c_transfers() respectively.
     
-    addresses
-        A collection identifying the valid LM73 addresses to decode
+    addresses (set of ints)
+        A collection identifying the valid LM73 addresses to decode. All others are ignored.
         
     Yields a series of LM73Transfer objects.
     '''
@@ -153,3 +156,4 @@ def lm73_decode(stream, addresses=LM73Addresses):
 
         lm_tfer.i2c_tfer = tfer
         yield lm_tfer
+

@@ -38,8 +38,8 @@ class OnlineStats(object):
     def accumulate(self, data):
         '''Add a new data value to the set of accumulated statistics
         
-        data
-            A scalar number or an iterable sequence of numbers
+        data (number or sequence of numbers)
+            New data to accumulate statistics on
         '''
         
         try:
@@ -56,12 +56,14 @@ class OnlineStats(object):
             self.s = self.s + delta * (data - self.m)
     
     def variance(self, ddof=0):
-        '''Return the variance of the data values previously accumulated
+        '''Compute the variance of the data values previously accumulated
         
-        ddof
+        ddof (int)
             Delta Degrees of Freedom. Divisor for variance is N - ddof.
             Use 0 for a data set which repsresents an entire population.
             Use 1 for a data set representing a population sample.
+
+        Returns a float for the variance
         '''
         if self.c > 2:
             return self.s / (self.c - ddof)
@@ -69,15 +71,17 @@ class OnlineStats(object):
             return 0.0
     
     def std(self, ddof=0):
-        '''Return standard deviation of the values previously accumulated
+        '''Compute the standard deviation of the values previously accumulated
         
-        ddof
+        ddof (int)
             [See variance()]
+
+        Returns a float for the standard deviation.
         '''
         return math.sqrt(self.variance(ddof))
     
     def mean(self):
-        '''Return the mean of the values previously accumulated'''
+        '''Returns the mean of the values previously accumulated'''
         return self.m
 
     def reset(self):

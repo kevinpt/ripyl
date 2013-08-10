@@ -31,11 +31,12 @@ class StreamType(Enum):
     Edges = 0
     Samples = 1
 
-'''Custom exception class for edge and sample streams'''
 class StreamError(RuntimeError):
-	pass
+    '''Custom exception class for edge and sample streams'''
+    pass
 
 class AutoLevelError(StreamError):
+    '''Custom exception class auto-level errors'''
     def __init__(self, msg='Unable to find avg. logic levels of waveform'):
         StreamError.__init__(self, msg)
     
@@ -59,7 +60,7 @@ class StreamRecord(object):
         self.subrecords = []
 
     def nested_status(self):
-        '''Retrieve the highest status value from this record and its subrecords'''
+        '''Returns the highest status value from this record and its subrecords'''
         cur_status = self.status
         for srec in self.subrecords:
             nstat = srec.nested_status()
@@ -69,6 +70,7 @@ class StreamRecord(object):
         
     @classmethod
     def status_text(cls, status):
+        '''Returns the string representation of a status code'''
         if status == StreamStatus.Ok or status == StreamStatus.Warning or \
             status == StreamStatus.Error:
             
@@ -107,12 +109,12 @@ class StreamEvent(StreamRecord):
 def save_stream(records, fh):
     '''Save a stream to a file
     
-    records
-        A list of StreamRecord objects
+    records (StreamRecord sequence)
+        The StreamRecord objects to save.
     
-    fh
-        Either a file-like object or a string file name. If a file handle is
-        passed it should have been opened in 'wb' mode.
+    fh (file-like object or a string)
+        File to save records to. If a file handle is passed it should have been
+        opened in 'wb' mode. If a string is passed it is the name of a file to write to.
     '''
     import pickle
     
@@ -139,9 +141,9 @@ def save_stream(records, fh):
 def load_stream(fh):
     '''Restore a stream from a file
     
-    fh
-        Either a file-like object or a string file name. If a file handle is
-        passed it should have been opened in 'rb' mode.
+    fh (file-like object or a string)
+        File to load records from. If a file handle is passed it should have been opened
+        in 'rb' mode. If a string is passed it is the name of a file to read from.
         
     Returns a list of StreamRecord objects
     '''
@@ -167,16 +169,16 @@ def merge_streams(records_a, records_b, id_a=0, id_b=1):
     ''' Combine two streams of StreamRecord objects.
     Records with time signatures from each input stream are kept in chronological order.
         
-    records_a
+    records_a (StreamRecord)
         Source records from stream a
         
-    records_b
+    records_b (StreamRecord)
         Source records from stream b
         
-    id_a
+    id_a (int)
         stream_id assigned to records from records_a
         
-    id_b
+    id_b (int)
         stream_id assigned to records from records_b
         
     Yields a stream of StreamRecord objects.
@@ -247,3 +249,4 @@ def merge_streams(records_a, records_b, id_a=0, id_b=1):
             cur_rb.stream_id = id_b
             yield cur_rb
             cur_rb = None
+
