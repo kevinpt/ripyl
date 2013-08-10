@@ -282,7 +282,7 @@ def process_docstring(app, what, name, obj, options, lines):
             if m:
                 return_para = m.group(1).lower()
                 if return_para == 'returns':
-                    lines[i] = ':returns: ' + lines[i][m.end(1):].title()
+                    lines[i] = ':returns: ' + lines[i][m.end(1)+1:].capitalize()
                 elif return_para == 'yields':
                     lines[i] = ':returns: An iterator yielding ' + lines[i][m.end(1):]
                 elif return_para == 'raises':
