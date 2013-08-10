@@ -4,4 +4,9 @@ syntax: glob
 *~
 
 _build
+build
+dist
+
+ref
+foo
 
