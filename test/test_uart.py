@@ -73,7 +73,7 @@ class TestUARTFuncs(unittest.TestCase):
             
             #print('\nTRIAL {}: msg="{}", baud={}, parity={}, bits={}'.format(i, msg, baud, parity, bits))
             
-            edges = uart.uart_synth(bytearray(msg), bits, baud, parity=parity, idle_start=100.0 / sample_rate)
+            edges = uart.uart_synth(bytearray(msg.encode('utf-8')), bits, baud, parity=parity, idle_start=100.0 / sample_rate)
             
             samples = sigp.synth_wave(edges, sample_rate, rise_time, ripple_db=60)
             

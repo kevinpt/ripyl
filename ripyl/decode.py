@@ -33,7 +33,7 @@ import itertools
 from ripyl.util.stats import OnlineStats
 from ripyl.streaming import StreamError, AutoLevelError
 
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 
 def gen_histogram(raw_samples, bins, use_kde=False, kde_bw=0.05):
@@ -375,7 +375,7 @@ def find_logic_levels(samples, max_samples=20000, buf_size=2000):
 	# get an edge_threshold of 0.0. In this case we will just set the threshold high enough to
 	# detect a deviation from 0.0 for any reasonable real world input
 
-	edge_threshold = max(edge_threshold, 1.0e-9)
+    edge_threshold = max(edge_threshold, 1.0e-9)
         
     
     #print('### noise, edge threshold:', noise_threshold, edge_threshold, edges_present)
@@ -777,7 +777,8 @@ def find_symbol_rate(edges, sample_rate=1.0, spectra=2, auto_span_limit=True, ma
     Raises ValueError if there are not enough edge spans to evaluate
       a HPS.
     '''
-    e = np.array(zip(*edges)[0]) # get the sample indices of each edge
+    e = zip(*edges)
+    e = np.array(e[0]) # get the sample indices of each edge
     spans = e[1:] - e[:-1] # time span (in samples) between successive edges
 
 
