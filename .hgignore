@@ -10,4 +10,6 @@ dist
 ref
 foo
 dev_scripts
+ripyl.egg-info
 
+MANIFEST

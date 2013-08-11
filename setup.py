@@ -29,6 +29,7 @@ setup(name='ripyl',
     long_description=long_description,
     install_requires = ['scipy >= 0.11.0'],
     packages = ['ripyl', 'ripyl.protocol', 'ripyl.util'],
+    py_modules = ['ripyl_demo'],
     entry_points = {
         'console_scripts': ['ripyl_demo = ripyl_demo:main']
     },
