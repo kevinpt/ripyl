@@ -29,6 +29,11 @@ from ripyl.streaming import *
 from ripyl.util.enum import Enum
 import ripyl.protocol.i2c as i2c
 
+class LM73StreamStatus(Enum):
+    '''Enumeration of LM73 status codes'''
+    MissingDataError = StreamStatus.Error + 1
+
+
 class LM73Register(Enum):
     '''Enumeration for LM73 registers'''
     Temperature = 0
@@ -47,7 +52,7 @@ class LM73Operation(Enum):
     WriteData = 1
     ReadData = 2
     
-class LM73Transfer(object):
+class LM73Transfer(StreamRecord):
     '''Represent a transaction for the LM73'''
     def __init__(self, address, op, reg=LM73Register.Temperature, data=None):
         '''
@@ -63,6 +68,8 @@ class LM73Transfer(object):
         data (sequence of ints)
             List of bytes read/written in the transfer
         '''
+        StreamRecord.__init__(self, kind='LM73 transfer')
+
         self.address = address
         self.op = op
         self.data = data
@@ -114,7 +121,7 @@ def lm73_decode(stream, addresses=LM73Addresses):
     addresses (set of ints)
         A collection identifying the valid LM73 addresses to decode. All others are ignored.
         
-    Yields a series of LM73Transfer objects.
+    Yields a series of LM73Transfer objects and any unrelated I2CTransfer objects.
     '''
     cur_reg = LM73Register.Temperature
     
@@ -135,12 +142,15 @@ def lm73_decode(stream, addresses=LM73Addresses):
     
     for tfer in stream_it:
         if tfer.address not in addresses:
+            yield tfer
             continue
         
         if tfer.r_wn == i2c.I2C.Write:
             if len(tfer.data) == 0: # Error condition
                 # This should only happen if the data portion of a write is missing
-                continue # FIX: do something more useful
+                tfer.status = LM73StreamStatus.MissingDataError
+                yield tfer
+                continue
             
             elif len(tfer.data) == 1: # Set pointer op
                 cur_reg = tfer.data[0]
