@@ -11,5 +11,6 @@ ref
 foo
 dev_scripts
 ripyl.egg-info
+no-dist
 
 MANIFEST
