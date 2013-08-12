@@ -7,37 +7,50 @@ Version: 1.0
 
 Ripyl is a library for decoding serialized data collected from an oscilloscope
 or logic analyzer. It supports a variety of protocols and can be readily extended
-with new protocols.
+with new protocols. Ripyl is useful for offline decoding of data collected on
+instruments with no built in support for decoding or lacking support for more
+advanced protocols.
 
 Dependencies
 ------------
 * Python 2.7 or 3.x
-* SciPy 0.11.0
+* SciPy >= 0.11.0 (depends on numpy as well)
 * Optional: matplotlib for plotting waveforms with decoded results
 
 Features
 --------
-* Decode multiple protocols (USB 2.0, UART, SPI, I2C)
-* All protocols include a synthesis function for generating simulated waveforms.
+* Multi-protocol support:
+    ==== === ======== ==========
+    HSIC I2C ISO 9141 ISO 14230
+    PS/2 SPI UART     USB 2.0  
+    ==== === ======== ==========
+* Protocol simulation
+* Annotated plotting
+* Layering of protocols
 * Automated parameter analysis (logic levels, baud rate)
-* Supports layering of protocols
-* Based on a pipeline of iterators that minimizes internal memory consumption
 
 Installation
 ------------
-For all platforms, installation via setup.py is provided. This uses the
-Distribute fork of setuptools and will install Distribute if it is not already
-present. After extracting the compressed archive, run the following command:
+Download the compressed source archive for your platform and extract its contents. On all platforms you can install from a command prompt. From an administrative or root shell type the following command from the directory containing the decompressed archive.
 
-``> python setup.py install``
+  ``> python setup.py install``
 
-This will install the Ripyl distribution into your Python's site-packages.
-An executable link will be created to the ripyl_demo script for exercising the
-library.
+This will install a copy of Ripyl library to the Python site-packages or dist-packages directory and enable the ``ripyl_demo`` script.
 
+On some Unix platforms you may need to install to your home directory or use root access through sudo.
+
+  ``> python setup.py install --home=~``
+
+
+  ``> sudo python setup.py install``
+  ``[sudo] password for user: *****``
+
+
+On Windows you can optionally run the executable installer to setup Ripyl.
 
 
 Licensing
 ---------
-This program is open sourced under the LGPL 3 license.
+This library is open sourced under the LGPL 3 license.
 See LICENSE.txt for the full license.
+

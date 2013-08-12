@@ -8,7 +8,9 @@ Ripyl library documentation
 
 Ripyl is a library for decoding serialized data collected from an oscilloscope
 or logic analyzer. It supports a variety of protocols and can be readily extended
-with new protocols.
+with new protocols. Ripyl is useful for offline decoding of data collected on
+instruments with no built in support for decoding or lacking support for more
+advanced protocols.
 
 It can process a waveform like this:
 
@@ -26,6 +28,8 @@ Features include:
         ==== === ======== ==========
     * Protocol simulation
     * Annotated plotting
+    * Layering of protocols
+    * Automated parameter analysis (logic levels, baud rate)
 
 Getting started
 ===============

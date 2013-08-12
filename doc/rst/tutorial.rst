@@ -4,19 +4,20 @@ Ripyl tutorial
 
 This tutorial provides an introduction to the use of the Ripyl library. It shows you how to do the following:
 
-* Prepare your data for processing
-* Perform the decode operation
-* Analyze the results
-* Deal with problems
+* :ref:`Prepare your data for processing <prepare-data>`
+* :ref:`Perform the decode operation <decode-data>`
+* :ref:`Analyze the results <analyze-results>`
+* :ref:`Deal with problems <problems>`
 
 
+.. _prepare-data:
 
 Prepare your data
 -----------------
 
 Getting your sampled data ready for use by Ripyl is the most significant hurdle you will face. The Ripyl library needs to work on a sequence of samples or edge transitions to perform its decode. In most cases you will have sampled data from an oscilloscope or a logic analyzer to process. It is beyond the scope of the Ripyl library to provide device specific support. You will have to figure out how to get the raw data from these devices into an array that can be passed to Ripyl. Many devices support some form of CSV output that can be processed with the `csv module <http://docs.python.org/2/library/csv.html>`_ from the Python standard library. If your device supports binary output, however, you will be able to read large data sets more rapidly.
 
-Ripyl's processing is performed through a pipeline of `generator functions <http://docs.python.org/2/tutorial/classes.html#generators>`_ that minimize the amount of data passed around in arrays. To support this system, the raw samples have to be converted to a ``sample stream``.
+Ripyl's processing is performed through a pipeline of `generator functions <http://docs.python.org/2/tutorial/classes.html#generators>`_ that minimize the amount of data passed around in arrays. To support this system, the raw samples have to be converted to a :ref:`sample stream <streams>`.
 
 .. code-block:: python
 
@@ -36,6 +37,7 @@ The ``txd`` variable is an iterable object that will extract data from ``raw_sam
 
     Some logic analyzers may store edge transitions rather than sampled data. You can either work to convert these data sets into periodic samples or convert them directly into an ``edge stream`` prior to decode.
 
+.. _decode-data:
 
 Decode your data
 ----------------
@@ -55,6 +57,7 @@ Once you have your data converted to one or more sample streams the hard part is
     
     records = list(records_it) # This consumes the iterator and completes the decode
     
+.. _analyze-results:
 
 Analyze the results
 -------------------
@@ -120,6 +123,8 @@ The decoded data is always stored in the ``data`` attribute of the StreamRecord 
 There may be additional information about each data frame contained within the subrecords attached to a StreamRecord object. This varies by protocol. In the case of UART there is a subrecord for the start bit, data bits, any parity bit if parity was enabled, and the stop bit(s). Each of these subrecords is a StreamSegment object that adds timing information to the base StreamRecord class. This allows us to identify precisely where each detected feature of a frame occured in time. They also have their own ``status`` attributes. If the parity subrecord is present, its status is used to flag a parity error rather than the top level status of the :class:`~.uart.UARTFrame` object it is a child of. This is why :meth:`~.StreamRecord.nested_status` should be called in most cases rather than just checking the top level ``status`` attribute.
 
 Some protocols may insert non-data :class:`~.streaming.StreamEvent` objects to indicate additional information during the decode process. If this is the case the records should be filtered for only those that contain the desired data. For instance the :mod:`SPI <.spi>` decoder reports events for changes in chip select and the :mod:`I2C <.i2c>` decoder reports events for start, restart, and stop conditions. In the latter case these events serve as markers for the start and end of each bus transfer and may be useful for higher level decoders.
+
+.. _problems:
 
 What could go wrong?
 --------------------
