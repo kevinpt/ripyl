@@ -50,8 +50,14 @@ class StreamStatus(Enum):
 class StreamRecord(object):
     '''Base class for protocol decoder output stream objects
 
-	:ivar kind: A string identifying the kind of record
-	:ivar status: An integer status code
+    :ivar kind: A string identifying the kind of record
+
+    :ivar status: An integer status code
+
+    :ivar stream_id: A unique numeric stream identifier
+
+    :ivar subrecords: A list of child StreamRecord objects
+
 	'''
     def __init__(self, kind='unknown', status=StreamStatus.Ok):
         self.kind = kind
@@ -107,7 +113,7 @@ class StreamEvent(StreamRecord):
 
 
 def save_stream(records, fh):
-    '''Save a stream to a file
+    '''Save a stream of StreamRecord objects to a file
     
     records (StreamRecord sequence)
         The StreamRecord objects to save.
@@ -115,6 +121,8 @@ def save_stream(records, fh):
     fh (file-like object or a string)
         File to save records to. If a file handle is passed it should have been
         opened in 'wb' mode. If a string is passed it is the name of a file to write to.
+
+    Raises TypeError when records parameter is not a sequence.
     '''
     import pickle
     
@@ -129,7 +137,7 @@ def save_stream(records, fh):
             fh = open(fh, 'wb')
             opened_file = True
     except TypeError:
-        # fh isn't a string assume to be an already open handle
+        # fh isn't a string. Assume to be an already open handle
         pass
         
     pickle.dump(records, fh, -1)
@@ -139,7 +147,7 @@ def save_stream(records, fh):
 
 
 def load_stream(fh):
-    '''Restore a stream from a file
+    '''Restore a stream of StreamRecord objects from a file
     
     fh (file-like object or a string)
         File to load records from. If a file handle is passed it should have been opened

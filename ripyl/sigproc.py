@@ -143,7 +143,7 @@ def filter_waveform(samples, sample_rate, rise_time, ripple_db=60.0, pool_size=1
         The sample rate for converting the sample stream.
     
     rise_time (float)
-        Rise (and fall) time for the filterd samples.
+        Rise (and fall) time for the filtered samples.
     
     ripple_db (float)
         Noise suppression in dB for the bandwidth filter stop band. This should
@@ -232,7 +232,7 @@ def synth_wave(edges, sample_rate, rise_time, ripple_db=60.0):
         The sample rate for converting the edge stream
     
     rise_time (float)
-        Rise (and fall) time for the filterd samples
+        Rise (and fall) time for the filtered samples
     
     ripple_db (float)
         Noise suppression in dB for the bandwidth filter stop band. This should
@@ -409,7 +409,7 @@ def chain(stream_gap_time, *streams):
     stamps to maintain monotonically increasing time.
 
     stream_gap_time (float)
-        A float value indicating the time interval added between successive streams
+        The time interval added between successive streams
 
     streams (sequence of sequences containing (float, number) tuples)
         A sequence of streams
