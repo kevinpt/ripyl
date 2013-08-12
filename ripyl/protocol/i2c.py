@@ -282,7 +282,7 @@ def i2c_decode(scl, sda, logic_levels=None, stream_type=StreamType.Samples):
                         bits = []
 
 
-class I2CTransfer(object):
+class I2CTransfer(StreamRecord):
     '''Represent a transaction over the I2C bus'''
     def __init__(self, r_wn, address, data):
         '''
@@ -295,6 +295,8 @@ class I2CTransfer(object):
         data (sequence of ints)
             Array of bytes sent in the transfer
         '''
+        StreamRecord.__init__(self, kind='I2C transfer')
+
         self.r_wn = r_wn
         self.address = address
         self.data = data
