@@ -250,7 +250,7 @@ texinfo_documents = [
 
 import re
 
-param_re = re.compile('\s*(\w+)(\s+\(.+\))*\s*$') # match a single parameter word followed by an optional parenthesized type
+param_re = re.compile('\s*([^:]\w+)(\s+\(.+\))*\s*$') # match a single parameter word followed by an optional parenthesized type
 return_re = re.compile('\s*(returns|yields|raises)', re.IGNORECASE)
 
 def process_docstring(app, what, name, obj, options, lines):
