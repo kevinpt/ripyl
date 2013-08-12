@@ -306,29 +306,49 @@ def spi_plot(channels, records, title='', label_format='text', save_file=None, f
     '''
     clk = channels['clk']
     data_io = channels['data_io']
-    cs = channels['cs'] #FIX: make optional
+
     clk_t, clk_wf = zip(*clk)
     data_io_t, data_io_wf = zip(*data_io)
-    cs_t, cs_wf = zip(*cs)
-    
+
     clk_b = _waveform_bounds(clk_wf)
     data_io_b = _waveform_bounds(data_io_wf)
-    cs_b = _waveform_bounds(cs_wf)
+
+    if 'cs' in channels.keys():
+        cs = channels['cs']
+        cs_t, cs_wf = zip(*cs)
+        cs_b = _waveform_bounds(cs_wf)
+
     
     text_ypos = (data_io_b['max'] + data_io_b['ovl_top']) / 2.0
 
-    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True, sharey=True)
+    if 'cs' in channels.keys():
+        fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True, sharey=True)
 
-    ax1.plot(cs_t, cs_wf, color='red')
-    ax1.set_ylabel('CS (V)')
-    ax1.set_title(title)
-    
-    ax2.plot(clk_t, clk_wf, color='green')
-    ax2.set_ylabel('CLK (V)')
-    
-    ax3.plot(data_io_t, data_io_wf)
-    ax3.set_xlabel('Time (s)')
-    ax3.set_ylabel('MOSI / MISO (V)')
+        ax1.plot(cs_t, cs_wf, color='red')
+        ax1.set_ylabel('CS (V)')
+        ax1.set_title(title)
+        
+        ax2.plot(clk_t, clk_wf, color='green')
+        ax2.set_ylabel('CLK (V)')
+        
+        ax3.plot(data_io_t, data_io_wf)
+        ax3.set_xlabel('Time (s)')
+        ax3.set_ylabel('MOSI / MISO (V)')
+
+        ann_ax = ax3
+    else:
+        fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, sharey=True)
+
+        ax1.plot(clk_t, clk_wf, color='green')
+        ax1.set_ylabel('CLK (V)')
+        ax1.set_title(title)
+        
+        ax2.plot(data_io_t, data_io_wf)
+        ax2.set_xlabel('Time (s)')
+        ax2.set_ylabel('MOSI / MISO (V)')
+
+        ann_ax = ax2
+
     
     for r in records:
         if not (r.kind == 'SPI frame'):
@@ -339,7 +359,7 @@ def spi_plot(channels, records, title='', label_format='text', save_file=None, f
         f_end = r.end_time
         f_rect = patches.Rectangle((f_start, data_io_b['ovl_bot']), width=f_end - f_start, \
             height=data_io_b['ovl_top'] - data_io_b['ovl_bot'], facecolor='orange', alpha=0.2)
-        ax3.add_patch(f_rect)
+        ann_ax.add_patch(f_rect)
         
         color = 'black'
         angle = 'horizontal'
@@ -356,11 +376,11 @@ def spi_plot(channels, records, title='', label_format='text', save_file=None, f
         else:
             raise ValueError('Unrecognized label format: "{}"'.format(label_format))
 
-        ax3.text((r.start_time + r.end_time) / 2.0, text_ypos, char, \
+        ann_ax.text((r.start_time + r.end_time) / 2.0, text_ypos, char, \
             size='large', ha='center', color=color, rotation=angle)
 
 
-    ax3.set_ylim(data_io_b['ovl_bot'] * 1.05, data_io_b['ovl_top'] * 1.05)
+    ann_ax.set_ylim(data_io_b['ovl_bot'] * 1.05, data_io_b['ovl_top'] * 1.05)
 
     plt.tight_layout()
     plt.subplots_adjust(bottom=0.12)
