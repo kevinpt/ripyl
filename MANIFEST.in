@@ -1,4 +1,5 @@
-recursive-include doc *.html *.js *.css *.txt *.gif *.png
+recursive-include doc *.html *.js *.css *.txt *.gif *.png *.rst *.py Makefile make.bat
+
 recursive-include test *.py *.bin *.txt
 prune test/data/no-dist
 
