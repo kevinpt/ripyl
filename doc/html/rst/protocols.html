@@ -1,0 +1,138 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Ripyl protocols &mdash; Ripyl 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ripyl.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="Ripyl 1.0 documentation" href="../index.html" />
+    <link rel="next" title="ripyl" href="../apidoc/modules.html" />
+    <link rel="prev" title="Common data structures" href="data_structures.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../apidoc/modules.html" title="ripyl"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="data_structures.html" title="Common data structures"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Ripyl 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="ripyl-protocols">
+<h1>Ripyl protocols<a class="headerlink" href="#ripyl-protocols" title="Permalink to this headline">¶</a></h1>
+<p>The Ripyl library supports a number of protocols for decoding. Protocol decoders can be layered on top of each other. This creates a distinction between base level decoders that operate on raw sample or edge data and higher level decoders that work with the results of a lower level decoder.</p>
+<p>The base protocols provided with Ripyl are the following:</p>
+<ul class="simple">
+<li><a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.uart" title="ripyl.protocol.uart"><tt class="xref py py-mod docutils literal"><span class="pre">UART</span></tt></a></li>
+<li><a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.i2c" title="ripyl.protocol.i2c"><tt class="xref py py-mod docutils literal"><span class="pre">I2C</span></tt></a> (also handles SMBus)</li>
+<li><a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.spi" title="ripyl.protocol.spi"><tt class="xref py py-mod docutils literal"><span class="pre">SPI</span></tt></a></li>
+<li><a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.ps2" title="ripyl.protocol.ps2"><tt class="xref py py-mod docutils literal"><span class="pre">PS/2</span> <span class="pre">and</span> <span class="pre">AT</span> <span class="pre">keyboard</span></tt></a></li>
+<li><a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.usb" title="ripyl.protocol.usb"><tt class="xref py py-mod docutils literal"><span class="pre">USB</span> <span class="pre">2.0</span></tt></a> (all speeds and HSIC support)</li>
+<li><a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.iso_k_line" title="ripyl.protocol.iso_k_line"><tt class="xref py py-mod docutils literal"><span class="pre">ISO</span> <span class="pre">K-line</span></tt></a> (ISO 9141 and ISO 14230 automotive protocols)</li>
+</ul>
+<p>All base level protocols in the library have functions to support the synthesis of arbitrary waveforms. This can be useful for testing or recreating special circumstances that would be challenging to perform with real hardware.</p>
+<p>The higher level protocols provided with Ripyl are:</p>
+<ul class="simple">
+<li><a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.lm73" title="ripyl.protocol.lm73"><tt class="xref py py-mod docutils literal"><span class="pre">LM73</span></tt></a> temperature sensor (SMBus)</li>
+<li><a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.obd2" title="ripyl.protocol.obd2"><tt class="xref py py-mod docutils literal"><span class="pre">OBD-2</span></tt></a> automotive ECU message format</li>
+</ul>
+<p>The protocol decoders do not check timing parameters to verify that they meet specifications. The emphasis is on getting usable data out of waveforms even if they depart from requirements.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/Ripyl logo 100px.png" alt="Logo"/>
+            </a></p>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="data_structures.html"
+                        title="previous chapter">Common data structures</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../apidoc/modules.html"
+                        title="next chapter">ripyl</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/rst/protocols.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../apidoc/modules.html" title="ripyl"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="data_structures.html" title="Common data structures"
+             >previous</a> |</li>
+        <li><a href="../index.html">Ripyl 1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Kevin Thibedeau.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
