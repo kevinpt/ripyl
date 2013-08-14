@@ -1170,6 +1170,18 @@ def _get_bus_speed(speed_check_it, remove_se0s=False):
     #print('## sym. rate edges len:', len(sre_list))
     
     raw_symbol_rate = find_symbol_rate(iter(sre_list), spectra=2)
+
+    if raw_symbol_rate == 0:
+        # Some special "packets of death" may lack a second harmonic which
+        # ruins the HPS used in find_symbol_rate().
+
+        # The packet USBDataPacket(USBPID.Data0, [134], 2) lacks a second harmonic
+        # when using a HighSpeed bus and differential input. It is not fixed by
+        # the logarithmic scaling implemented below because the HPS ends up with
+        # no peaks and result of find_symbol_rate() is 0.
+
+        # In this case we bypass the HPS and just take the symbol rate using the dominant span
+        raw_symbol_rate = find_symbol_rate(iter(sre_list), spectra=1)
     
     #print('## raw sym rate:', raw_symbol_rate)
     

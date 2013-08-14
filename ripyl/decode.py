@@ -778,10 +778,12 @@ def find_symbol_rate(edges, sample_rate=1.0, spectra=2, auto_span_limit=True, ma
       a HPS.
     '''
     e = zip(*edges)
-    e = np.array(e[0]) # get the sample indices of each edge
-    spans = e[1:] - e[:-1] # time span (in samples) between successive edges
+    e2 = np.array(e[0]) # get the sample indices of each edge
+    spans = e2[1:] - e2[:-1] # time span (in samples) between successive edges
 
 
+    #plt.plot(e[0], e[1])
+    #plt.show()
 
     if auto_span_limit:
         # Automatically find maximum span limit
@@ -826,13 +828,26 @@ def find_symbol_rate(edges, sample_rate=1.0, spectra=2, auto_span_limit=True, ma
     hps = kde(x_hps)[:bins] # fundamental spectrum (slice needed because sometimes kde() returns bins+1 elements)
 
     #plt.plot(x_hps, hps / hps[np.argmax(hps)])
+    #print('$$$ hps peak:', max(hps))
+    tallest_initial_peak = max(hps)
     
     # isolate the fundamental span width by multiplying downshifted spectra
     for i in xrange(2, spectra+1):
         hps *= kde(np.arange(0, mv*i, step*i))[:len(hps)]
+        #k = kde(np.arange(0, mv*i, step*i))[:len(hps)]
+        #plt.plot(x_hps, k / k[np.argmax(k)])
+        #print('$$$ k peak:', max(k))
+        #hps *= k
 
+    #print('$$$ hps peak:', max(hps))
     #plt.plot(x_hps, hps / hps[np.argmax(hps)])
     #plt.show()
+
+    # It is possible to get anomalous HPS peaks with extremely small values
+    # If the tallest peak in the final HPS isn't within three orders of magnitude
+    # we will consider the HPS invalid.
+    if max(hps) < tallest_initial_peak / 1000.0:
+        return 0
 
     peaks = find_hist_peaks(hps)
     if len(peaks) < 1:
