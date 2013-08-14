@@ -24,6 +24,7 @@
 from __future__ import print_function
 
 import itertools
+from ripyl.streaming import StreamError
 
 import numpy as np
 import scipy as sp
@@ -94,8 +95,8 @@ def edges_to_sample_stream(edges, sample_period, end_extension=None):
     edges (sequence of (float, int) tuples)
         An edge stream to sample
         
-    sample_rate (float)
-        The sample rate for converting the edge stream
+    sample_period (float)
+        The sample period for converting the edge stream
         
     end_extension (float)
         Optional amount of time to add to the end after the last edge transition
