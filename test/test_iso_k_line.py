@@ -101,7 +101,7 @@ class TestKLineFuncs(unittest.TestCase):
             baud = 10400
             
             sample_rate = baud * 100.0
-            rise_time = 0.35 * 2.0 / sample_rate * 10.0 # 10x min rise time
+            rise_time = sigp.min_rise_time(sample_rate) * 10.0 # 10x min rise time
             
             edges = kline.iso_k_line_synth(messages, idle_start=8.0 / baud, idle_end=8.0 / baud)
             

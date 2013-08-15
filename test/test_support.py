@@ -28,6 +28,29 @@ import struct
 import os
 import array
 import sys
+import unittest
+import random
+
+
+class RandomSeededTestCase(unittest.TestCase):
+    def __init__(self, methodName='runTest', seedVarName='TEST_SEED'):
+        unittest.TestCase.__init__(self, methodName=methodName)
+        self.seed_var_name = seedVarName
+
+    def setUp(self):
+        # In sub classes use the following to call this setUp() from an overrided setUp()
+        # super(<sub-class>, self).setUp()
+        
+        # Use seed from enviroment if it is set
+        try:
+            seed = long(os.environ[self.seed_var_name])
+        except KeyError:
+            random.seed()
+            seed = long(random.random() * 1e9)
+
+        print('\n * Random seed: {} *'.format(seed))
+        random.seed(seed)
+
         
 def write_bin_file(fname, samples, sample_period, start_time):
     with open(fname, 'wb') as fo:
@@ -53,3 +76,4 @@ def read_bin_file(fname):
             samples.byteswap()
         
         return (samples, sample_period, start_time)
+

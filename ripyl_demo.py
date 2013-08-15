@@ -38,8 +38,8 @@ import ripyl.protocol.ps2 as ps2
 import ripyl.protocol.iso_k_line as kline
 import ripyl.sigproc as sigp
 import ripyl.streaming as stream
-
 import ripyl.util.eng as eng
+from ripyl.sigproc import min_rise_time
 
 try:
     import matplotlib
@@ -122,7 +122,7 @@ def demo_usb(options):
     
     # Sampled waveform params
     sample_rate = clock_freq * 10.0
-    rise_time = 0.35 * 2.0 / sample_rate * 8.0 # 8x min. rise time
+    rise_time = min_rise_time(sample_rate) * 8.0 # 8x min. rise time
     noise_snr = options.snr_db
     
     message = options.msg
@@ -308,7 +308,7 @@ def demo_spi(options):
     
     # Sampled waveform params
     sample_rate = clock_freq * 100.0
-    rise_time = 0.35 * 2.0 / sample_rate * 10.0 # 10x min. rise time
+    rise_time = min_rise_time(sample_rate) * 10.0 # 10x min. rise time
     noise_snr = options.snr_db
     
     message = options.msg
@@ -398,7 +398,7 @@ def demo_i2c(options):
     
     # Sampled waveform params
     sample_rate = clock_freq * 100.0
-    rise_time = 0.35 * 2.0 / sample_rate * 10.0 # 10x min. rise time
+    rise_time = min_rise_time(sample_rate) * 10.0 # 10x min. rise time
     noise_snr = options.snr_db
     
     message = options.msg
@@ -490,7 +490,7 @@ def demo_uart(options):
 
     # Sampled waveform params
     sample_rate = baud * 100.0
-    rise_time = 0.35 * 2.0 / sample_rate * 10.0 # 10x min. rise time
+    rise_time = min_rise_time(sample_rate) * 10.0 # 10x min. rise time
     noise_snr = options.snr_db
     
     message = options.msg
@@ -578,7 +578,7 @@ def demo_ps2(options):
     
     # Sampled waveform params
     sample_rate = clock_freq * 100.0
-    rise_time = 0.35 * 2.0 / sample_rate * 10.0 # 10x min. rise time
+    rise_time = min_rise_time(sample_rate) * 10.0 # 10x min. rise time
     noise_snr = options.snr_db
     
     message = options.msg
@@ -662,7 +662,7 @@ def demo_iso_k_line(options):
 
     # Sampled waveform params
     sample_rate = baud * 100.0
-    rise_time = 0.35 * 2.0 / sample_rate * 10.0 # 10x min. rise time
+    rise_time = min_rise_time(sample_rate) * 10.0 # 10x min. rise time
     noise_snr = options.snr_db
     
     messages = [
