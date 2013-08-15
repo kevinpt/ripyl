@@ -1,3 +1,13 @@
+================
 Ripyl change log
+================
 
-Fix USB issue
+v1.0.1 / 2013-8-15
+==================
+
+  Bug fixes
+  ---------
+
+  * Fix issue with decode.find_symbol_rate() that was creating bad results
+  * Fix problem with bus speed detection for USB with certain packets lacking
+    a second harmonic in their edge span spectra.
