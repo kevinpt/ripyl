@@ -31,26 +31,15 @@ import sys
 import ripyl.protocol.ps2 as ps2
 import ripyl.sigproc as sigp
 import ripyl.streaming as streaming
+import test.test_support as tsup
 
-class TestPS2Funcs(unittest.TestCase):
-    def setUp(self):
-        import os
-        
-        # Use seed from enviroment if it is set
-        try:
-            seed = long(os.environ['TEST_SEED'])
-        except KeyError:
-            random.seed()
-            seed = long(random.random() * 1e9)
-
-        print('\n * Random seed: {} *'.format(seed))
-        random.seed(seed)
+class TestPS2Funcs(tsup.RandomSeededTestCase):
 
     def test_ps2_decode(self):
-        trials = 20
-        for i in xrange(trials):
-            print('\r  PS/2 message {0} / {1}  '.format(i+1, trials), end='')
-            sys.stdout.flush()
+        self.test_name = 'PS/2 message'
+        self.trial_count = 20
+        for i in xrange(self.trial_count):
+            self.update_progress(i+1)
             
             clock_freq = random.uniform(10.0e3, 13.0e3)
             

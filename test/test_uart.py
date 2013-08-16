@@ -39,10 +39,10 @@ class TestUARTFuncs(tsup.RandomSeededTestCase):
 
     #@unittest.skip('debug')
     def test_uart_decode(self):
-        trials = 10
-        for i in xrange(trials):
-            print('\r  UART message {0} / {1}  '.format(i+1, trials), end='')
-            sys.stdout.flush()
+        self.test_name = 'UART message'
+        self.trial_count = 10
+        for i in xrange(self.trial_count):
+            self.update_progress(i+1)
             
             msg = []
             for _ in xrange(20):

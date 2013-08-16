@@ -84,4 +84,5 @@ class TestOnlineStats(unittest.TestCase):
             for _ in xrange(1000): os.accumulate(random.gauss(0.5, 0.3))
             
             self.assertAlmostEqual(os.mean(), 0.5, places=1, msg='Invalid mean')
-            self.assertAlmostEqual(os.std(), 0.3, places=1, msg='Invalid std. dev.')            
+            self.assertAlmostEqual(os.std(), 0.3, places=1, msg='Invalid std. dev.')
+
