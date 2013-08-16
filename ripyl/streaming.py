@@ -92,13 +92,31 @@ class StreamSegment(StreamRecord):
     '''A stream element that spans two points in time'''
     def __init__(self, time_bounds, data=None, kind='unknown segment', status=StreamStatus.Ok):
         StreamRecord.__init__(self, kind, status)
-        self.start_time = time_bounds[0] # (start time, end time)
-        self.end_time = time_bounds[1]
+        self._start_time = time_bounds[0] # (start time, end time)
+        self._end_time = time_bounds[1]
         self.data = data
         
     def __repr__(self):
         return 'StreamSegment(({0},{1}), {2}, \'{3}\')'.format(self.start_time, self.end_time, \
             repr(self.data), self.kind)
+
+    @property
+    def start_time(self):
+        return self._start_time
+
+    @start_time.setter
+    def start_time(self, value):
+        self._start_time = value
+
+
+    @property
+    def end_time(self):
+        return self._end_time
+
+    @end_time.setter
+    def end_time(self, value):
+        self._end_time = value
+
 
 class StreamEvent(StreamRecord):
     '''A stream element that occurs at a specific point in time'''

@@ -145,10 +145,14 @@ class EngUSI(EngSI):
 
 
 def eng(f, frac_digits=3):
+    '''Create engineering formatted string'''
     return str(Eng(f, frac_digits))
     
 def eng_si(f, units='', frac_digits=3, unit_sep=' '):
+    '''Create engineering formatted string with SI units'''
     return str(EngSI(f, units, frac_digits, unit_sep))
     
 def eng_usi(f, units='', frac_digits=3, unit_sep=' '):
+    '''Create engineering formatted string with unicode SI units'''
     return str(EngUSI(f, units, frac_digits, unit_sep))
+

@@ -63,10 +63,12 @@ class OBD2Message(object):
 
     @property
     def start_time(self):
+        '''Message start time'''
         raise NotImplementedError
 
     @property
     def end_time(self):
+        '''Message end time'''
         raise NotImplementedError
 
         
@@ -97,6 +99,7 @@ class OBD2StreamMessage(StreamSegment):
 
     @property
     def start_time(self):
+        '''Message start time'''
         return self.msg.start_time
 
     @start_time.setter
@@ -105,6 +108,7 @@ class OBD2StreamMessage(StreamSegment):
 
     @property
     def end_time(self):
+        '''Message end time'''
         return self.msg.end_time
 
     @end_time.setter
@@ -485,6 +489,7 @@ class PIDTableEntry(object):
         self.decoder = decoder
 
 PTE = PIDTableEntry
+
 
 sid_01_pids = {
     0x00 : PTE(4, 'PIDs supported [01 - 20]', '', lambda a, b, c, d: _get_supported_pids(0x00, a, b, c, d)),
