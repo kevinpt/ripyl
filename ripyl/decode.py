@@ -25,13 +25,13 @@ from __future__ import print_function, division
 
 import numpy as np
 import scipy as sp
-import scipy.stats
+#import scipy.stats
 import math
 import collections
 import itertools
 
 from ripyl.util.stats import OnlineStats
-from ripyl.streaming import StreamError, AutoLevelError
+from ripyl.streaming import StreamError
 
 #import matplotlib.pyplot as plt
 
@@ -582,7 +582,7 @@ def find_differential_edges(samples, logic, hysteresis=0.1):
     
     Raises StreamError if the stream is empty
     '''
-    span = logic[1] - logic[0]
+
     center = (logic[1] + logic[0]) / 2.0
     span_high = logic[1] - center
     span_low = center - logic[0]

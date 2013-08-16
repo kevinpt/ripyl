@@ -2,13 +2,13 @@
 
 '''Ripyl protocol decode library'''
 
-import util
-import protocol
+import ripyl.util
+import ripyl.protocol
 
 __version__ = '1.0'
 
 
-import sigproc
-import decode
-import streaming
+import ripyl.sigproc
+import ripyl.decode
+import ripyl.streaming
 

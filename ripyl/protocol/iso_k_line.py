@@ -34,7 +34,6 @@ from ripyl.util.enum import Enum
 import ripyl.protocol.uart as uart
 import ripyl.protocol.obd2 as obd
 
-import ripyl.util.eng as eng
 
 # I have encountered an ECU (Sagem MC1000) that is largely ISO9141 based but
 # also responds to an ISO14230 command for ECU identification after a special init
@@ -189,8 +188,8 @@ class KLineMessage(obd.OBD2Message):
 
         Returns a bool that is True when checksum is valid.
         '''
-        bytes = self.header.bytes() + self.data
-        cs = sum([b.data for b in bytes]) % 256
+        bdata = self.header.bytes() + self.data
+        cs = sum([b.data for b in bdata]) % 256
 
         return True if cs == self.checksum.data else False
 

@@ -73,7 +73,7 @@ class Enum(object):
             enum_lookup = cls._enum_lookup
         except AttributeError:
             # Build inverse dict of class attributes with their values as key
-            enum_lookup = dict((v,k) for k, v in cls.__dict__.items() if k[0] != '_')
+            enum_lookup = dict((v, k) for k, v in cls.__dict__.items() if k[0] != '_')
             cls._enum_lookup = enum_lookup
         
         try:

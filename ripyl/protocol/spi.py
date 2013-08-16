@@ -42,11 +42,13 @@ class SPIFrame(StreamSegment):
         '''
         StreamSegment.__init__(self, bounds, data)
         self.kind = 'SPI frame'
+        self.word_size = None
         
     def __str__(self):
         return str(self.data)
 
-def spi_decode(clk, data_io, cs=None, cpol=0, cpha=0, lsb_first=True, logic_levels=None, stream_type=StreamType.Samples):
+def spi_decode(clk, data_io, cs=None, cpol=0, cpha=0, lsb_first=True, logic_levels=None, \
+    stream_type=StreamType.Samples):
     '''Decode an SPI data stream
     
     This is a generator function that can be used in a pipeline of waveform
@@ -141,7 +143,7 @@ def spi_decode(clk, data_io, cs=None, cpol=0, cpha=0, lsb_first=True, logic_leve
     # begin to decode
     
     while not es.at_end():
-        ts, cname = es.advance_to_edge()
+        _, cname = es.advance_to_edge()
 
         
         if cname == 'cs' and not es.at_end('cs'):

@@ -27,7 +27,6 @@ import itertools
 from ripyl.streaming import StreamError
 
 import numpy as np
-import scipy as sp
 import scipy.signal as signal
 
 

@@ -327,7 +327,7 @@ def _ps2_synth(bytes, direction, clock_freq, idle_start=0.0, word_interval=0.0):
     yield ((t, clk),(t, data)) # initial conditions
     t += idle_start
      
-    for i, (d, direct) in enumerate(zip(bytes, direction)):
+    for d, direct in zip(bytes, direction):
         bits_remaining = word_size
 
         # first bit transmitted will be at the end of the list

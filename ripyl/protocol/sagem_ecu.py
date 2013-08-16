@@ -27,7 +27,6 @@
 
 from __future__ import print_function, division
 
-import itertools
 import inspect
 
 from ripyl.decode import *

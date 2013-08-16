@@ -1137,7 +1137,7 @@ def usb_hsic_decode(strobe, data, logic_levels=None, stream_type=StreamType.Samp
     }
     
     es = MultiEdgeSequence(edge_sets, 0.0)
-    state_seq = EdgeSequence(_convert_hsic_states(es, bus_speed), 0.0)
+    state_seq = EdgeSequence(_convert_hsic_states(es), 0.0)
     
     records = _decode_usb_state(state_seq, bus_speed)
     
@@ -1205,7 +1205,7 @@ def _get_bus_speed(speed_check_it, remove_se0s=False):
     return bus_speed
 
 
-def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
+def _decode_usb_state(state_seq, bus_speed):
     '''This routine does the bulk of the decode work. It is called by the
     single-ended, differential, and HSIC decoders once they have completed
     the preliminary work of extracting the bus states (J, K, SE0) from their
@@ -1363,7 +1363,7 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
         # We need at least 8 states/bits to retrieve the PID
         if len(packet_states) < 8:
             status = USBStreamStatus.ShortPacketError
-            yield USBStreamError((packet_start, packet_end), packet_bits, status=status)
+            yield USBStreamError((packet_start, packet_end), packet_states, status=status)
             continue
             
         packet_bits = _decode_NRZI(packet_states)
@@ -1388,7 +1388,7 @@ def _decode_usb_state(state_seq, bus_speed, allow_mixed_full_low=False):
             # We need to find the *start* of the EOP
             trailing_data = list(reversed(packet_bits[-max_eop_trail:]))
             # look for reversed EOP pattern in trailing data
-            eop_pat = [1,1,1,1,1,1,1,0]
+            eop_pat = [1, 1, 1, 1, 1, 1, 1, 0]
             eop_bits = 0
             for i in xrange(len(trailing_data) - 8):
                 sliding_window = trailing_data[i:i+8]
@@ -1753,7 +1753,7 @@ def _convert_differential_states(es, bus_speed):
         yield (es.cur_time, cur_bus)
 
 
-def _convert_hsic_states(es, bus_speed):
+def _convert_hsic_states(es):
     '''Convert a stream of single-ended states for HSIC strobe, data to
     logical states (J, K, SE0).
     
