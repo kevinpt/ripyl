@@ -127,17 +127,19 @@ def usb_transactions_decode(records):
             if pkt.pid == usb.USBPID.SOF:
                 yield rec
                 continue
-            elif pkt.pid == usb.USBPID.SPLIT or (pkt.pid == usb.USBPID.PRE and rec.speed != usb.USBSpeed.HighSpeed):
+            elif pkt.pid == usb.USBPID.SPLIT \
+                or (pkt.pid == usb.USBPID.PRE and rec.speed != usb.USBSpeed.HighSpeed):
                 prefix_pkt = rec # Save it until we have a packet with a proper key
                 continue
 
 
         if key in trans_buf:
-            # If the new packet is a token we either lost a packet or a handshake was not needed to terminate
-            # the previous transaction.
+            # If the new packet is a token we either lost a packet or a handshake
+            # was not needed to terminate the previous transaction.
             
-            # In any case yield the current packets accumulated for the key and start a new transaction
-            token_pids =(usb.USBPID.TokenOut, usb.USBPID.TokenIn, usb.USBPID.TokenSetup, usb.USBPID.PING, \
+            # In any case yield the current packets accumulated for the key and
+            # start a new transaction
+            token_pids = (usb.USBPID.TokenOut, usb.USBPID.TokenIn, usb.USBPID.TokenSetup, usb.USBPID.PING, \
                 usb.USBPID.EXT)
             if pkt.pid in token_pids:
                 # First yield any initial partial packets waiting in the dict

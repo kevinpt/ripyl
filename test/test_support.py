@@ -28,6 +28,45 @@ import struct
 import os
 import array
 import sys
+import unittest
+import random
+
+
+class RandomSeededTestCase(unittest.TestCase):
+    def __init__(self, methodName='runTest', seedVarName='TEST_SEED'):
+        unittest.TestCase.__init__(self, methodName=methodName)
+        self.seed_var_name = seedVarName
+        self.test_name = 'Unnamed test'
+        self.trial = 0
+        self.trial_count = 0
+        #self.prev_trial = 0
+
+    def setUp(self):
+        # In sub classes use the following to call this setUp() from an overrided setUp()
+        # super(<sub-class>, self).setUp()
+        
+        # Use seed from enviroment if it is set
+        try:
+            seed = long(os.environ[self.seed_var_name])
+        except KeyError:
+            random.seed()
+            seed = long(random.random() * 1e9)
+
+        print('\n * Random seed: {} *'.format(seed))
+        random.seed(seed)
+
+    def update_progress(self, cur_trial, dotted=True):
+        self.trial = cur_trial
+        if not dotted:
+            print('\r  {} {} / {}  '.format(self.test_name, self.trial, self.trial_count), end='')
+        else:
+            if self.trial == 1:
+                print('  {} '.format(self.test_name), end='')
+            print('.', end='')
+        #self.prev_trial = self.trial
+        sys.stdout.flush()
+
+
         
 def write_bin_file(fname, samples, sample_period, start_time):
     with open(fname, 'wb') as fo:
@@ -53,3 +92,4 @@ def read_bin_file(fname):
             samples.byteswap()
         
         return (samples, sample_period, start_time)
+

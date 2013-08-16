@@ -31,27 +31,16 @@ import sys
 import ripyl.protocol.i2c as i2c
 import ripyl.sigproc as sigp
 import ripyl.streaming as streaming
+import test.test_support as tsup
 
-class TestI2CFuncs(unittest.TestCase):
-    def setUp(self):
-        import os
-        
-        # Use seed from enviroment if it is set
-        try:
-            seed = long(os.environ['TEST_SEED'])
-        except KeyError:
-            random.seed()
-            seed = long(random.random() * 1e9)
-
-        print('\n * Random seed: {} *'.format(seed))
-        random.seed(seed)
+class TestI2CFuncs(tsup.RandomSeededTestCase):
 
     def test_i2c_decode(self):
-        trials = 20
-        for i in xrange(trials):
-            print('\r  I2C transfer {0} / {1}  '.format(i+1, trials), end='')
-            sys.stdout.flush()
-    
+        self.test_name = 'I2C transfer'
+        self.trial_count = 20
+        for i in xrange(self.trial_count):
+            self.update_progress(i+1)
+
             clock_freq = 100.0e3
 
             transfers = []

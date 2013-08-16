@@ -30,6 +30,7 @@ import math
 import sys
 
 import ripyl.decode as decode
+import test.test_support as tsup
 
 
 
@@ -51,31 +52,17 @@ def nearly_equal(a, b, epsilon):
     
 
 
-class TestDecodeFuncs(unittest.TestCase):
-    def setUp(self):
-        import time
-        import os
-        
-        # Use seed from enviroment if it is set
-        try:
-            seed = long(os.environ['TEST_SEED'])
-        except KeyError:
-            random.seed()
-            seed = long(random.random() * 1e9)
-
-        print('\n * Random seed: {} *'.format(seed))
-        random.seed(seed)
+class TestDecodeFuncs(tsup.RandomSeededTestCase):
 
     def test_find_bot_top_hist_peaks(self):
         pass
 
     def test_find_symbol_rate(self):
-        print('')
-        trials = 40
-        for i in xrange(trials):
-            print('\r  find_symbol_rate() trial {0} / {1}  '.format(i+1, trials), end='')
-            sys.stdout.flush()
-            
+        self.test_name = 'find_symbol_rate() test'
+        self.trial_count = 40
+        for i in xrange(self.trial_count):
+            self.update_progress(i+1)
+
             freq = random.randrange(100, 10000)
             
             # construct a list of edges with random spans

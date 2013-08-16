@@ -2,7 +2,7 @@
 
 '''Ripyl protocol decode library'''
 
-import enum
-import bitops
-import stats
+import ripyl.util.enum
+import ripyl.util.bitops
+import ripyl.util.stats
 

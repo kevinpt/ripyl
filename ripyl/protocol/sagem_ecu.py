@@ -27,7 +27,6 @@
 
 from __future__ import print_function, division
 
-import itertools
 import inspect
 
 from ripyl.decode import *
@@ -102,7 +101,25 @@ sid_3C_pids = {
 }
 
 
-def decode_sag_msg(sid, pid_table, pid_size, msg_type, raw_data):
+def decode_sagem_msg(sid, pid_table, pid_size, msg_type, raw_data):
+    '''Decode SAGEM message with one or two byte PIDs
+
+    sid (int)
+        The message SID
+
+    pid_table (dict of PIDTableEntry)
+        A dict associating PIDs with decode information
+
+    pid_size (int)
+        The number of bytes in the PID: 1 or 2
+
+    msg_type (OBD2MsgType)
+        Request or response message
+
+    raw_data (sequence of ints)
+        Bytes for the message
+
+    '''
     if pid_size == 2:
         pid = raw_data[1]*256 + raw_data[2]
     else:
@@ -124,10 +141,10 @@ def decode_sag_msg(sid, pid_table, pid_size, msg_type, raw_data):
 
 
 sag_sid_decoders = {
-    0x21: lambda mtype, d: decode_sag_msg(0x21, sid_21_pids, 1, mtype, d),
-    0x22: lambda mtype, d: decode_sag_msg(0x22, sid_22_pids, 2, mtype, d),
-    0x27: lambda mtype, d: decode_sag_msg(0x27, sid_27_pids, 2, mtype, d),
-    0x3C: lambda mtype, d: decode_sag_msg(0x3C, sid_3C_pids, 1, mtype, d)
+    0x21: lambda mtype, d: decode_sagem_msg(0x21, sid_21_pids, 1, mtype, d),
+    0x22: lambda mtype, d: decode_sagem_msg(0x22, sid_22_pids, 2, mtype, d),
+    0x27: lambda mtype, d: decode_sagem_msg(0x27, sid_27_pids, 2, mtype, d),
+    0x3C: lambda mtype, d: decode_sagem_msg(0x3C, sid_3C_pids, 1, mtype, d)
 }
 
 

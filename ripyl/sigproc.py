@@ -27,7 +27,6 @@ import itertools
 from ripyl.streaming import StreamError
 
 import numpy as np
-import scipy as sp
 import scipy.signal as signal
 
 
@@ -130,6 +129,32 @@ def edges_to_sample_stream(edges, sample_period, end_extension=None):
             yield(t, cur_states[1])
             t += sample_period
 
+
+def min_rise_time(sample_rate):
+    '''Compute the minimum rise time for a sample rate
+
+    This function is useful to determine the minimum rise time acceptable as parameters
+    to filter_waveform() and synth_wave(). You should use a scale factor to incease the rise
+    time at least slightly (e.g. rt * 1.01) to avoid raising a ValueError in those functions
+    due to floating point inaccuracies.
+
+    sample_rate (int)
+        The sample rate to determine rise time from
+
+    Returns a float for the minimum acceptable rise time.
+    '''
+
+    return 0.35 * 2.0 / sample_rate
+
+def approximate_bandwidth(rise_time):
+    '''Determine an approximate bandwidth for a signal with a known rise time
+
+    rise_time (float)
+        A rise time to compute bandwidth from
+
+    Returns the bandwidth for the rise time.
+    '''
+    return 0.35 / rise_time
     
     
 def filter_waveform(samples, sample_rate, rise_time, ripple_db=60.0, pool_size=1000):
@@ -161,12 +186,12 @@ def filter_waveform(samples, sample_rate, rise_time, ripple_db=60.0, pool_size=1
     '''
 
     nyquist = sample_rate / 2.0
-    edge_bw = 0.35 / rise_time
+    edge_bw = approximate_bandwidth(rise_time)
     transition_bw = edge_bw * 4.0 # This gives a nice smooth transition with no Gibbs effect
     cutoff_hz = edge_bw
     
     if cutoff_hz > nyquist:
-        min_rise = 0.35 / nyquist
+        min_rise = min_rise_time(sample_rate)
         raise ValueError('Rise time is too fast for current sample rate (min: {0})'.format(min_rise))
     
     N, beta = signal.kaiserord(ripple_db, transition_bw / nyquist)

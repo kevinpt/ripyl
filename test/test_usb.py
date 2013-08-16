@@ -32,27 +32,16 @@ import sys
 import ripyl.protocol.usb as usb
 import ripyl.sigproc as sigp
 import ripyl.streaming as streaming
-import test_support as tsup
+import test.test_support as tsup
 
-class TestUSBFuncs(unittest.TestCase):
-    def setUp(self):
-        import os
-        
-        # Use seed from enviroment if it is set
-        try:
-            seed = long(os.environ['TEST_SEED'])
-        except KeyError:
-            random.seed()
-            seed = long(random.random() * 1e9)
+class TestUSBFuncs(tsup.RandomSeededTestCase):
 
-        print('\n * Random seed: {} *'.format(seed))
-        random.seed(seed)
         
     def test_usb_decode(self):
-        trials = 70
-        for i in xrange(trials):
-            print('\r  USB transmission {0} / {1}  '.format(i+1, trials), end='')
-            sys.stdout.flush()
+        self.test_name = 'USB transmission'
+        self.trial_count = 70
+        for i in xrange(self.trial_count):
+            self.update_progress(i+1)
 
             bus_speed = random.choice((usb.USBSpeed.LowSpeed, usb.USBSpeed.FullSpeed, usb.USBSpeed.HighSpeed))
             #print('\nBus speed', bus_speed)
@@ -61,7 +50,7 @@ class TestUSBFuncs(unittest.TestCase):
             packet_num = random.randint(1, 10)
             #print('\nGEN PACKETS:', packet_num)
             
-            use_protocol = random.choice(('single-ended', 'differential'))
+            use_protocol = random.choice(('single-ended', 'differential', 'hsic'))
             if use_protocol == 'hsic':
                 bus_speed = usb.USBSpeed.HighSpeed # force bus speed for HSIC
             

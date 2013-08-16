@@ -310,13 +310,13 @@ def spi_plot(channels, records, title='', label_format='text', save_file=None, f
     clk_t, clk_wf = zip(*clk)
     data_io_t, data_io_wf = zip(*data_io)
 
-    clk_b = _waveform_bounds(clk_wf)
+    #clk_b = _waveform_bounds(clk_wf)
     data_io_b = _waveform_bounds(data_io_wf)
 
     if 'cs' in channels.keys():
         cs = channels['cs']
         cs_t, cs_wf = zip(*cs)
-        cs_b = _waveform_bounds(cs_wf)
+        #cs_b = _waveform_bounds(cs_wf)
 
     
     text_ypos = (data_io_b['max'] + data_io_b['ovl_top']) / 2.0
@@ -367,7 +367,7 @@ def spi_plot(channels, records, title='', label_format='text', save_file=None, f
             char = chr(r.data)
             if char not in string.printable:
                 char = hex(r.data)
-                color='red'
+                color = 'red'
                 angle = 45
 
         elif label_format == 'hex':
@@ -423,7 +423,7 @@ def i2c_plot(channels, records, title='', label_format='text', save_file=None, f
     scl_t, scl_wf = zip(*scl)
     sda_t, sda_wf = zip(*sda)
     
-    scl_b = _waveform_bounds(scl_wf)
+    #scl_b = _waveform_bounds(scl_wf)
     sda_b = _waveform_bounds(sda_wf)
     
     text_ypos = (sda_b['max'] + sda_b['ovl_top']) / 2.0
@@ -485,7 +485,7 @@ def i2c_plot(channels, records, title='', label_format='text', save_file=None, f
                 char = chr(r.data)
                 if char not in string.printable:
                     char = hex(r.data)
-                    color='red'
+                    color = 'red'
                     angle = 45
             else: # an address
                 char = hex(r.data) + (' r' if r.r_wn else ' w')
@@ -587,7 +587,7 @@ def uart_plot(samples, records, title='', label_format='text', save_file=None, f
             char = str(r)
             if char not in string.printable:
                 char = hex(r.data)
-                color='red'
+                color = 'red'
                 angle = 45
         elif label_format == 'hex':
             char = hex(r.data)
@@ -642,7 +642,7 @@ def ps2_plot(channels, records, title='', label_format='text', save_file=None, f
     clk_t, clk_wf = zip(*clk)
     data_t, data_wf = zip(*data)
     
-    clk_b = _waveform_bounds(clk_wf)
+    #clk_b = _waveform_bounds(clk_wf)
     data_b = _waveform_bounds(data_wf)
     
     text_ypos = (data_b['max'] + data_b['ovl_top']) / 2.0
@@ -700,7 +700,7 @@ def ps2_plot(channels, records, title='', label_format='text', save_file=None, f
             char = chr(r.data)
             if char not in string.printable:
                 char = hex(r.data)
-                color='red'
+                color = 'red'
                 angle = 45
 
         elif label_format == 'hex':
@@ -804,7 +804,7 @@ def iso_k_line_plot(samples, records, title='', label_format='text', save_file=N
                 char = str(b)
                 if char not in string.printable:
                     char = hex(b.data)
-                    color='red'
+                    color = 'red'
                     angle = 45
             elif label_format == 'hex':
                 char = hex(b.data)

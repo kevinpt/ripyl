@@ -34,27 +34,13 @@ import ripyl.sigproc as sigp
 import ripyl.streaming as stream
 import test.test_support as tsup
 
-
-class TestKLineFuncs(unittest.TestCase):
-    def setUp(self):
-        import os
-        
-        # Use seed from enviroment if it is set
-        try:
-            seed = long(os.environ['TEST_SEED'])
-        except KeyError:
-            random.seed()
-            seed = long(random.random() * 1e9)
-
-        print('\n * Random seed: {} *'.format(seed))
-        random.seed(seed)
-
+class TestKLineFuncs(tsup.RandomSeededTestCase):
 
     def test_kline_decode(self):
-        trials = 10
-        for i in xrange(trials):
-            print('\r  K-line message {0} / {1}  '.format(i+1, trials), end='')
-            sys.stdout.flush()
+        self.test_name = 'K-line message'
+        self.trial_count = 10
+        for i in xrange(self.trial_count):
+            self.update_progress(i+1)
             
             msg_count = random.randint(1, 6)
             messages = []
@@ -101,7 +87,7 @@ class TestKLineFuncs(unittest.TestCase):
             baud = 10400
             
             sample_rate = baud * 100.0
-            rise_time = 0.35 * 2.0 / sample_rate * 10.0 # 10x min rise time
+            rise_time = sigp.min_rise_time(sample_rate) * 10.0 # 10x min rise time
             
             edges = kline.iso_k_line_synth(messages, idle_start=8.0 / baud, idle_end=8.0 / baud)
             

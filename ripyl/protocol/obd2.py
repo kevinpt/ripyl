@@ -23,7 +23,6 @@
 
 from __future__ import print_function, division
 
-import itertools
 import inspect
 
 from ripyl.decode import *
@@ -64,10 +63,12 @@ class OBD2Message(object):
 
     @property
     def start_time(self):
+        '''Message start time'''
         raise NotImplementedError
 
     @property
     def end_time(self):
+        '''Message end time'''
         raise NotImplementedError
 
         
@@ -98,6 +99,7 @@ class OBD2StreamMessage(StreamSegment):
 
     @property
     def start_time(self):
+        '''Message start time'''
         return self.msg.start_time
 
     @start_time.setter
@@ -106,6 +108,7 @@ class OBD2StreamMessage(StreamSegment):
 
     @property
     def end_time(self):
+        '''Message end time'''
         return self.msg.end_time
 
     @end_time.setter
@@ -303,8 +306,8 @@ def _get_status(a, b, c, d):
             tests[tname] = (ta, tc)
         
     else: #compression
-        compression_tests = [('NMHC cat',0), ('NOx/SCR meter',1), ('boost pressure',3), \
-            ('exhaust gas sensor',5), ('PM filter monitoring',6), ('EGR and/or VVT system',7)]
+        compression_tests = [('NMHC cat', 0), ('NOx/SCR meter', 1), ('boost pressure', 3), \
+            ('exhaust gas sensor', 5), ('PM filter monitoring', 6), ('EGR and/or VVT system', 7)]
 
 
         test_available = [bool(v) for v in reversed(split_bits(c, 8))]
@@ -355,7 +358,7 @@ def _get_fuel_status(a, b):
         'Open loop due to system failure', \
         'Closed loop, using at least one oxygen sensor but there is a fault in the feedback system']
 
-    for system, byte in [('fuel1',a), ('fuel2', b)]:
+    for system, byte in [('fuel1', a), ('fuel2', b)]:
         # decode the status. This is a one-hot encoding in bits 0-4
         if byte & 0x01:
             r[system] = status_codes[0]
@@ -486,6 +489,7 @@ class PIDTableEntry(object):
         self.decoder = decoder
 
 PTE = PIDTableEntry
+
 
 sid_01_pids = {
     0x00 : PTE(4, 'PIDs supported [01 - 20]', '', lambda a, b, c, d: _get_supported_pids(0x00, a, b, c, d)),
