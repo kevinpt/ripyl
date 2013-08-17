@@ -34,9 +34,60 @@ import ripyl.sigproc as sigp
 import ripyl.streaming as streaming
 import test.test_support as tsup
 
+
+def _gen_random_usb_packet(bus_speed, allow_preamble_pid=True, allow_ext_pid=True):
+    pid = random.randint(0,15)
+    
+    if bus_speed == usb.USBSpeed.LowSpeed or allow_preamble_pid == False:
+        # Never generate PRE on low-speed bus transmissions
+        while pid == usb.USBPID.PRE:
+            pid = random.randint(0,15)
+
+    if allow_ext_pid == False:
+        while pid == usb.USBPID.EXT:
+            pid = random.randint(0,15)
+
+            
+    packet_kind = usb._get_packet_kind(pid)
+    
+    if packet_kind == usb.USBPacketKind.Token or pid == usb.USBPID.PING:
+        if pid != usb.USBPID.SOF:
+            addr = random.randint(0, 0x7F)
+            endp = random.randint(0, 0xF)
+            pkt = usb.USBTokenPacket(pid, addr, endp, speed=bus_speed)
+        else:
+            addr = random.randint(0, 0x7F)
+            pkt = usb.USBSOFPacket(pid, addr, speed=bus_speed)
+    elif packet_kind == usb.USBPacketKind.Data:
+        data_len = random.randint(1, 10)
+        data = [random.randint(0, 255) for d in xrange(data_len)]
+        pkt = usb.USBDataPacket(pid, data, speed=bus_speed)
+    elif packet_kind == usb.USBPacketKind.Handshake or pid == usb.USBPID.PRE:
+        pkt = usb.USBHandshakePacket(pid, speed=bus_speed)
+    else:
+        if pid == usb.USBPID.SPLIT:
+            addr = random.randint(0, 0x7F)
+            sc = random.choice((0, 1))
+            port = random.randint(0, 0x7F)
+            s = random.choice((0, 1))
+            e = random.choice((0, 1))
+            et = random.randint(0, 3)
+
+            pkt = usb.USBSplitPacket(pid, addr, sc, port, s, e, et, speed=bus_speed)
+        else: #EXT
+            addr = random.randint(0, 0x7F)
+            endp = random.randint(0, 0xF)
+            sub_pid = random.randint(0, 0xF)
+            variable = random.randint(0, 0x3FF)
+            pkt = usb.USBEXTPacket(pid, addr, endp, sub_pid, variable, speed=bus_speed)
+
+    return pkt
+
+
+
 class TestUSBFuncs(tsup.RandomSeededTestCase):
 
-        
+    #@unittest.skip('debug')        
     def test_usb_decode(self):
         self.test_name = 'USB transmission'
         self.trial_count = 70
@@ -57,46 +108,9 @@ class TestUSBFuncs(tsup.RandomSeededTestCase):
             
             packets = []
             for _ in xrange(packet_num):
-                pid = random.randint(0,15)
-                
-                if bus_speed == usb.USBSpeed.LowSpeed:
-                    # Never generate PRE on low-speed bus transmissions
-                    while pid == usb.USBPID.PRE:
-                        pid = random.randint(0,15)
-                        
-                packet_kind = usb._get_packet_kind(pid)
-                
-                if packet_kind == usb.USBPacketKind.Token or pid == usb.USBPID.PING:
-                    if pid != usb.USBPID.SOF:
-                        addr = random.randint(0, 0x7F)
-                        endp = random.randint(0, 0xF)
-                        pkt = usb.USBTokenPacket(pid, addr, endp, speed=bus_speed)
-                    else:
-                        addr = random.randint(0, 0x7F)
-                        pkt = usb.USBSOFPacket(pid, addr, speed=bus_speed)
-                elif packet_kind == usb.USBPacketKind.Data:
-                    data_len = random.randint(1, 10)
-                    data = [random.randint(0, 255) for d in xrange(data_len)]
-                    pkt = usb.USBDataPacket(pid, data, speed=bus_speed)
-                elif packet_kind == usb.USBPacketKind.Handshake or pid == usb.USBPID.PRE:
-                    pkt = usb.USBHandshakePacket(pid, speed=bus_speed)
-                else:
-                    if pid == usb.USBPID.SPLIT:
-                        addr = random.randint(0, 0x7F)
-                        sc = random.choice((0, 1))
-                        port = random.randint(0, 0x7F)
-                        s = random.choice((0, 1))
-                        e = random.choice((0, 1))
-                        et = random.randint(0, 3)
-                        pkt = usb.USBSplitPacket(pid, addr, sc, port, s, e, et, speed=bus_speed)
-                    else: #EXT
-                        addr = random.randint(0, 0x7F)
-                        endp = random.randint(0, 0xF)
-                        sub_pid = random.randint(0, 0xF)
-                        variable = random.randint(0, 0x3FF)
-                        pkt = usb.USBEXTPacket(pid, addr, endp, sub_pid, variable, speed=bus_speed)
-            
-                packets.append(pkt)
+
+                packets.append(_gen_random_usb_packet(bus_speed))
+                pid = packets[-1].pid
                 
                 if pid == usb.USBPID.PRE and bus_speed == usb.USBSpeed.FullSpeed:
                     # Add a Low-speed packet after the PREamble
@@ -212,4 +226,99 @@ class TestUSBFuncs(tsup.RandomSeededTestCase):
         for r in records[1:]:
             cur_frame += 1
             self.assertEqual(r.packet.frame_num, cur_frame, 'SOF frame_num not decoded properly')
-    
+
+    @unittest.skip('incomplete')
+    def test_usb_crc16(self):
+        import ripyl.util.bitops as bitops
+        self.test_name = 'USB CRC-16'
+        self.trial_count = 1
+        for i in xrange(self.trial_count):
+            self.update_progress(i+1)
+
+            #data_size = random.randint(1,30)
+            #data = [random.randint(0,255) for _ in xrange(data_size)]
+            data_size = 1
+            #data = [ord('h')]
+            data = [0, 0, 1, 0, 2, 0, 3, 0]
+
+            crc16 = bitops.join_bits(reversed(usb.usb_crc16(data)))
+            tcrc16 = bitops.join_bits(reversed(usb.table_usb_crc16(data)))
+            ncrc16 = bitops.join_bits(reversed(usb.new_crc16(data)))
+
+            if crc16 != tcrc16:
+                print('\nMismatch: {}, {}, {},  {}'.format(hex(crc16), hex(tcrc16), hex(ncrc16), data))
+
+            self.assertEqual(crc16, tcrc16, 'CRC-16 mismatch')
+
+
+    #@unittest.skip('debug')
+    def test_usb_field_offsets(self):
+        # This test exercises the field_offsets() code and verifies that the
+        # packet CRCs are in the right position
+        self.test_name = 'USB field offsets'
+        self.trial_count = 1000
+        for i in xrange(self.trial_count):
+            self.update_progress(i+1)
+        
+            bus_speed = random.choice((usb.USBSpeed.LowSpeed, usb.USBSpeed.FullSpeed, usb.USBSpeed.HighSpeed))
+            pkt = _gen_random_usb_packet(bus_speed, allow_preamble_pid=False, allow_ext_pid=False)
+            
+            #pkt = usb.USBTokenPacket(usb.USBPID.PING, 0x79, 0x7, 1)
+            #USBDataPacket(MData, [145, 145, 218, 206, 69, 160, 119], 1, 0.0)
+            #USBSOFPacket(SOF, 0x7a, 2, 0.0)
+            #pkt = usb.USBDataPacket(usb.USBPID.Data0, [123, 104, 182, 44, 238], 2, 0.0) # stuffing in CRC
+            #pkt = usb.USBTokenPacket(usb.USBPID.TokenIn, 0x7e, 0xf, 0, 0.0) # stuffing in CRC, bad adjustment
+
+
+            offsets = pkt.field_offsets(with_stuffing=False)
+            s_offsets = pkt.field_offsets(with_stuffing=True)
+
+            original_bits = pkt.get_bits()
+            stuffed_bits = pkt._bit_stuff(original_bits)
+            unstuffed_bits, stuffed_bit_indices, _ = usb._unstuff(stuffed_bits)
+            sop_bits = pkt.sop_bits();
+
+            if 'CRC16' in offsets:
+                crc = original_bits[-16:]
+
+                
+                s_crc_bounds = s_offsets['CRC16']
+                stuffed_crc = stuffed_bits[s_crc_bounds[0] + sop_bits:s_crc_bounds[1] + sop_bits + 1]
+
+                crc_bounds = offsets['CRC16']
+                unstuffed_crc = unstuffed_bits[crc_bounds[0] + sop_bits:crc_bounds[1] + sop_bits + 1]
+                #print('CRC-16', crc, unstuffed_crc, stuffed_crc, crc_bounds, s_crc_bounds)
+                #print('  bits:', original_bits)
+                #print('s bits:', stuffed_bits)
+                #print('u bits:', unstuffed_bits)
+
+            elif 'CRC5' in offsets:
+                crc = original_bits[-5:]
+
+                s_crc_bounds = s_offsets['CRC5']
+                stuffed_crc = stuffed_bits[s_crc_bounds[0] + sop_bits:s_crc_bounds[1] + sop_bits + 1]
+
+                crc_bounds = offsets['CRC5']
+                unstuffed_crc = unstuffed_bits[crc_bounds[0] + sop_bits:crc_bounds[1] + sop_bits + 1]
+
+                #print('CRC-5', crc, unstuffed_crc, stuffed_crc, crc_bounds, s_crc_bounds)
+                #print('  bits:', original_bits)
+                #print('s bits:', stuffed_bits)
+                #print('u bits:', unstuffed_bits)
+
+                #stuff_pos = pkt._bit_stuff_offsets(pkt.get_bits())
+                #print('stuff pos', stuff_pos)
+                #unstuffed_offsets = pkt.field_offsets()
+                #print('unstuffed offsets', unstuffed_offsets)
+                #adj_offsets = dbg_adjust_stuffing(pkt, pkt.field_offsets())
+                #print('adj offsets', adj_offsets)
+            else:
+                continue
+
+            self.assertEqual(crc, unstuffed_crc, 'unstuffed CRC mismatch')
+
+            if s_crc_bounds[1] - s_crc_bounds[0] == crc_bounds[1] - crc_bounds[0]:
+                # No stuffing in CRC itself
+                self.assertEqual(crc, stuffed_crc, 'stuffed CRC mismatch')
+
+
