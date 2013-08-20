@@ -134,16 +134,9 @@ def i2c_decode(scl, sda, logic_levels=None, stream_type=StreamType.Samples):
     
     if stream_type == StreamType.Samples:
         if logic_levels is None:
-            # tee off an iterator to determine logic thresholds
-            s_scl_it, thresh_it = itertools.tee(scl)
-            
-            logic_levels = find_logic_levels(thresh_it)
-            if logic_levels is None:
-                raise AutoLevelError
-            del thresh_it
+            s_scl_it, logic_levels = check_logic_levels(scl)
         else:
             s_scl_it = scl
-    
         
         hyst = 0.4
         scl_it = find_edges(s_scl_it, logic_levels, hysteresis=hyst)
@@ -413,7 +406,7 @@ def reconstruct_i2c_transfers(records):
         yield tfer
 
 
-def i2c_synth(transfers, clock_freq, idle_start=0.0, idle_end=0.0):
+def i2c_synth(transfers, clock_freq, idle_start=0.0, transfer_interval=0.0, idle_end=0.0):
     '''Generate synthesized I2C waveforms
     
     This function simulates I2C transfers on the SCL and SDA signals.
@@ -427,6 +420,9 @@ def i2c_synth(transfers, clock_freq, idle_start=0.0, idle_end=0.0):
     
     idle_start (float)
         The amount of idle time before the transmission of transfers begins
+
+    transfer_interval (float)
+        The amount of time between transfers
     
     idle_end (float)
         The amount of idle time after the last transfer
@@ -438,13 +434,13 @@ def i2c_synth(transfers, clock_freq, idle_start=0.0, idle_end=0.0):
     '''
     # This is a wrapper around the actual synthesis code in _i2c_synth()
     # It unzips the yielded tuple and removes unwanted artifact edges
-    scl, sda = itertools.izip(*_i2c_synth(transfers, clock_freq, idle_start, idle_end))
+    scl, sda = itertools.izip(*_i2c_synth(transfers, clock_freq, idle_start, transfer_interval, idle_end))
     scl = remove_excess_edges(scl)
     sda = remove_excess_edges(sda)
     return scl, sda
 
 
-def _i2c_synth(transfers, clock_freq, idle_start=0.0, idle_end=0.0):
+def _i2c_synth(transfers, clock_freq, idle_start=0.0, transfer_interval=0.0, idle_end=0.0):
     '''Core I2C synthesizer
     
     This is a generator function.
@@ -497,6 +493,8 @@ def _i2c_synth(transfers, clock_freq, idle_start=0.0, idle_end=0.0):
             scl = 1
             yield ((t, scl), (t, sda))
             t += half_bit_period / 2.0
+
+        t += transfer_interval
             
     # generate stop after last transfer
     sda = 0

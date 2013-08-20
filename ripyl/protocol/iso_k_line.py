@@ -314,25 +314,16 @@ def iso_k_line_decode(stream, min_msg_gap=7.0e-3, logic_levels=None, stream_type
     Raises AutoLevelError if stream_type = Samples and the logic levels cannot
       be determined.
     '''
-    
 
     if stream_type == StreamType.Samples:
         if logic_levels is None:
-            # tee off an iterator to determine logic thresholds
-            samp_it, thresh_it = itertools.tee(stream)
-            
-            logic_levels = find_logic_levels(thresh_it)
-            if logic_levels is None:
-                raise AutoLevelError
-            del thresh_it
+            samp_it, logic_levels = check_logic_levels(stream)
         else:
             samp_it = stream
         
         edges = find_edges(samp_it, logic_levels, hysteresis=0.4)
     else: # the stream is already a list of edges
         edges = stream
-
-
 
     bits = 8
     parity = None

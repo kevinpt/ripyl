@@ -87,6 +87,25 @@ class StreamRecord(object):
 
     def __repr__(self):
         return 'StreamRecord(\'{0}\')'.format(self.kind)
+
+    def __eq__(self, other):
+        match = True
+        if self.kind != other.kind: match = False
+        if self.status != other.status: match = False
+        if self.stream_id != other.stream_id: match = False
+        if len(self.subrecords) != len(other.subrecords):
+            match = False
+        else:
+            for s, o in zip(self.subrecords, other.subrecords):
+                if s != o:
+                    match = False
+                    break
+
+        return match
+                
+
+    def __ne__(self, other):
+        return not self == other
     
 class StreamSegment(StreamRecord):
     '''A stream element that spans two points in time'''
@@ -117,6 +136,18 @@ class StreamSegment(StreamRecord):
     def end_time(self, value):
         self._end_time = value
 
+    def __eq__(self, other):
+        match = True
+        if not StreamRecord.__eq__(self, other): match = False
+        if self.start_time != other.start_time: match = False
+        if self.end_time != other.end_time: match = False
+        if self.data != other.data: match = False
+
+        return match
+
+    def __ne__(self, other):
+        return not self == other
+
 
 class StreamEvent(StreamRecord):
     '''A stream element that occurs at a specific point in time'''
@@ -128,6 +159,18 @@ class StreamEvent(StreamRecord):
     def __repr__(self):
         return 'StreamEvent({0}, {1}, \'{2}\')'.format(self.time, \
             repr(self.data), self.kind)
+
+    def __eq__(self, other):
+        match = True
+        if not StreamRecord.__eq__(self, other): match = False
+        if self.time != other.time: match = False
+        if self.data != other.data: match = False
+
+        return match
+
+    def __ne__(self, other):
+        return not self == other
+
 
 
 def save_stream(records, fh):

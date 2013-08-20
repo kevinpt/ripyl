@@ -321,7 +321,9 @@ def quantize(samples, full_scale, bits=8):
         An iterable sample stream of (time, value) pairs.
         
     full_scale (float)
-        The full scale range for the signal. 
+        The full scale range for digitizer being emulated. For example,
+        a scope with 8 vertical divisions set at 2V/div. will have a
+        full scale range of 2V*8 = 16V
     
     bits (int)
         The number of bits to quantize to

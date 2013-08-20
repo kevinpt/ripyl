@@ -267,6 +267,7 @@ def usb_plot(channels, records, title='', label_format='text', save_file=None, f
                 size='small', ha='center', color='black', weight='bold')            
 
     ann_ax.set_ylim(dm_b['ovl_bot'] * 1.05, dm_b['ovl_top'] * 1.05)
+    ann_ax.set_xlim(dm_t[0], dm_t[-1])
     
     plt.tight_layout()
     plt.subplots_adjust(bottom=0.12)
@@ -381,6 +382,7 @@ def spi_plot(channels, records, title='', label_format='text', save_file=None, f
 
 
     ann_ax.set_ylim(data_io_b['ovl_bot'] * 1.05, data_io_b['ovl_top'] * 1.05)
+    ann_ax.set_xlim(data_io_t[0], data_io_t[-1])
 
     plt.tight_layout()
     plt.subplots_adjust(bottom=0.12)
@@ -504,6 +506,7 @@ def i2c_plot(channels, records, title='', label_format='text', save_file=None, f
 
 
     ax2.set_ylim(sda_b['ovl_bot'] * 1.05, sda_b['ovl_top'] * 1.05)
+    ax2.set_xlim(sda_t[0], sda_t[-1])
 
     plt.tight_layout()
     plt.subplots_adjust(bottom=0.12)
@@ -601,6 +604,7 @@ def uart_plot(samples, records, title='', label_format='text', save_file=None, f
     # Plot the waveform
     plt.plot(t, wf)
     plt.ylim(ovl_bot * 1.05, ovl_top * 1.05)
+    plt.xlim(t[0], t[-1])
 
     plt.tight_layout()
     plt.subplots_adjust(bottom=0.12)
@@ -714,6 +718,7 @@ def ps2_plot(channels, records, title='', label_format='text', save_file=None, f
 
 
     ax2.set_ylim(data_b['ovl_bot'] * 1.05, data_b['ovl_top'] * 1.05)
+    ax2.set_xlim(data_t[0], data_t[-1])
 
     plt.tight_layout()
     plt.subplots_adjust(bottom=0.12)
@@ -818,6 +823,7 @@ def iso_k_line_plot(samples, records, title='', label_format='text', save_file=N
     # Plot the waveform
     plt.plot(t, wf)
     plt.ylim(kline_b['ovl_bot'] * 1.05, kline_b['ovl_top'] * 1.05)
+    plt.xlim(t[0], t[-1])
 
     plt.tight_layout()
     plt.subplots_adjust(bottom=0.12)

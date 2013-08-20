@@ -956,19 +956,15 @@ def usb_decode(dp, dm, logic_levels=None, stream_type=StreamType.Samples):
         
     Yields a series of USBStreamPacket and USBStreamError objects
     
-    Raises StreamError if stream_type = Samples and the logic levels cannot
-      be determined. Also if the bus speed cannot be determined.
+    Raises AutoLevelError if stream_type = Samples and the logic levels cannot
+      be determined.
+
+    Raises StreamError if the bus speed cannot be determined.
     '''
     
     if stream_type == StreamType.Samples:
         if logic_levels is None:
-            # tee off an iterator to determine logic thresholds
-            s_dp_it, thresh_it = itertools.tee(dp)
-            
-            logic_levels = find_logic_levels(thresh_it)
-            if logic_levels is None:
-                raise AutoLevelError
-            del thresh_it
+            s_dp_it, logic_levels = check_logic_levels(dp)
         else:
             s_dp_it = dp
 
@@ -1037,19 +1033,15 @@ def usb_diff_decode(d_diff, logic_levels=None, stream_type=StreamType.Samples):
         
     Yields a series of USBStreamPacket and USBStreamError objects
     
-    Raises StreamError if stream_type = Samples and the logic levels cannot
-      be determined. Also if the bus speed cannot be determined.
+    Raises AutoLevelError if stream_type = Samples and the logic levels cannot
+      be determined.
+
+    Raises StreamError if the bus speed cannot be determined.
     '''
     
     if stream_type == StreamType.Samples:
         if logic_levels is None:
-            # tee off an iterator to determine logic thresholds
-            s_diff_it, thresh_it = itertools.tee(d_diff)
-            
-            logic_levels = find_logic_levels(thresh_it)
-            if logic_levels is None:
-                raise AutoLevelError
-            del thresh_it
+            s_diff_it, logic_levels = check_logic_levels(d_diff)
         else:
             s_diff_it = d_diff
 
@@ -1117,19 +1109,13 @@ def usb_hsic_decode(strobe, data, logic_levels=None, stream_type=StreamType.Samp
         
     Yields a series of USBStreamPacket and USBStreamError objects
     
-    Raises StreamError if stream_type = Samples and the logic levels cannot
+    Raises AutoLevelError if stream_type = Samples and the logic levels cannot
       be determined.
     '''
     
     if stream_type == StreamType.Samples:
         if logic_levels is None:
-            # tee off an iterator to determine logic thresholds
-            s_stb_it, thresh_it = itertools.tee(strobe)
-            
-            logic_levels = find_logic_levels(thresh_it)
-            if logic_levels is None:
-                raise AutoLevelError
-            del thresh_it
+            s_stb_it, logic_levels = check_logic_levels(strobe)
         else:
             s_stb_it = strobe
 
@@ -2006,6 +1992,10 @@ def usb_crc16(d):
         
     Returns array of integers for each bit in the CRC with LSB first
     '''
+    # Note: The input is a series of bits from reflected bytes (LSB first).
+    # The output is in the LSB-first order needed for serial transmission
+    # so a final reflection of the result is not needed.
+
     poly = 0x8005  # USB CRC-16 polynomial
     sreg = 0xffff  # prime register with 1's
     mask = 0xffff

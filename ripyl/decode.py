@@ -25,15 +25,14 @@ from __future__ import print_function, division
 
 import numpy as np
 import scipy as sp
-#import scipy.stats
 import math
 import collections
 import itertools
 
 from ripyl.util.stats import OnlineStats
-from ripyl.streaming import StreamError
+from ripyl.streaming import StreamError, AutoLevelError
 
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 
 def gen_histogram(raw_samples, bins, use_kde=False, kde_bw=0.05):
@@ -56,6 +55,8 @@ def gen_histogram(raw_samples, bins, use_kde=False, kde_bw=0.05):
     
     Returns a tuple (hist, bin_centers) containing lists of the histogram bins and
       the center value of each bin.
+
+    Raises ValueError if a KDE cannot be constructed
     '''
     if not use_kde:
         hist, bin_edges = np.histogram(raw_samples, bins=bins)
@@ -191,12 +192,13 @@ def find_hist_peaks(hist):
     
     #print('@@@@@ t2', t2, pop_mean, os.std(ddof=1))
     
-    # plt.plot(hist)
-    # plt.axhline(t1, color='k')
-    # plt.axhline(t2, color='g')
-    # plt.axhline(pop_mean, color='r')
-    # plt.axhline(os.mean(), color='y')
-    # plt.show()
+    if False:
+        plt.plot(hist)
+        plt.axhline(t1, color='k')
+        plt.axhline(t2, color='g')
+        plt.axhline(pop_mean, color='r')
+        plt.axhline(os.mean(), color='y')
+        plt.show()
     # plt.clf()
     
     # t2 is the threshold we will use to classify a bin as part of a peak
@@ -273,6 +275,12 @@ def find_logic_levels(samples, max_samples=20000, buf_size=2000):
     and low logic levels. Less than max_samples may be consumed if an edge
     is found and the remaining half of the buffer is filled before the
     max_samples threshold is reached.
+
+    Warning: this function is insensitive to any edge transition that
+    occurs within the first 100 samples. If the distribution of samples
+    is heavily skewed toward one level over the other None may be returned.
+    To be reliable, a set of samples should contain more than one edge or
+    a solitary edge after the 400th sample.
     
     samples (sequence of (float, number) tuples)
         An iterable representing a sequence of samples. Each sample is a
@@ -289,6 +297,7 @@ def find_logic_levels(samples, max_samples=20000, buf_size=2000):
         
     Returns a 2-tuple (low, high) representing the logic levels of the samples
     Returns None if less than two peaks are found in the sample histogram.
+
     '''
 
     # Get a minimal pool of samples containing both logic levels
@@ -437,7 +446,7 @@ def find_logic_levels(samples, max_samples=20000, buf_size=2000):
     #plt.plot(rev_mvavg)
     #plt.axhline(noise_threshold, color='r')
     #plt.axhline(edge_threshold, color='g')
-    
+    #plt.plot(buf)
     #plt.show()
     
     # If we didn't see any edges in the buffered sample data then abort
@@ -445,8 +454,56 @@ def find_logic_levels(samples, max_samples=20000, buf_size=2000):
     if state != S_FINISH_BUF:
         return None
 
-    return find_bot_top_hist_peaks(buf, 100, use_kde=True)
+    try:
+        logic_levels = find_bot_top_hist_peaks(buf, 100, use_kde=True)
+    except ValueError:
+        return None
 
+    #print('%%% logic_levels', logic_levels)
+
+    return logic_levels
+
+
+
+def check_logic_levels(samples, max_samples=20000, buf_size=2000):
+    '''Automatically determine the logic levels of a digital signal.
+
+    This is a wrapper for find_logic_levels() that handles teeing off
+    a buffered sample stream and raising AutoLevelError when detection
+    fails.
+
+    samples (iterator of (float, number) tuples)
+        An iterable representing a sequence of samples. Each sample is a
+        2-tuple representing the time of the sample and the sample's value.
+        This iterator is internally tee'd and becomes invalidated for further
+        use. The return value includes a new sample stream to retrieve samples
+        from.
+
+    max_samples (int)
+        The maximum number of samples to consume from the samples iterable.
+        This should be at least 2x buf_size and will be coerced to that value
+        if it is less.
+        
+    buf_size (int)
+        The maximum size of the sample buffer to analyze for logic levels.
+        This should be less than max_samples. 
+    
+    Returns a 2-tuple (sample steam, logic_levels) representing the buffered sample
+      stream and a tuple of the detected logic levels of the samples.
+
+    Raises AutoLevelError if less than two peaks are found in the sample histogram.
+    '''
+
+    # tee off an iterator to determine logic thresholds
+    samp_it, thresh_it = itertools.tee(samples)
+    
+    logic_levels = find_logic_levels(thresh_it, max_samples, buf_size)
+    del thresh_it
+
+    if logic_levels is None:
+        raise AutoLevelError
+
+    return samp_it, logic_levels
     
 
 def find_edges(samples, logic, hysteresis=0.4):

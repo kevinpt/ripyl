@@ -318,6 +318,18 @@ def demo_spi(options):
     # Synthesize the waveform edge stream
     # This can be fed directly into spi_decode() if an analog waveform is not needed
     clk, data_io, cs = spi.spi_synth(byte_msg, word_size, clock_freq, cpol, cpha)
+
+    idle_start = 1.0e-6
+    pkt_gap = 2.0e-6
+    pkt1 = bytearray('SPI 1'.encode('latin1'))
+    clk1, data_io1, cs1 = spi.spi_synth(pkt1, word_size, clock_freq, cpol, cpha, idle_start=idle_start)
+
+    pkt2 = bytearray('SPI 2'.encode('latin1'))
+    clk2, data_io2, cs2 = spi.spi_synth(pkt2, word_size, clock_freq, cpol, cpha)
+
+    clk = sigp.chain(2.0e-6, clk1, clk2)
+    data_io = sigp.chain(2.0e-6, data_io1, data_io2)
+    cs = sigp.chain(2.0e-6, cs1, cs2)
     
     # Convert to a sample stream with band-limited edges and noise
     cln_clk_it = sigp.synth_wave(clk, sample_rate, rise_time)
@@ -403,15 +415,20 @@ def demo_i2c(options):
     
     message = options.msg
     byte_msg = bytearray(message.encode('latin1')) # Get raw bytes as integers
+
+    pkt1 = bytearray('I2C 1'.encode('latin1'))
+    pkt2 = bytearray('I2C 2'.encode('latin1'))
     
     transfers = []
-    transfers.append(i2c.I2CTransfer(i2c.I2C.Write, 0x42, byte_msg))
+    transfers.append(i2c.I2CTransfer(i2c.I2C.Write, 0x42, pkt1))
+    transfers.append(i2c.I2CTransfer(i2c.I2C.Read, 0x42, pkt2))
     
     
     # Synthesize the waveform edge stream
     # This can be fed directly into i2c_decode() if an analog waveform is not needed
-    scl, sda = i2c.i2c_synth(transfers, clock_freq, idle_start=3.0e-5, idle_end=3.0e-5)
-    
+    scl, sda = i2c.i2c_synth(transfers, clock_freq, idle_start=3.0e-5, transfer_interval=3.0e-5, idle_end=3.0e-5)
+
+       
     # Convert to a sample stream with band-limited edges and noise
     cln_scl_it = sigp.synth_wave(scl, sample_rate, rise_time)
     cln_sda_it = sigp.synth_wave(sda, sample_rate, rise_time)
@@ -495,16 +512,26 @@ def demo_uart(options):
     
     message = options.msg
 
+    message = 'UART 1'
     byte_msg = bytearray(message.encode('latin1')) # Get raw bytes as integers
     
     # Synthesize the waveform edge stream
     # This can be fed directly into uart_decode() if an analog waveform is not needed
     edges_it = uart.uart_synth(byte_msg, bits, baud, parity, stop_bits, idle_start=8.0 / baud, idle_end=8.0 / baud)
+
+
+    message2 = 'UART 2'
+    byte_msg2 = bytearray(message2.encode('latin1')) # Get raw bytes as integers
+    
+    edges2_it = uart.uart_synth(byte_msg2, bits, baud, parity, stop_bits, idle_start=8.0 / baud, idle_end=8.0 / baud)
+
+    edges_it = sigp.chain(0.0, edges_it, edges2_it)
+
     
     # Convert to a sample stream with band-limited edges and noise
     clean_samples_it = sigp.synth_wave(edges_it, sample_rate, rise_time)
     
-    noisy_samples_it = sigp.quantize(sigp.amplify(sigp.noisify(clean_samples_it, snr_db=noise_snr), gain=15.0, offset=-5), 50.0)
+    noisy_samples_it = sigp.quantize(sigp.amplify(sigp.noisify(clean_samples_it, snr_db=noise_snr), gain=30.0, offset=-15), 200.0)
     if options.dropout is not None:
         noisy_samples_it = sigp.dropout(noisy_samples_it, options.dropout[0], options.dropout[1], options.dropout_level)
     
@@ -582,8 +609,12 @@ def demo_ps2(options):
     noise_snr = options.snr_db
     
     message = options.msg
+    message = '2hst 2dev'
     byte_msg = bytearray(message.encode('latin1')) # Get raw bytes as integers
     direction = [random.choice([ps2.PS2Dir.DeviceToHost, ps2.PS2Dir.HostToDevice]) for b in byte_msg]
+    direction = [ps2.PS2Dir.DeviceToHost] * 4
+    direction.extend([ps2.PS2Dir.HostToDevice] * 5)
+
 
 
     # Synthesize the waveform edge stream
@@ -671,16 +702,16 @@ def demo_iso_k_line(options):
         [0x48, 0x6B, 0xD1, 0x41, 0x00, 0xBE, 0x1E, 0x90, 0x11, 0x42],
 
         # ISO14230 supported PIDs
-        [0x82, 0xD1, 0xF1, 0x01, 0x00, 0x45],
-        [0x86, 0xF1, 0xD1, 0x41, 0x00, 0x01, 0x02, 0x03, 0x04, 0x93],
+        #[0x82, 0xD1, 0xF1, 0x01, 0x00, 0x45],
+        #[0x86, 0xF1, 0xD1, 0x41, 0x00, 0x01, 0x02, 0x03, 0x04, 0x93],
 
         # ISO14230 supported PIDs (4-byte header)
-        [0x80, 0x02, 0xD1, 0xF1, 0x01, 0x00, 0x45],
-        [0x80, 0x06, 0xF1, 0xD1, 0x41, 0x00, 0x01, 0x02, 0x03, 0x04, 0x93],
+        #[0x80, 0x02, 0xD1, 0xF1, 0x01, 0x00, 0x45],
+        #[0x80, 0x06, 0xF1, 0xD1, 0x41, 0x00, 0x01, 0x02, 0x03, 0x04, 0x93],
 
         # Sagem proprietary SID
-        [0x68, 0x6A, 0xF1, 0x22, 0x00, 0x1A, 0xFF],
-        [0x48, 0x6B, 0xD1, 0x62, 0x00, 0x1A, 0x00, 0x35, 0x35]
+        #[0x68, 0x6A, 0xF1, 0x22, 0x00, 0x1A, 0xFF],
+        #[0x48, 0x6B, 0xD1, 0x62, 0x00, 0x1A, 0x00, 0x35, 0x35]
     ]    
 
 

@@ -91,18 +91,12 @@ def spi_decode(clk, data_io, cs=None, cpol=0, cpha=0, lsb_first=True, logic_leve
 
     Yields a series of SPIFrame objects.
       
-    Raises StreamError if stream_type = Samples and the logic levels cannot
+    Raises AutoLevelError if stream_type = Samples and the logic levels cannot
       be determined.
     '''
     if stream_type == StreamType.Samples:
         if logic_levels is None:
-            # tee off an iterator to determine logic thresholds
-            s_clk_it, thresh_it = itertools.tee(clk)
-            
-            logic_levels = find_logic_levels(thresh_it)
-            if logic_levels is None:
-                raise AutoLevelError
-            del thresh_it
+            s_clk_it, logic_levels = check_logic_levels(clk)
         else:
             s_clk_it = clk
         

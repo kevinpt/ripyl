@@ -141,13 +141,7 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, pola
     
     if stream_type == StreamType.Samples:
         if logic_levels is None:
-            # tee off an iterator to determine logic thresholds
-            samp_it, thresh_it = itertools.tee(stream)
-            
-            logic_levels = find_logic_levels(thresh_it)
-            if logic_levels is None:
-                raise AutoLevelError
-            del thresh_it
+            samp_it, logic_levels = check_logic_levels(stream)
         else:
             samp_it = stream
         

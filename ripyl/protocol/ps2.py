@@ -97,19 +97,13 @@ def ps2_decode(clk, data, logic_levels=None, stream_type=StreamType.Samples):
 
     Yields a series of PS2Frame objects.
       
-    Raises StreamError if stream_type = Samples and the logic levels cannot
+    Raises AutoLevelError if stream_type = Samples and the logic levels cannot
       be determined.
     '''
 
     if stream_type == StreamType.Samples:
         if logic_levels is None:
-            # tee off an iterator to determine logic thresholds
-            s_clk_it, thresh_it = itertools.tee(clk)
-            
-            logic_levels = find_logic_levels(thresh_it)
-            if logic_levels is None:
-                raise AutoLevelError
-            del thresh_it
+            s_clk_it, logic_levels = check_logic_levels(clk)
         else:
             s_clk_it = clk
         
