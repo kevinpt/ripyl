@@ -5,7 +5,7 @@
 import ripyl.util
 import ripyl.protocol
 
-__version__ = '1.0'
+__version__ = '1.0.1'
 
 
 import ripyl.sigproc
