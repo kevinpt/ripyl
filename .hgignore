@@ -1,0 +1,17 @@
+syntax: glob
+
+*.pyc
+*~
+
+_build
+build
+dist
+
+ref
+foo
+dev_scripts
+ripyl.egg-info
+no-dist
+test-reports
+
+MANIFEST
