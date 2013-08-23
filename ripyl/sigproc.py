@@ -78,7 +78,7 @@ def samples_to_chunked_sample_stream(raw_samples, sample_period, chunk_size=1000
     '''
     t = start_time
     for i in xrange(0, len(raw_samples), chunk_size):
-        chunk = raw_samples[i:i + chunk_size]
+        chunk = np.asarray(raw_samples[i:i + chunk_size], dtype=float)
         sc = StreamChunk(chunk, t, sample_period)
 
         yield sc

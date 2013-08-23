@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>protocol Package &mdash; Ripyl 1.0 documentation</title>
+    <title>protocol Package &mdash; Ripyl 1.0.1 documentation</title>
     
     <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0',
+        VERSION:     '1.0.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="Ripyl 1.0 documentation" href="../index.html" />
+    <link rel="top" title="Ripyl 1.0.1 documentation" href="../index.html" />
     <link rel="up" title="ripyl Package" href="ripyl.html" />
     <link rel="next" title="util Package" href="ripyl.util.html" />
     <link rel="prev" title="ripyl Package" href="ripyl.html" /> 
@@ -46,7 +46,7 @@
         <li class="right" >
           <a href="ripyl.html" title="ripyl Package"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Ripyl 1.0.1 documentation</a> &raquo;</li>
           <li><a href="modules.html" >ripyl</a> &raquo;</li>
           <li><a href="ripyl.html" accesskey="U">ripyl Package</a> &raquo;</li> 
       </ul>
@@ -199,7 +199,7 @@ be determined automatically.</p>
 
 <dl class="function">
 <dt id="ripyl.protocol.i2c.i2c_synth">
-<tt class="descclassname">ripyl.protocol.i2c.</tt><tt class="descname">i2c_synth</tt><big>(</big><em>transfers</em>, <em>clock_freq</em>, <em>idle_start=0.0</em>, <em>idle_end=0.0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.i2c.i2c_synth" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ripyl.protocol.i2c.</tt><tt class="descname">i2c_synth</tt><big>(</big><em>transfers</em>, <em>clock_freq</em>, <em>idle_start=0.0</em>, <em>transfer_interval=0.0</em>, <em>idle_end=0.0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.i2c.i2c_synth" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate synthesized I2C waveforms</p>
 <p>This function simulates I2C transfers on the SCL and SDA signals.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -211,6 +211,7 @@ be determined automatically.</p>
 <li><strong>clock_freq</strong> (<em>float</em>) &#8211; Clock frequency for the I2C bus. Standard rates are 100kHz (100.0e3)
 and 400kHz (400.0e3) but any frequency can be specified.</li>
 <li><strong>idle_start</strong> (<em>float</em>) &#8211; The amount of idle time before the transmission of transfers begins</li>
+<li><strong>transfer_interval</strong> (<em>float</em>) &#8211; The amount of time between transfers</li>
 <li><strong>idle_end</strong> (<em>float</em>) &#8211; The amount of idle time after the last transfer</li>
 </ul>
 </td>
@@ -640,7 +641,8 @@ I2CTransfer objects produced by i2c_decode() or reconstruct_i2c_transfers() resp
 <dl class="attribute">
 <dt id="ripyl.protocol.obd2.OBD2Message.end_time">
 <tt class="descname">end_time</tt><a class="headerlink" href="#ripyl.protocol.obd2.OBD2Message.end_time" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Message end time</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="ripyl.protocol.obd2.OBD2Message.raw_data">
@@ -659,7 +661,8 @@ I2CTransfer objects produced by i2c_decode() or reconstruct_i2c_transfers() resp
 <dl class="attribute">
 <dt id="ripyl.protocol.obd2.OBD2Message.start_time">
 <tt class="descname">start_time</tt><a class="headerlink" href="#ripyl.protocol.obd2.OBD2Message.start_time" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Message start time</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -693,12 +696,14 @@ I2CTransfer objects produced by i2c_decode() or reconstruct_i2c_transfers() resp
 <dl class="attribute">
 <dt id="ripyl.protocol.obd2.OBD2StreamMessage.end_time">
 <tt class="descname">end_time</tt><a class="headerlink" href="#ripyl.protocol.obd2.OBD2StreamMessage.end_time" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Message end time</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="ripyl.protocol.obd2.OBD2StreamMessage.start_time">
 <tt class="descname">start_time</tt><a class="headerlink" href="#ripyl.protocol.obd2.OBD2StreamMessage.start_time" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Message start time</p>
+</dd></dl>
 
 <dl class="classmethod">
 <dt id="ripyl.protocol.obd2.OBD2StreamMessage.status_text">
@@ -905,7 +910,7 @@ or Edges</li>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An iterator yielding  a series of PS2Frame objects.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first last">StreamError if stream_type = Samples and the logic levels cannot
+<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first last">AutoLevelError if stream_type = Samples and the logic levels cannot
 be determined.</p>
 </td>
 </tr>
@@ -953,9 +958,25 @@ yielded is the initial state of the waveforms.</p>
 The Sagem decode functions will be registered with the OBD-2 decoder
 and are accessed through obd2.decode_obd2_command().</p>
 <dl class="function">
-<dt id="ripyl.protocol.sagem_ecu.decode_sag_msg">
-<tt class="descclassname">ripyl.protocol.sagem_ecu.</tt><tt class="descname">decode_sag_msg</tt><big>(</big><em>sid</em>, <em>pid_table</em>, <em>pid_size</em>, <em>msg_type</em>, <em>raw_data</em><big>)</big><a class="headerlink" href="#ripyl.protocol.sagem_ecu.decode_sag_msg" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="ripyl.protocol.sagem_ecu.decode_sagem_msg">
+<tt class="descclassname">ripyl.protocol.sagem_ecu.</tt><tt class="descname">decode_sagem_msg</tt><big>(</big><em>sid</em>, <em>pid_table</em>, <em>pid_size</em>, <em>msg_type</em>, <em>raw_data</em><big>)</big><a class="headerlink" href="#ripyl.protocol.sagem_ecu.decode_sagem_msg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decode SAGEM message with one or two byte PIDs</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>sid</strong> (<em>int</em>) &#8211; The message SID</li>
+<li><strong>pid_table</strong> (<em>dict of PIDTableEntry</em>) &#8211; A dict associating PIDs with decode information</li>
+<li><strong>pid_size</strong> (<em>int</em>) &#8211; The number of bytes in the PID: 1 or 2</li>
+<li><strong>msg_type</strong> (<em>OBD2MsgType</em>) &#8211; Request or response message</li>
+<li><strong>raw_data</strong> (<em>sequence of ints</em>) &#8211; Bytes for the message</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </div>
 <div class="section" id="module-ripyl.protocol.spi">
@@ -1003,7 +1024,7 @@ or Edges</li>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An iterator yielding  a series of SPIFrame objects.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first last">StreamError if stream_type = Samples and the logic levels cannot
+<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first last">AutoLevelError if stream_type = Samples and the logic levels cannot
 be determined.</p>
 </td>
 </tr>
@@ -1463,6 +1484,12 @@ relative to the end of SOP.</td>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="ripyl.protocol.usb.USBPacket.sop_bits">
+<tt class="descname">sop_bits</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.protocol.usb.USBPacket.sop_bits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return number of SOP bits in packet</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -1785,8 +1812,11 @@ or Edges</li>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An iterator yielding  a series of USBStreamPacket and USBStreamError objects</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first last">StreamError if stream_type = Samples and the logic levels cannot
-be determined. Also if the bus speed cannot be determined.</p>
+<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first">AutoLevelError if stream_type = Samples and the logic levels cannot
+be determined.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises :</th><td class="field-body"><p class="first last">StreamError if the bus speed cannot be determined.</p>
 </td>
 </tr>
 </tbody>
@@ -1825,8 +1855,11 @@ or Edges</li>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An iterator yielding  a series of USBStreamPacket and USBStreamError objects</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first last">StreamError if stream_type = Samples and the logic levels cannot
-be determined. Also if the bus speed cannot be determined.</p>
+<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first">AutoLevelError if stream_type = Samples and the logic levels cannot
+be determined.</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises :</th><td class="field-body"><p class="first last">StreamError if the bus speed cannot be determined.</p>
 </td>
 </tr>
 </tbody>
@@ -1894,7 +1927,7 @@ or Edges</li>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An iterator yielding  a series of USBStreamPacket and USBStreamError objects</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first last">StreamError if stream_type = Samples and the logic levels cannot
+<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first last">AutoLevelError if stream_type = Samples and the logic levels cannot
 be determined.</p>
 </td>
 </tr>
@@ -2094,7 +2127,7 @@ will SOF packets.</td>
         <li class="right" >
           <a href="ripyl.html" title="ripyl Package"
              >previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Ripyl 1.0.1 documentation</a> &raquo;</li>
           <li><a href="modules.html" >ripyl</a> &raquo;</li>
           <li><a href="ripyl.html" >ripyl Package</a> &raquo;</li> 
       </ul>

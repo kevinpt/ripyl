@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>ripyl Package &mdash; Ripyl 1.0 documentation</title>
+    <title>ripyl Package &mdash; Ripyl 1.0.1 documentation</title>
     
     <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0',
+        VERSION:     '1.0.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="Ripyl 1.0 documentation" href="../index.html" />
+    <link rel="top" title="Ripyl 1.0.1 documentation" href="../index.html" />
     <link rel="up" title="ripyl" href="modules.html" />
     <link rel="next" title="protocol Package" href="ripyl.protocol.html" />
     <link rel="prev" title="ripyl" href="modules.html" /> 
@@ -46,7 +46,7 @@
         <li class="right" >
           <a href="modules.html" title="ripyl"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Ripyl 1.0.1 documentation</a> &raquo;</li>
           <li><a href="modules.html" accesskey="U">ripyl</a> &raquo;</li> 
       </ul>
     </div>  
@@ -210,6 +210,42 @@ the state of all channels is returned as a list.</td>
 </dd></dl>
 
 <dl class="function">
+<dt id="ripyl.decode.check_logic_levels">
+<tt class="descclassname">ripyl.decode.</tt><tt class="descname">check_logic_levels</tt><big>(</big><em>samples</em>, <em>max_samples=20000</em>, <em>buf_size=2000</em><big>)</big><a class="headerlink" href="#ripyl.decode.check_logic_levels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Automatically determine the logic levels of a digital signal.</p>
+<p>This is a wrapper for find_logic_levels() that handles teeing off
+a buffered sample stream and raising AutoLevelError when detection
+fails.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>samples</strong> (<em>iterator of (float, number) tuples</em>) &#8211; An iterable representing a sequence of samples. Each sample is a
+2-tuple representing the time of the sample and the sample&#8217;s value.
+This iterator is internally tee&#8217;d and becomes invalidated for further
+use. The return value includes a new sample stream to retrieve samples
+from.</li>
+<li><strong>max_samples</strong> (<em>int</em>) &#8211; The maximum number of samples to consume from the samples iterable.
+This should be at least 2x buf_size and will be coerced to that value
+if it is less.</li>
+<li><strong>buf_size</strong> (<em>int</em>) &#8211; The maximum size of the sample buffer to analyze for logic levels.
+This should be less than max_samples.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A 2-tuple (sample steam, logic_levels) representing the buffered sample
+stream and a tuple of the detected logic levels of the samples.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first last">AutoLevelError if less than two peaks are found in the sample histogram.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="ripyl.decode.find_bot_top_hist_peaks">
 <tt class="descclassname">ripyl.decode.</tt><tt class="descname">find_bot_top_hist_peaks</tt><big>(</big><em>raw_samples</em>, <em>bins</em>, <em>use_kde=False</em>, <em>kde_bw=0.05</em><big>)</big><a class="headerlink" href="#ripyl.decode.find_bot_top_hist_peaks" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the bottom and top peaks in a histogram of data sample magnitudes.
@@ -352,6 +388,11 @@ to build a buffer containing a representative set of samples at high
 and low logic levels. Less than max_samples may be consumed if an edge
 is found and the remaining half of the buffer is filled before the
 max_samples threshold is reached.</p>
+<p>Warning: this function is insensitive to any edge transition that
+occurs within the first 100 samples. If the distribution of samples
+is heavily skewed toward one level over the other None may be returned.
+To be reliable, a set of samples should contain more than one edge or
+a solitary edge after the 400th sample.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -449,8 +490,11 @@ synthetic data sets lacking noise.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A tuple (hist, bin_centers) containing lists of the histogram bins and
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A tuple (hist, bin_centers) containing lists of the histogram bins and
 the center value of each bin.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first last">ValueError if a KDE cannot be constructed</p>
 </td>
 </tr>
 </tbody>
@@ -519,6 +563,22 @@ tuples are detected edges.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="ripyl.sigproc.approximate_bandwidth">
+<tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">approximate_bandwidth</tt><big>(</big><em>rise_time</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.approximate_bandwidth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine an approximate bandwidth for a signal with a known rise time</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>rise_time</strong> (<em>float</em>) &#8211; A rise time to compute bandwidth from</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The bandwidth for the rise time.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="ripyl.sigproc.chain">
 <tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">chain</tt><big>(</big><em>stream_gap_time</em>, <em>*streams</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.chain" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combine a sequence of streams together.</p>
@@ -577,7 +637,7 @@ repacing samples with a fixed value.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>edges</strong> (<em>sequence of (float, int) tuples</em>) &#8211; An edge stream to sample</li>
-<li><strong>sample_rate</strong> (<em>float</em>) &#8211; The sample rate for converting the edge stream</li>
+<li><strong>sample_period</strong> (<em>float</em>) &#8211; The sample period for converting the edge stream</li>
 <li><strong>end_extension</strong> (<em>float</em>) &#8211; Optional amount of time to add to the end after the last edge transition</li>
 </ul>
 </td>
@@ -639,6 +699,26 @@ inverted.</td>
 </dd></dl>
 
 <dl class="function">
+<dt id="ripyl.sigproc.min_rise_time">
+<tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">min_rise_time</tt><big>(</big><em>sample_rate</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.min_rise_time" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the minimum rise time for a sample rate</p>
+<p>This function is useful to determine the minimum rise time acceptable as parameters
+to filter_waveform() and synth_wave(). You should use a scale factor to incease the rise
+time at least slightly (e.g. rt * 1.01) to avoid raising a ValueError in those functions
+due to floating point inaccuracies.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sample_rate</strong> (<em>int</em>) &#8211; The sample rate to determine rise time from</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A float for the minimum acceptable rise time.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="ripyl.sigproc.noisify">
 <tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">noisify</tt><big>(</big><em>samples</em>, <em>snr_db=30.0</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.noisify" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add noise to a sample stream</p>
@@ -674,7 +754,9 @@ should be applied after noisify() for the SNR to be correct.</li>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>samples</strong> (<em>sequence of (float, number) tuples</em>) &#8211; An iterable sample stream of (time, value) pairs.</li>
-<li><strong>full_scale</strong> (<em>float</em>) &#8211; The full scale range for the signal.</li>
+<li><strong>full_scale</strong> (<em>float</em>) &#8211; The full scale range for digitizer being emulated. For example,
+a scope with 8 vertical divisions set at 2V/div. will have a
+full scale range of 2V*8 = 16V</li>
 <li><strong>bits</strong> (<em>int</em>) &#8211; The number of bits to quantize to</li>
 </ul>
 </td>
@@ -862,6 +944,16 @@ be a positive value.</li>
 <em class="property">class </em><tt class="descclassname">ripyl.streaming.</tt><tt class="descname">StreamSegment</tt><big>(</big><em>time_bounds</em>, <em>data=None</em>, <em>kind='unknown segment'</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.streaming.StreamSegment" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#ripyl.streaming.StreamRecord" title="ripyl.streaming.StreamRecord"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamRecord</span></tt></a></p>
 <p>A stream element that spans two points in time</p>
+<dl class="attribute">
+<dt id="ripyl.streaming.StreamSegment.end_time">
+<tt class="descname">end_time</tt><a class="headerlink" href="#ripyl.streaming.StreamSegment.end_time" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.streaming.StreamSegment.start_time">
+<tt class="descname">start_time</tt><a class="headerlink" href="#ripyl.streaming.StreamSegment.start_time" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -1120,7 +1212,7 @@ This generator will terminate if the number of output samples is specified.</p>
         <li class="right" >
           <a href="modules.html" title="ripyl"
              >previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.0 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Ripyl 1.0.1 documentation</a> &raquo;</li>
           <li><a href="modules.html" >ripyl</a> &raquo;</li> 
       </ul>
     </div>

@@ -32,7 +32,7 @@ import itertools
 from ripyl.util.stats import OnlineStats
 from ripyl.streaming import StreamError, AutoLevelError
 
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 
 def gen_histogram(raw_samples, bins, use_kde=False, kde_bw=0.05):
