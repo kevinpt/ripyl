@@ -133,12 +133,13 @@ class TestDecodeFuncs(tsup.RandomSeededTestCase):
             expect_success = vector[1]
 
             logic_levels = decode.find_logic_levels(samples)
+            if not expect_success:
+                continue # We expected find_logic_levels() to fail
+
             if logic_levels is None:
-                if not expect_success:
-                    continue # We expected find_logic_levels() to fail
-                else:
-                    #print('### Fail:', name)
-                    self.fail('No logic levels found')
+                #print('### Fail:', name)
+                self.fail('No logic levels found')
+
 
             #print('####', name, logic_levels)
             self.assertRelativelyEqual(logic_levels[0], 0.0, epsilon=0.16, msg='Bad logic 0: {}'.format(logic_levels[0]))

@@ -30,7 +30,7 @@ import collections
 import itertools
 
 from ripyl.util.stats import OnlineStats
-from ripyl.streaming import StreamError, AutoLevelError
+from ripyl.streaming import ChunkExtractor, StreamError, AutoLevelError
 
 #import matplotlib.pyplot as plt
 
@@ -320,17 +320,12 @@ def find_logic_levels(samples, max_samples=20000, buf_size=2000):
     if max_samples < 2 * buf_size:
         max_samples = 2 * buf_size
 
-    #skip =  0 #675 # 1150
-    #for s in samples:
-    #    if not skip:
-    #        break
-    #    skip -= 1
 
     # Perform an initial analysis to determine the edge threshold of the samples
     samp_it, samp_dly_it, et_it = itertools.tee(samples, 3)
-    edge_thresh_it = itertools.islice(et_it, et_buf_size)
     
-    et_samples = [s[1] for s in list(edge_thresh_it)] # extract just the samples
+    et_cex = ChunkExtractor(et_it)
+    et_samples = et_cex.next_samples(et_buf_size)
 
 
     # We will create two moving averages of this pool of data
@@ -389,7 +384,6 @@ def find_logic_levels(samples, max_samples=20000, buf_size=2000):
     
     #print('### noise, edge threshold:', noise_threshold, edge_threshold, edges_present)
     
-    del edge_thresh_it
     del et_it
     
     # We have established the edge threshold. We will now construct the moving avg. difference
@@ -400,43 +394,58 @@ def find_logic_levels(samples, max_samples=20000, buf_size=2000):
     mvavg_dly_buf = collections.deque(maxlen=mvavg_size)
     buf = collections.deque(maxlen=buf_size)
 
-    # skip initial samples to create disparity between samp_it and samp_dly_it
+    # skip initial samples to create disparity between samp_cex and dly_cex
+    samp_cex = ChunkExtractor(samp_it)
+    dly_cex = ChunkExtractor(samp_dly_it)
     delay_samples = 100
-    next(itertools.islice(samp_it, delay_samples, delay_samples), None)
-    
-    for sample in samp_it:
-    
-        ns = sample[1]
-        sc += 1
-        
-        buf.append(ns)
-        
-        if state == S_FIND_EDGE:
-            if sc > (max_samples - buf_size):
-                break
+    samp_cex.next_samples(delay_samples)
 
-            mvavg_buf.append(ns)
-            mvavg = sum(mvavg_buf) / len(mvavg_buf)  # calculate moving avg.
-            mvavg_dly_buf.append(next(samp_dly_it)[1])
-            mvavg_dly = sum(mvavg_dly_buf) / len(mvavg_dly_buf)  # calculate moving avg.
-            #if abs(ns - mvavg) > edge_threshold:
-            if abs(mvavg_dly - mvavg) > edge_threshold:
-                # This is likely an edge event
-                state = S_FINISH_BUF
-                if len(buf) < buf_size // 2:
-                    buf_remaining = buf_size - len(buf)
-                else:
-                    buf_remaining = buf_size // 2
-                    
-                #print('##### Found edge {} {}'.format(len(buf), sc))
+    end_loop = False
+    while True:
+        cur_samp = samp_cex.next_samples()
+        cur_dly_samp = dly_cex.next_samples()
+
+        if cur_samp is None:
+            break
+    
+        for i in xrange(len(cur_samp)):
+        
+            ns = cur_samp[i]
+            sc += 1
             
+            buf.append(ns)
+            
+            if state == S_FIND_EDGE:
+                if sc > (max_samples - buf_size):
+                    end_loop = True
+                    break
 
-        else: # S_FINISH_BUF
-            # Accumulate samples until the edge event is in the middle of the
-            # buffer or the buffer is filled
-            buf_remaining -= 1
-            if buf_remaining <= 0 and len(buf) >= buf_size:
-                break
+                mvavg_buf.append(ns)
+                mvavg = sum(mvavg_buf) / len(mvavg_buf)  # calculate moving avg.
+                mvavg_dly_buf.append(cur_dly_samp[i])
+                mvavg_dly = sum(mvavg_dly_buf) / len(mvavg_dly_buf)  # calculate moving avg.
+                if abs(mvavg_dly - mvavg) > edge_threshold:
+                    # This is likely an edge event
+                    state = S_FINISH_BUF
+                    if len(buf) < buf_size // 2:
+                        buf_remaining = buf_size - len(buf)
+                    else:
+                        buf_remaining = buf_size // 2
+                        
+                    #print('##### Found edge {} {}'.format(len(buf), sc))
+                
+
+            else: # S_FINISH_BUF
+                # Accumulate samples until the edge event is in the middle of the
+                # buffer or the buffer is filled
+                buf_remaining -= 1
+                if buf_remaining <= 0 and len(buf) >= buf_size:
+                    end_loop = True
+                    break
+
+        if end_loop:
+            break
+            
 
    
     #plt.plot(et_samples)
@@ -569,40 +578,43 @@ def find_edges(samples, logic, hysteresis=0.4):
     
     state = ES_START
     
-    # set initial edge state
-    try:
-        start_time, initial_sample = next(samples)
-    except StopIteration:
-        raise StreamError('Unable to initialize sample stream')
-        
-    initial_state = (start_time, 1 if initial_sample > thresh else 0)
-    yield initial_state
-    
-    for t, sample in samples:
-        zone = get_sample_zone(sample)
-        
-        if state == ES_START:
-            # Stay in start until we reach one of the stable states
-            if is_stable_zone(zone):
-                state = zone
+    for sc in samples:
+        t = sc.start_time
+        sample_period = sc.sample_period
+        chunk = sc.samples
 
-        # last zone was a stable state
-        elif state == ZONE_1_L1 or state == ZONE_3_L0:
-            if is_stable_zone(zone):
-                if zone != state:
+        if state == ES_START: # set initial edge state
+            initial_state = (t, 1 if chunk[0] > thresh else 0)
+            yield initial_state
+
+        for sample in chunk:
+
+            zone = get_sample_zone(sample)
+            
+            if state == ES_START:
+                # Stay in start until we reach one of the stable states
+                if is_stable_zone(zone):
                     state = zone
-                    yield (t, zone_to_logic_state(zone))
-            else:
-                prev_stable = state
-                state = zone
-        
-        # last zone was a transitional state (in hysteresis band)
-        elif state == ZONE_2_T:
-            if is_stable_zone(zone):
-                if zone != prev_stable: # This wasn't just noise
-                    yield (t, zone_to_logic_state(zone))
 
-            state = zone
+            # last zone was a stable state
+            elif state == ZONE_1_L1 or state == ZONE_3_L0:
+                if is_stable_zone(zone):
+                    if zone != state:
+                        state = zone
+                        yield (t, zone_to_logic_state(zone))
+                else:
+                    prev_stable = state
+                    state = zone
+            
+            # last zone was a transitional state (in hysteresis band)
+            elif state == ZONE_2_T:
+                if is_stable_zone(zone):
+                    if zone != prev_stable: # This wasn't just noise
+                        yield (t, zone_to_logic_state(zone))
+
+                state = zone
+
+            t += sample_period
 
 
 def find_differential_edges(samples, logic, hysteresis=0.1):
@@ -691,40 +703,42 @@ def find_differential_edges(samples, logic, hysteresis=0.1):
 
     state = ES_START
     
-    # set initial edge state
-    try:
-        start_time, initial_sample = next(samples)
-    except StopIteration:
-        raise StreamError('Unable to initialize sample stream')
-    
-    initial_state = (start_time, 1 if initial_sample > thresh_high else 0 if initial_sample > thresh_low else -1)
-    yield initial_state
-    
-    for t, sample in samples:
-        zone = get_sample_zone(sample)
-        
-        if state == ES_START:
-            # Stay in start until we reach one of the stable states
-            if is_stable_zone(zone):
-                state = zone
+    for sc in samples:
+        t = sc.start_time
+        sample_period = sc.sample_period
+        chunk = sc.samples
 
-        # last zone was a stable state
-        elif state == ZONE_1_DP or state == ZONE_3_D0 or state == ZONE_5_DM:
-            if is_stable_zone(zone):
-                if zone != state:
+        if state == ES_START: # set initial edge state
+            initial_state = (t, 1 if chunk[0] > thresh_high else 0 if chunk[0] > thresh_low else -1)
+            yield initial_state
+
+        for sample in chunk:
+            zone = get_sample_zone(sample)
+            
+            if state == ES_START:
+                # Stay in start until we reach one of the stable states
+                if is_stable_zone(zone):
                     state = zone
-                    yield (t, zone_to_logic_state(zone))
-            else:
-                prev_stable = state
-                state = zone
-        
-        # last zone was a transitional state (in hysteresis band)
-        elif state == ZONE_2_HT or state == ZONE_4_LT:
-            if is_stable_zone(zone):
-                if zone != prev_stable: # This wasn't just noise
-                    yield (t, zone_to_logic_state(zone))
 
-            state = zone
+            # last zone was a stable state
+            elif state == ZONE_1_DP or state == ZONE_3_D0 or state == ZONE_5_DM:
+                if is_stable_zone(zone):
+                    if zone != state:
+                        state = zone
+                        yield (t, zone_to_logic_state(zone))
+                else:
+                    prev_stable = state
+                    state = zone
+            
+            # last zone was a transitional state (in hysteresis band)
+            elif state == ZONE_2_HT or state == ZONE_4_LT:
+                if is_stable_zone(zone):
+                    if zone != prev_stable: # This wasn't just noise
+                        yield (t, zone_to_logic_state(zone))
+
+                state = zone
+
+            t += sample_period
 
 
 def remove_short_diff_0s(diff_edges, min_diff_0_time):

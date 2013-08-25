@@ -327,3 +327,128 @@ def merge_streams(records_a, records_b, id_a=0, id_b=1):
             yield cur_rb
             cur_rb = None
 
+import numpy as np
+
+class ChunkExtractor(object):
+    def __init__(self, stream):
+        self.stream = stream
+        self.sample_buf = []
+        self.buf_count = 0
+        self.stream_ended = False
+        self.buf_start_time = 0.0
+        self.sample_period = 0.0
+
+    def next_chunk(self, chunk_size=1000):
+        if self.stream_ended:
+            return None
+
+        while True:
+            if self.buf_count < chunk_size: # Need to get another chunk
+                try:
+                    sc = next(self.stream)
+                    if len(self.sample_buf) == 0:
+                        self.buf_start_time = sc.start_time
+                        self.sample_period = sc.sample_period
+                    self.sample_buf.append(sc.samples)
+                    self.buf_count += len(sc.samples)
+
+                except StopIteration:
+                    self.stream_ended = True
+
+            if self.stream_ended and self.buf_count < chunk_size:
+                # Not enough samples in buffer for a full sized chunk
+                chunk_size = self.buf_count
+                if chunk_size == 0:
+                    break
+
+            if self.buf_count >= chunk_size:
+                # We have enough buffered samples to return a new chunk
+                out_samp = np.empty(chunk_size, dtype=float)
+                out_count = 0
+                for b in self.sample_buf:
+                    if out_count + len(b) <= chunk_size:
+                        use_count = len(b)
+                    else:
+                        use_count = chunk_size - out_count
+
+                    out_samp[out_count:out_count + use_count] = b[:use_count]
+                    out_count += use_count
+
+                out_time = self.buf_start_time
+
+                if self.buf_count > chunk_size:
+                    # There are unused samples remaining in the buffer
+                    # Place these at the start of the buffer for the next call to next_chunk()
+                    self.sample_buf = [self.sample_buf[-1][use_count:]]
+                    self.buf_count = len(self.sample_buf[0])
+                    self.buf_start_time = self.buf_start_time + self.sample_period * chunk_size
+                else:
+                    self.sample_buf = []
+                    self.buf_count = 0
+
+                return StreamChunk(out_samp, out_time, self.sample_period)
+
+            if self.stream_ended:
+                break
+
+        return None
+
+    def next_samples(self, sample_count=1000):
+        sc = self.next_chunk(sample_count)
+        if sc is not None:
+            return sc.samples
+        else:
+            return None
+
+    def buffered_chunk(self):
+        return self.next_chunk(self.buf_count)
+
+
+def rechunkify(samples, chunk_size=1000):
+    extractor = ChunkExtractor(samples)
+
+    while True:
+        sc = extractor.next_chunk(chunk_size)
+        if sc is None:
+            break
+
+        next_cs = yield sc
+        if next_cs is not None:
+            chunk_size = next_cs
+
+
+def extract_samples(samples, sample_count=1000):
+    extractor = ChunkExtractor(samples)
+
+    while True:
+        s = extractor.next_samples(sample_count)
+        if s is None:
+            break
+
+        next_sc = yield s
+        if next_sc is not None:
+            sample_count = next_sc
+
+
+def extract_all_samples(samples):
+    extractor = ChunkExtractor(samples)
+    samp_buf = []
+    buf_count = 0
+
+    while True:
+        s = extractor.next_samples()
+        if s is None:
+            break
+
+        samp_buf.append(s)
+        buf_count += len(s)
+
+    all_samples = np.empty(buf_count, dtype=float)
+    offset = 0
+    for s in samp_buf:
+        all_samples[offset:offset+len(s)] = s
+        offset += len(s)
+
+    return all_samples
+
+

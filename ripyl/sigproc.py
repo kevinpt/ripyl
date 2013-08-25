@@ -24,37 +24,14 @@
 from __future__ import print_function
 
 import itertools
-from ripyl.streaming import StreamError, StreamChunk
+from ripyl.streaming import StreamChunk, StreamError, ChunkExtractor
 
 import numpy as np
 import scipy.signal as signal
 
+import matplotlib.pyplot as plt #FIX: remove me
 
-def samples_to_sample_stream(raw_samples, sample_period, start_time=0.0):
-    '''Convert raw samples to a sample stream
-
-    This is a generator function that can be used in a pipeline of waveform
-    procesing operations
-
-    raw_samples (sequence of numbers)
-        An iterable of sample values
-    
-    sample_period (float)
-        The time interval between samples
-    
-    start_time (float)
-        The time for the first sample
-
-    Yields a series of 2-tuples (time, value) representing the time and
-      sample value for each input sample. This can be fed to functions
-      that expect a sample stream as input.
-    '''
-    t = start_time
-    for s in raw_samples:
-        yield(t, s)
-        t += sample_period
-
-def samples_to_chunked_sample_stream(raw_samples, sample_period, chunk_size=1000, start_time=0.0):
+def samples_to_sample_stream(raw_samples, sample_period, start_time=0.0, chunk_size=1000):
     '''Convert raw samples to a chunked sample stream
 
     This is a generator function that can be used in a pipeline of waveform
@@ -66,11 +43,11 @@ def samples_to_chunked_sample_stream(raw_samples, sample_period, chunk_size=1000
     sample_period (float)
         The time interval between samples
 
-    chunk_size (int)
-        The maximum number of samples for each chunk
-    
     start_time (float)
         The time for the first sample
+
+    chunk_size (int)
+        The maximum number of samples for each chunk
 
     Yields a series of StreamChunk objects representing the time and
       sample value for each input sample. This can be fed to functions
@@ -83,6 +60,8 @@ def samples_to_chunked_sample_stream(raw_samples, sample_period, chunk_size=1000
 
         yield sc
         t += sample_period * len(chunk)
+
+
 
 
 def remove_excess_edges(edges):
@@ -118,7 +97,8 @@ def remove_excess_edges(edges):
     if last_e is not None:
         yield last_e
 
-def edges_to_sample_stream(edges, sample_period, end_extension=None):
+
+def edges_to_sample_stream(edges, sample_period, end_extension=None, chunk_size=1000):
     '''Convert an edge stream to a sample stream
     
     edges (sequence of (float, int) tuples)
@@ -141,11 +121,22 @@ def edges_to_sample_stream(edges, sample_period, end_extension=None):
         raise StreamError('Not enough edges to generate samples')
     
     t = cur_states[0]
+    chunk = np.empty(chunk_size, dtype=float)
+    chunk_count = 0
+    start_time = cur_states[0]
 
     while True:
         while t < next_states[0]:
-            yield (t, cur_states[1])
+            chunk[chunk_count] = cur_states[1]
+            chunk_count += 1
+            
             t += sample_period
+            if chunk_count == chunk_size:
+                yield StreamChunk(chunk, start_time, sample_period)
+
+                chunk = np.empty(chunk_size, dtype=float)
+                chunk_count = 0
+                start_time = t
         
         cur_states = next_states
         try:
@@ -156,8 +147,19 @@ def edges_to_sample_stream(edges, sample_period, end_extension=None):
     if end_extension is not None:
         end_time = t + end_extension
         while t < end_time:
-            yield(t, cur_states[1])
+            chunk[chunk_count] = cur_states[1]
+            chunk_count += 1
+
             t += sample_period
+            if chunk_count == chunk_size:
+                yield StreamChunk(chunk, start_time, sample_period)
+
+                chunk = np.empty(chunk_size, dtype=float)
+                chunk_count = 0
+                start_time = t
+
+    if chunk_count > 0:
+        yield StreamChunk(chunk[:chunk_count], start_time, sample_period)
 
 
 def min_rise_time(sample_rate):
@@ -187,7 +189,7 @@ def approximate_bandwidth(rise_time):
     return 0.35 / rise_time
     
     
-def filter_waveform(samples, sample_rate, rise_time, ripple_db=60.0, pool_size=1000):
+def filter_waveform(samples, sample_rate, rise_time, ripple_db=60.0, pool_size=1000, chunk_size=1000):
     '''Apply a bandwidth limiting low-pass filter to a sample stream
     
     This is a generator function.
@@ -215,6 +217,7 @@ def filter_waveform(samples, sample_rate, rise_time, ripple_db=60.0, pool_size=1
     Yields a sample stream.
     '''
 
+    sample_period = 1.0 / sample_rate
     nyquist = sample_rate / 2.0
     edge_bw = approximate_bandwidth(rise_time)
     transition_bw = edge_bw * 4.0 # This gives a nice smooth transition with no Gibbs effect
@@ -237,16 +240,24 @@ def filter_waveform(samples, sample_rate, rise_time, ripple_db=60.0, pool_size=1
 
     # Get a pool of samples
     spool = np.zeros((pool_size + N-1,), dtype = np.float)
-    samp_it, init_it = itertools.tee(samples)
-    spool[0:N//2-1] += next(init_it)[1] # Pad the first part of the pool with a copy of the first sample
-    del init_it
-    
-    tpool = np.zeros((pool_size + N-1,), dtype = np.float)
+    sc = next(samples)
+    s_ix = 0
+    spool[0:N//2-1] += sc.samples[0] # Pad the first part of the pool with a copy of the first sample
     
     # Prime the initial portion of the pool with data that will be filtered out
+    pool_start_time = sc.start_time + delay
+    fresh_pool = False
+
     for i in xrange(N//2 - 1, N-1):
         try:
-            tpool[i], spool[i] = next(samp_it)
+            next_sample = sc.samples[s_ix]
+            spool[i] = next_sample
+
+            s_ix += 1
+            if s_ix >= len(sc.samples):
+                s_ix = 0
+                sc = next(samples)
+
         except StopIteration:
             stream_ended = True
             break
@@ -255,10 +266,22 @@ def filter_waveform(samples, sample_rate, rise_time, ripple_db=60.0, pool_size=1
     
     while not stream_ended:
         # Fill the pool with samples
+        if fresh_pool:
+            pool_start_time = sc.start_time + s_ix * sc.sample_period
+            #print('## pst:', pool_start_time, pool_start_time + delay, s_ix)
+            fresh_pool = False
         for i in xrange(N-1, pool_size + N-1):
             try:
-                tpool[i], spool[i] = next(samp_it)
+                next_sample = sc.samples[s_ix]
+                spool[i] = next_sample
+
                 valid_samples = i
+
+                s_ix += 1
+                if s_ix >= len(sc.samples):
+                    s_ix = 0
+                    sc = next(samples)
+
             except StopIteration:
                 stream_ended = True
                 break
@@ -269,10 +292,8 @@ def filter_waveform(samples, sample_rate, rise_time, ripple_db=60.0, pool_size=1
         if not stream_ended:
             spool[0:N-1] = spool[pool_size:pool_size + N-1]
         
-        tpool[N-1:] -= delay
-        
-        for i in xrange(N-1, valid_samples+1):
-            yield (tpool[i], filt[i])
+        yield StreamChunk(filt[N-1:valid_samples+1], pool_start_time, sample_period)
+        fresh_pool = True
 
 
 def synth_wave(edges, sample_rate, rise_time, ripple_db=60.0):
@@ -322,24 +343,17 @@ def noisify(samples, snr_db=30.0):
     Yields a sample stream.
     '''
 
-    # SNR = mean / std. dev.
-    # std. dev. = mean / SNR --> 0.5 / SNR
-    noise_sd = 0.5 / (10.0 ** (snr_db / 20.0))
-    np_len = 1000
-    np_ix = np_len
-    
-    for s in samples:
-        if snr_db > 80.0:
-            yield s
-        else:
-            if np_ix == np_len:
-                noise_pool = np.random.normal(0.0, noise_sd, np_len)
-                np_ix = 0
-            
-            noise = noise_pool[np_ix]
-            np_ix += 1
-            
-            yield (s[0], s[1] + noise)
+    if snr_db > 80.0:
+        for sc in samples:
+            yield sc
+    else:
+        # SNR = mean / std. dev.
+        # std. dev. = mean / SNR --> 0.5 / SNR
+        noise_sd = 0.5 / (10.0 ** (snr_db / 20.0))
+
+        for sc in samples:
+            sc.samples += np.random.normal(0.0, noise_sd, len(sc.samples))
+            yield sc
 
 
 def quantize(samples, full_scale, bits=8):
@@ -361,11 +375,11 @@ def quantize(samples, full_scale, bits=8):
     Yields a sample stream.
     '''
 
-    ulp = full_scale / 2**bits
-    
-    for s in samples:
-        q = int(s[1] / full_scale * 2**bits) * ulp
-        yield (s[0], q)
+    ulp = float(full_scale) / 2**bits
+
+    for sc in samples:
+        sc.samples = np.floor(sc.samples / full_scale * 2**bits) * ulp
+        yield sc
 
 
 def amplify(samples, gain=1.0, offset=0.0):
@@ -386,10 +400,13 @@ def amplify(samples, gain=1.0, offset=0.0):
     
     Yields a sample stream.
     '''
-    for s in samples:
-        yield (s[0], s[1] * gain + offset)
-        
 
+    for sc in samples:
+        sc.samples *= gain
+        sc.samples += offset
+        yield sc
+
+       
 def dropout(samples, start_time, end_time, val=0.0):
     '''Force a sample stream to a fixed level
     
@@ -412,11 +429,25 @@ def dropout(samples, start_time, end_time, val=0.0):
 
     Yields a sample stream.
     '''
-    for s in samples:
-        if s[0] >= start_time and s[0] < end_time:
-            yield (s[0], val)
+
+    for sc in samples:
+        sc_end_time = sc.start_time + len(sc.samples) * sc.sample_period
+        if sc_end_time < start_time or sc.start_time > end_time:
+            yield sc
+            continue
+
+        if start_time > sc.start_time:
+            start_ix = int((start_time - sc.start_time) / sc.sample_period)
         else:
-            yield s
+            start_ix = 0
+
+        if end_time < sc_end_time:
+            end_ix = int((end_time - sc.start_time) / sc.sample_period) + 1
+        else:
+            end_ix = len(sc.samples)
+
+        sc.samples[start_ix:end_ix] = val
+        yield sc
 
 
 def invert(stream):
@@ -431,8 +462,10 @@ def invert(stream):
     
     Yields a stream of inverted elements
     '''
-    for s in stream:
-        yield (s[0], -s[1])
+
+    for sc in stream:
+        sc.samples *= -1.0
+        yield sc
 
         
 def sum_streams(stream1, stream2):
@@ -450,17 +483,54 @@ def sum_streams(stream1, stream2):
         
     Yields a sample stream.
     '''
+
+    ex1 = ChunkExtractor(stream1)
+    ex2 = ChunkExtractor(stream2)
+
     while True:
-        try:
-            ns1 = next(stream1)
-            ns2 = next(stream2)
-            yield (ns1[0], ns1[1] + ns2[1])
-            
-        except StopIteration:
+        c1 = ex1.next_chunk()
+        c2 = ex2.next_chunk()
+
+        if c1 is None or c2 is None:
             break
+
+        if len(c1.samples) != len(c2.samples):
+            size = min(len(c1.samples), len(c2.samples))
+            c1.samples = c1.samples[:size] + c2.samples[:size]
+        else:
+            c1.samples += c2.samples
+
+        yield c1
+
 
 
 def chain(stream_gap_time, *streams):
+    '''Combine a sequence of streams together.
+
+    A set of sample or edge streams are concatenated together with updated time
+    stamps to maintain monotonically increasing time.
+
+    stream_gap_time (float)
+        The time interval added between successive streams
+
+    streams (sequence of sequences containing (float, number) tuples)
+        A sequence of streams
+
+    Yields a stream representing the data from each stream in order
+    '''
+    offset = 0.0
+    sc_end_time = 0.0
+
+    for stream in streams:
+        for sc in stream:
+            sc.start_time += offset
+            sc_end_time = sc.start_time + len(sc.samples) * sc.sample_period
+            yield sc
+
+        offset = sc_end_time + stream_gap_time
+
+
+def chain_edges(stream_gap_time, *streams):
     '''Combine a sequence of streams together.
 
     A set of sample or edge streams are concatenated together with updated time

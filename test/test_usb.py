@@ -182,14 +182,12 @@ class TestUSBFuncs(tsup.RandomSeededTestCase):
         # Note that these packets were collected with segmented acquisition and are ~5us
         # apart rather than the proper 1ms.
         dp_samples, sample_period, start_time = tsup.read_bin_file('test/data/usb_100segs_dp.bin')
+        dp_it = sigp.samples_to_sample_stream(dp_samples, sample_period, start_time)
+
         dm_samples, sample_period, start_time = tsup.read_bin_file('test/data/usb_100segs_dm.bin')
+        dm_it = sigp.samples_to_sample_stream(dm_samples, sample_period, start_time)
         
-        time_samples = [i*sample_period for i in xrange(len(dp_samples))]
-        
-        dp_s = zip(time_samples, dp_samples)
-        dm_s = zip(time_samples, dm_samples)
-        
-        records_it = usb.usb_decode(iter(dp_s), iter(dm_s), stream_type=streaming.StreamType.Samples)
+        records_it = usb.usb_decode(dp_it, dm_it, stream_type=streaming.StreamType.Samples)
         records = list(records_it)
         
         self.assertEqual(len(records), 100, 'Missing records, expected to decode 100')
@@ -207,16 +205,15 @@ class TestUSBFuncs(tsup.RandomSeededTestCase):
         # Note that these packets were collected with segmented acquisition and are ~5us
         # apart rather than the proper 1ms.
         dp_samples, sample_period, start_time = tsup.read_bin_file('test/data/usb_100segs_dp.bin')
+        dp_it = sigp.samples_to_sample_stream(dp_samples, sample_period, start_time)
+
         dm_samples, sample_period, start_time = tsup.read_bin_file('test/data/usb_100segs_dm.bin')
-        
-        time_samples = [i*sample_period for i in xrange(len(dp_samples))]
+        dm_it = sigp.samples_to_sample_stream(dm_samples, sample_period, start_time)
         
         # generate differential waveform
-        d_diff_samples = [s[0] - s[1] for s in zip(dp_samples, dm_samples)]
+        d_diff_it = sigp.sum_streams(dp_it, sigp.invert(dm_it))
         
-        d_diff_s = zip(time_samples, d_diff_samples)
-        
-        records_it = usb.usb_diff_decode(iter(d_diff_s), stream_type=streaming.StreamType.Samples)
+        records_it = usb.usb_diff_decode(d_diff_it, stream_type=streaming.StreamType.Samples)
         records = list(records_it)
         
         self.assertEqual(len(records), 100, 'Missing records, expected to decode 100')

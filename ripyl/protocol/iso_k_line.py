@@ -507,6 +507,6 @@ def iso_k_line_synth(messages, msg_gap=8.0e-3, idle_start=0.0, idle_end=0.0, wor
         msg_its.append(uart.uart_synth(msg, bits=8, baud=10400, idle_start=istart, \
             idle_end=iend, word_interval=word_interval))
 
-    return sigp.chain(msg_gap, *msg_its)
+    return sigp.chain_edges(msg_gap, *msg_its)
     #return msg_its[0]
 
