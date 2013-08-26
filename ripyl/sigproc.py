@@ -24,12 +24,11 @@
 from __future__ import print_function
 
 import itertools
-from ripyl.streaming import StreamChunk, StreamError, ChunkExtractor
+from ripyl.streaming import SampleChunk, StreamError, ChunkExtractor
 
 import numpy as np
 import scipy.signal as signal
 
-import matplotlib.pyplot as plt #FIX: remove me
 
 def samples_to_sample_stream(raw_samples, sample_period, start_time=0.0, chunk_size=1000):
     '''Convert raw samples to a chunked sample stream
@@ -37,8 +36,8 @@ def samples_to_sample_stream(raw_samples, sample_period, start_time=0.0, chunk_s
     This is a generator function that can be used in a pipeline of waveform
     procesing operations
 
-    raw_samples (sequence of numbers)
-        An iterable of sample values
+    raw_samples (iterable of numbers)
+        The samples to convert to a sample stream.
     
     sample_period (float)
         The time interval between samples
@@ -49,14 +48,14 @@ def samples_to_sample_stream(raw_samples, sample_period, start_time=0.0, chunk_s
     chunk_size (int)
         The maximum number of samples for each chunk
 
-    Yields a series of StreamChunk objects representing the time and
+    Yields a series of SampleChunk objects representing the time and
       sample value for each input sample. This can be fed to functions
       that expect a chunked sample stream as input.
     '''
     t = start_time
     for i in xrange(0, len(raw_samples), chunk_size):
         chunk = np.asarray(raw_samples[i:i + chunk_size], dtype=float)
-        sc = StreamChunk(chunk, t, sample_period)
+        sc = SampleChunk(chunk, t, sample_period)
 
         yield sc
         t += sample_period * len(chunk)
@@ -75,7 +74,7 @@ def remove_excess_edges(edges):
     This results in non-conforming edge streams that contain multiple consecutive
     pairs with a non-changing value.
     
-    edges (sequence of (float, int) tuples)
+    edges (iterable of (float, int) tuples)
         An edge stream to filter for extraneous non-edges
         
     Yields an edge stream.
@@ -101,7 +100,7 @@ def remove_excess_edges(edges):
 def edges_to_sample_stream(edges, sample_period, end_extension=None, chunk_size=1000):
     '''Convert an edge stream to a sample stream
     
-    edges (sequence of (float, int) tuples)
+    edges (iterable of (float, int) tuples)
         An edge stream to sample
         
     sample_period (float)
@@ -132,7 +131,7 @@ def edges_to_sample_stream(edges, sample_period, end_extension=None, chunk_size=
             
             t += sample_period
             if chunk_count == chunk_size:
-                yield StreamChunk(chunk, start_time, sample_period)
+                yield SampleChunk(chunk, start_time, sample_period)
 
                 chunk = np.empty(chunk_size, dtype=float)
                 chunk_count = 0
@@ -152,14 +151,14 @@ def edges_to_sample_stream(edges, sample_period, end_extension=None, chunk_size=
 
             t += sample_period
             if chunk_count == chunk_size:
-                yield StreamChunk(chunk, start_time, sample_period)
+                yield SampleChunk(chunk, start_time, sample_period)
 
                 chunk = np.empty(chunk_size, dtype=float)
                 chunk_count = 0
                 start_time = t
 
     if chunk_count > 0:
-        yield StreamChunk(chunk[:chunk_count], start_time, sample_period)
+        yield SampleChunk(chunk[:chunk_count], start_time, sample_period)
 
 
 def min_rise_time(sample_rate):
@@ -170,7 +169,7 @@ def min_rise_time(sample_rate):
     time at least slightly (e.g. rt * 1.01) to avoid raising a ValueError in those functions
     due to floating point inaccuracies.
 
-    sample_rate (int)
+    sample_rate (number)
         The sample rate to determine rise time from
 
     Returns a float for the minimum acceptable rise time.
@@ -194,8 +193,8 @@ def filter_waveform(samples, sample_rate, rise_time, ripple_db=60.0, pool_size=1
     
     This is a generator function.
     
-    samples (sequence of (float, number) tuples)
-        A sample stream to be filtered.
+    samples (iterable of SampleChunk objects)
+        An iterable sample stream to be filtered.
     
     sample_rate (float)
         The sample rate for converting the sample stream.
@@ -292,7 +291,7 @@ def filter_waveform(samples, sample_rate, rise_time, ripple_db=60.0, pool_size=1
         if not stream_ended:
             spool[0:N-1] = spool[pool_size:pool_size + N-1]
         
-        yield StreamChunk(filt[N-1:valid_samples+1], pool_start_time, sample_period)
+        yield SampleChunk(filt[N-1:valid_samples+1], pool_start_time, sample_period)
         fresh_pool = True
 
 
@@ -332,8 +331,8 @@ def noisify(samples, snr_db=30.0):
     
     This is a generator function.
     
-    samples (sequence of (float, number) tuples)
-        An iterable sample stream of (time, value) pairs.
+    samples (iterable of SampleChunk objects)
+        An iterable sample stream to modify.
 
     snr_db (float)
         The Signal to Noise Ratio in dB. This value is only accurate if the
@@ -361,8 +360,8 @@ def quantize(samples, full_scale, bits=8):
     
     This should be applied to a noisy signal to have notable results.
     
-    samples (sequence of (float, number) tuples)
-        An iterable sample stream of (time, value) pairs.
+    samples (iterable of SampleChunk objects)
+        An iterable sample stream to modify.
         
     full_scale (float)
         The full scale range for digitizer being emulated. For example,
@@ -389,8 +388,8 @@ def amplify(samples, gain=1.0, offset=0.0):
     
     This is a generator function.
     
-    samples (sequence of (float, number) tuples)
-        An iterable sample stream of (time, value) pairs.
+    samples (iterable of SampleChunk objects)
+        An iterable sample stream to modify.
     
     gain (float)
         The gain multiplier for the samples
@@ -415,8 +414,8 @@ def dropout(samples, start_time, end_time, val=0.0):
     
     This is a generator function.
     
-    samples (sequence of (float, number) tuples)
-        An iterable sample stream of (time, value) pairs.
+    samples (iterable of SampleChunk objects)
+        An iterable sample stream to modify.
     
     start_time (float)
         Start of the dropout phase
@@ -455,12 +454,10 @@ def invert(stream):
     
     This is a generator function.
     
-    stream (sequence of (float, number) tuples)
-        An iterable of stream (time, value) pairs. The stream can either be samples
-        or a diferential edge stream containing (-1, 0, 1) values that must be
-        inverted.
+    samples (iterable of SampleChunk objects)
+        An iterable sample stream to modify.
     
-    Yields a stream of inverted elements
+    Yields a sample stream.
     '''
 
     for sc in stream:
@@ -477,8 +474,8 @@ def sum_streams(stream1, stream2):
     
     This is a generator function.
     
-    stream1 (sequence of (float, number) tuples)
-    stream2 (sequence of (float, number) tuples)
+    stream1 (iterable of SampleChunk objects)
+    stream2 (iterable of SampleChunk objects)
         The two sample streams to have their corresponding values added together.
         
     Yields a sample stream.
@@ -505,18 +502,18 @@ def sum_streams(stream1, stream2):
 
 
 def chain(stream_gap_time, *streams):
-    '''Combine a sequence of streams together.
+    '''Combine a sequence of sample streams together.
 
-    A set of sample or edge streams are concatenated together with updated time
+    A set of sample streams are concatenated together with updated time
     stamps to maintain monotonically increasing time.
 
     stream_gap_time (float)
         The time interval added between successive streams
 
-    streams (sequence of sequences containing (float, number) tuples)
+    streams (sequence of iterables containing SampleChunk objects)
         A sequence of streams
 
-    Yields a stream representing the data from each stream in order
+    Yields a sample stream representing the data from each stream in order
     '''
     offset = 0.0
     sc_end_time = 0.0
@@ -531,9 +528,9 @@ def chain(stream_gap_time, *streams):
 
 
 def chain_edges(stream_gap_time, *streams):
-    '''Combine a sequence of streams together.
+    '''Combine a sequence of edge streams together.
 
-    A set of sample or edge streams are concatenated together with updated time
+    A set of edge streams are concatenated together with updated time
     stamps to maintain monotonically increasing time.
 
     stream_gap_time (float)
@@ -542,7 +539,7 @@ def chain_edges(stream_gap_time, *streams):
     streams (sequence of sequences containing (float, number) tuples)
         A sequence of streams
 
-    Yields a stream representing the data from each stream in order
+    Yields an edge stream representing the data from each stream in order
     '''
     offset = 0.0
     fixed_time = 0.0

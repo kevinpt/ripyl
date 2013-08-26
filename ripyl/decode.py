@@ -23,6 +23,8 @@
 
 from __future__ import print_function, division
 
+#import pyximport; pyximport.install()
+
 import numpy as np
 import scipy as sp
 import math
@@ -161,7 +163,7 @@ def find_hist_peaks(hist):
     are not valid. The threshold t2 ends up being too large and valid peaks may be
     excluded. To avoid this problem the histogram can be sampled from a KDE instead.
     
-    hist (sequence of ints)
+    hist (sequence of int)
         A sequence representing the histogram bin counts. Typically the first parameter
         returned by numpy.histogram() or a KDE from scipy.stats.gaussian_kde().
         
@@ -282,9 +284,9 @@ def find_logic_levels(samples, max_samples=20000, buf_size=2000):
     To be reliable, a set of samples should contain more than one edge or
     a solitary edge after the 400th sample.
     
-    samples (sequence of (float, number) tuples)
-        An iterable representing a sequence of samples. Each sample is a
-        2-tuple representing the time of the sample and the sample's value.
+    samples (iterable of SampleChunk objects)
+        An iterable sample stream. Each element is a SampleChunk containing
+        an array of samples.
 
     max_samples (int)
         The maximum number of samples to consume from the samples iterable.
@@ -481,12 +483,11 @@ def check_logic_levels(samples, max_samples=20000, buf_size=2000):
     a buffered sample stream and raising AutoLevelError when detection
     fails.
 
-    samples (iterator of (float, number) tuples)
-        An iterable representing a sequence of samples. Each sample is a
-        2-tuple representing the time of the sample and the sample's value.
-        This iterator is internally tee'd and becomes invalidated for further
-        use. The return value includes a new sample stream to retrieve samples
-        from.
+    samples (iterable of SampleChunk objects)
+        An iterable sample stream. Each element is a SampleChunk containing
+        an array of samples. This iterator is internally tee'd and becomes
+        invalidated for further use. The return value includes a new sample
+        stream to retrieve samples from.
 
     max_samples (int)
         The maximum number of samples to consume from the samples iterable.
@@ -521,9 +522,9 @@ def find_edges(samples, logic, hysteresis=0.4):
     This is a generator function that can be used in a pipeline of waveform
     procesing operations.
     
-    samples (sequence of (float, number) tuples)
-        An iterable representing a sequence of samples. Each sample is a
-        2-tuple representing the time of the sample and the sample's value.
+    samples (iterable of SampleChunk objects)
+        An iterable sample stream. Each element is a SampleChunk containing
+        an array of samples.
 
     logic ((float, float))
         A 2-tuple (low, high) representing the mean logic levels in the sampled waveform
@@ -616,6 +617,9 @@ def find_edges(samples, logic, hysteresis=0.4):
 
             t += sample_period
 
+#import ripyl.cython.cy_decode as cyd
+#find_edges = cyd.find_chunked_edges
+
 
 def find_differential_edges(samples, logic, hysteresis=0.1):
     '''Find the edges in a sampled differential digital waveform
@@ -632,9 +636,9 @@ def find_differential_edges(samples, logic, hysteresis=0.1):
     should be removed but this requires knowledge of the minimum time for a 0 state
     to be valid. This is performed by the remove_short_diff_0s() function.
     
-    samples (sequence of (float, number) tuples)
-        An iterable representing a sequence of samples. Each sample is a
-        2-tuple representing the time of the sample and the sample's value.
+    samples (iterable of SampleChunk objects)
+        An iterable sample stream. Each element is a SampleChunk containing
+        an array of samples.
 
     logic ((float, float))
         A 2-tuple (low, high) representing the mean logic levels in the sampled waveform
@@ -747,7 +751,7 @@ def remove_short_diff_0s(diff_edges, min_diff_0_time):
     This is a generator function that can be used in a pipeline of waveform
     procesing operations.
     
-    diff_edges (sequence of (float, int) tuples)
+    diff_edges (iterable of (float, int) tuples)
         An iterable of 2-tuples representing each edge transition.
         The 2-tuples *must* be in the absolute time form (time, logic level).
         The logic levels should be in the set (-1, 0, 1) as produced by

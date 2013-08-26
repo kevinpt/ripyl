@@ -32,7 +32,13 @@ class StreamType(Enum):
     Samples = 1
 
 
-class StreamChunk(object):
+class SampleChunk(object):
+    ''''Sample stream object
+    
+    This represents a "chunk" of samples contained in a numpy array
+    stored in the samples attribute.
+
+    '''
     def __init__(self, samples, start_time, sample_period):
         self.samples = samples
         self.start_time = start_time
@@ -327,9 +333,11 @@ def merge_streams(records_a, records_b, id_a=0, id_b=1):
             yield cur_rb
             cur_rb = None
 
+
 import numpy as np
 
 class ChunkExtractor(object):
+    '''Utility class that pulls arbitrarily sized chunks from a sample stream'''
     def __init__(self, stream):
         self.stream = stream
         self.sample_buf = []
@@ -339,6 +347,16 @@ class ChunkExtractor(object):
         self.sample_period = 0.0
 
     def next_chunk(self, chunk_size=1000):
+        '''Get a new chunk of samples from the stream
+
+        chunk_size (int)
+            The number of samples for this chunk.
+
+        Returns a SampleChunk object. If the stream had fewer than chunk_size samples
+          remaining then the SampleChunk.samples array is sized to hold only those samples.
+
+        Returns None if the stream has ended.
+        '''
         if self.stream_ended:
             return None
 
@@ -386,7 +404,7 @@ class ChunkExtractor(object):
                     self.sample_buf = []
                     self.buf_count = 0
 
-                return StreamChunk(out_samp, out_time, self.sample_period)
+                return SampleChunk(out_samp, out_time, self.sample_period)
 
             if self.stream_ended:
                 break
@@ -394,6 +412,17 @@ class ChunkExtractor(object):
         return None
 
     def next_samples(self, sample_count=1000):
+        '''Get a new set of raw samples from the stream
+
+        sample_count (int)
+            The number of samples for the array.
+
+        Returns a numpy array of float. If the stream had fewer than sample_count samples
+          remaining then the array is sized to hold only those samples.
+
+        Returns None if the stream has ended.
+        '''
+
         sc = self.next_chunk(sample_count)
         if sc is not None:
             return sc.samples
@@ -405,6 +434,22 @@ class ChunkExtractor(object):
 
 
 def rechunkify(samples, chunk_size=1000):
+    '''Create a new gerator that yields SampleChunk objects of the desired size
+
+    This is a generator function. Its send() method can be used to change the
+    value of chunk_size mid-stream.
+
+    samples (iterable of SampleChunk objects)
+        The sample stream to extract SampleChunk objects from.
+
+    chunk_size (int)
+        The number of samples for the SampleChunk objects.
+
+
+    Yields a series of SampleChunk objects. If the stream has fewer than chunk_size samples
+      remaining then the SampleChunk.samples array is sized to hold only those samples.
+    '''
+
     extractor = ChunkExtractor(samples)
 
     while True:
@@ -418,6 +463,21 @@ def rechunkify(samples, chunk_size=1000):
 
 
 def extract_samples(samples, sample_count=1000):
+    '''Create a new gerator that yields sample arrays of the desired size
+
+    This is a generator function. Its send() method can be used to change the
+    value of sample_count mid-stream.
+
+    samples (iterable of SampleChunk objects)
+        The sample stream to extract samples from.
+
+    sample_count (int)
+        The number of samples for the arrays.
+
+    Yields a series of numpy arrays. If the stream has fewer than sample_count samples
+      remaining then the array is sized to hold only those samples.
+    '''
+
     extractor = ChunkExtractor(samples)
 
     while True:
@@ -430,7 +490,15 @@ def extract_samples(samples, sample_count=1000):
             sample_count = next_sc
 
 
-def extract_all_samples(samples):
+def sample_stream_to_samples(samples):
+    '''Get all samples from a sample stream as an array
+
+    samples (iterable of SampleChunk objects)
+        The sample stream to extract samples from.
+
+    Returns a numpy array of float.
+    '''
+
     extractor = ChunkExtractor(samples)
     samp_buf = []
     buf_count = 0
@@ -450,5 +518,4 @@ def extract_all_samples(samples):
         offset += len(s)
 
     return all_samples
-
 
