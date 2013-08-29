@@ -150,7 +150,7 @@ def find_bot_top_hist_peaks(raw_samples, bins, use_kde=False, kde_bw=0.05):
     return tuple(sorted(bot_top))
 
     
-def find_hist_peaks(hist):
+def find_hist_peaks(hist, thresh_scale=1.0):
     '''Find all peaks in a histogram
     This uses a modification of the method employed by the "peaks" function in
     LeCroy digital oscilloscopes. The original algorithm is described in various manuals
@@ -161,11 +161,15 @@ def find_hist_peaks(hist):
     For synthetic waveforms lacking noise or any intermediate samples between discrete
     logic levels, the statistical measures used to determine the threshold for a peak
     are not valid. The threshold t2 ends up being too large and valid peaks may be
-    excluded. To avoid this problem the histogram can be sampled from a KDE instead.
+    excluded. To avoid this problem the histogram can be sampled from a KDE instead or
+    the thresh_scale parameter can be set to a lower value.
     
     hist (sequence of int)
         A sequence representing the histogram bin counts. Typically the first parameter
         returned by numpy.histogram() or a KDE from scipy.stats.gaussian_kde().
+
+    thresh_scale (float)
+        Apply a scale factor to the internal threshold for peak classification.
         
     Returns a list of peaks where each peak is a 2-tuple representing the
       start and end indices of the peak in hist.
@@ -190,7 +194,7 @@ def find_hist_peaks(hist):
         if b > 0 and b < t1:
             os.accumulate(b)
         
-    t2 = pop_mean + 1.5 * os.std(ddof=1) # Lecroy uses 2*std but that can be unreliable
+    t2 = pop_mean + thresh_scale * 2.0 * os.std(ddof=1) # Lecroy uses 2*std but that can be unreliable
     
     #print('@@@@@ t2', t2, pop_mean, os.std(ddof=1))
     
@@ -364,18 +368,35 @@ def find_logic_levels(samples, max_samples=20000, buf_size=2000):
     # as in this case the edge_threshold (set with 5x multiplier instead of 0.6x) will stay low
     # enough to permit edge detection in the next stage.
 
+    # The test for edges present will also fail when the initial samples are a periodic signal
+    # with a short period relative to the sample rate. To cover this case we perform an FFT
+    # and look for any peaks in the spectrum beyond the first DC-level peak.
+    fft_edges_present = False
+    if not edges_present:
+        nf_fft = np.abs(np.fft.rfft(noise_filtered * np.hanning(len(noise_filtered))))
+        fft_peaks = find_hist_peaks(nf_fft, thresh_scale=1.0)
+        if len(fft_peaks) > 1:
+            fft_edges_present = True
+        #print('\n$$$ FFT peaks:', fft_peaks)
+        #plt.plot(nf_fft)
+        #plt.plot(noise_filtered * np.hanning(len(noise_filtered)))
+        #plt.show()
+
+
     #rev_mvavg = [(x - y) for x, y in zip(et_mvavg, reversed(et_mvavg))]
     #os = OnlineStats()
     #os.accumulate(rev_mvavg)
     #rev_mvavg = [abs(x - os.mean()) for x in rev_mvavg]
 
-    if edges_present:
+    if edges_present or fft_edges_present:
         #edge_threshold = max(mad2) * 0.75
         edge_threshold = max(mvavg_diff) * 0.6
     else:
         # Just noise
         #edge_threshold = max(mad2) * 10
         edge_threshold = max(mvavg_diff) * 5
+
+    #print('$$$ edges present:', edges_present, fft_edges_present, edge_threshold)
 
 	# For synthetic waveforms with no noise present and no edges in the initial samples we will
 	# get an edge_threshold of 0.0. In this case we will just set the threshold high enough to
@@ -391,67 +412,73 @@ def find_logic_levels(samples, max_samples=20000, buf_size=2000):
     # We have established the edge threshold. We will now construct the moving avg. difference
     # again. This time, any difference above the threshold will be an indicator of an edge
     # transition.
+
+    if fft_edges_present:
+        samp_cex = ChunkExtractor(samp_it)
+        buf = samp_cex.next_samples(buf_size)
+        state = S_FINISH_BUF
+    else:
     
-    mvavg_buf = collections.deque(maxlen=mvavg_size)
-    mvavg_dly_buf = collections.deque(maxlen=mvavg_size)
-    buf = collections.deque(maxlen=buf_size)
+        mvavg_buf = collections.deque(maxlen=mvavg_size)
+        mvavg_dly_buf = collections.deque(maxlen=mvavg_size)
+        buf = collections.deque(maxlen=buf_size)
 
-    # skip initial samples to create disparity between samp_cex and dly_cex
-    samp_cex = ChunkExtractor(samp_it)
-    dly_cex = ChunkExtractor(samp_dly_it)
-    delay_samples = 100
-    samp_cex.next_samples(delay_samples)
+        # skip initial samples to create disparity between samp_cex and dly_cex
+        samp_cex = ChunkExtractor(samp_it)
+        dly_cex = ChunkExtractor(samp_dly_it)
+        delay_samples = 100
+        samp_cex.next_samples(delay_samples)
 
-    end_loop = False
-    while True:
-        cur_samp = samp_cex.next_samples()
-        cur_dly_samp = dly_cex.next_samples()
+        end_loop = False
+        while True:
+            cur_samp = samp_cex.next_samples()
+            cur_dly_samp = dly_cex.next_samples()
 
-        if cur_samp is None:
-            break
-    
-        for i in xrange(len(cur_samp)):
+            if cur_samp is None:
+                break
         
-            ns = cur_samp[i]
-            sc += 1
+            for i in xrange(len(cur_samp)):
             
-            buf.append(ns)
-            
-            if state == S_FIND_EDGE:
-                if sc > (max_samples - buf_size):
-                    end_loop = True
-                    break
-
-                mvavg_buf.append(ns)
-                mvavg = sum(mvavg_buf) / len(mvavg_buf)  # calculate moving avg.
-                mvavg_dly_buf.append(cur_dly_samp[i])
-                mvavg_dly = sum(mvavg_dly_buf) / len(mvavg_dly_buf)  # calculate moving avg.
-                if abs(mvavg_dly - mvavg) > edge_threshold:
-                    # This is likely an edge event
-                    state = S_FINISH_BUF
-                    if len(buf) < buf_size // 2:
-                        buf_remaining = buf_size - len(buf)
-                    else:
-                        buf_remaining = buf_size // 2
-                        
-                    #print('##### Found edge {} {}'.format(len(buf), sc))
+                ns = cur_samp[i]
+                sc += 1
                 
+                buf.append(ns)
+                
+                if state == S_FIND_EDGE:
+                    if sc > (max_samples - buf_size):
+                        end_loop = True
+                        break
 
-            else: # S_FINISH_BUF
-                # Accumulate samples until the edge event is in the middle of the
-                # buffer or the buffer is filled
-                buf_remaining -= 1
-                if buf_remaining <= 0 and len(buf) >= buf_size:
-                    end_loop = True
-                    break
+                    mvavg_buf.append(ns)
+                    mvavg = sum(mvavg_buf) / len(mvavg_buf)  # calculate moving avg.
+                    mvavg_dly_buf.append(cur_dly_samp[i])
+                    mvavg_dly = sum(mvavg_dly_buf) / len(mvavg_dly_buf)  # calculate moving avg.
+                    if abs(mvavg_dly - mvavg) > edge_threshold:
+                        # This is likely an edge event
+                        state = S_FINISH_BUF
+                        if len(buf) < buf_size // 2:
+                            buf_remaining = buf_size - len(buf)
+                        else:
+                            buf_remaining = buf_size // 2
+                            
+                        #print('##### Found edge {} {}'.format(len(buf), sc))
+                    
 
-        if end_loop:
-            break
+                else: # S_FINISH_BUF
+                    # Accumulate samples until the edge event is in the middle of the
+                    # buffer or the buffer is filled
+                    buf_remaining -= 1
+                    if buf_remaining <= 0 and len(buf) >= buf_size:
+                        end_loop = True
+                        break
+
+            if end_loop:
+                break
             
 
-   
     #plt.plot(et_samples)
     #plt.plot(et_mvavg)
+    #plt.plot(noise_filtered)
     #plt.plot(mvavg_diff)
     #plt.plot(noise_diff)
     #plt.plot(rev_mvavg)
