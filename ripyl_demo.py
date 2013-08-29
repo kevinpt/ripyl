@@ -687,7 +687,7 @@ def demo_iso_k_line(options):
     
     # Synthesize the waveform edge stream
     # This can be fed directly into iso_k_line_decode() if an analog waveform is not needed
-    edges_it = kline.iso_k_line_synth(messages, msg_gap=8.0e-3, idle_start=8.0 / baud, idle_end=8.0 / baud)
+    edges_it = kline.iso_k_line_synth(messages, message_interval=8.0e-3, idle_start=8.0 / baud, idle_end=8.0 / baud)
     
     # Convert to a sample stream with band-limited edges and noise
     clean_samples_it = sigp.synth_wave(edges_it, sample_rate, rise_time)

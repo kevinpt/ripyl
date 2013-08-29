@@ -278,21 +278,18 @@ class ISO9141Init(StreamSegment):
 
 
 
-def iso_k_line_decode(stream, min_msg_gap=7.0e-3, logic_levels=None, stream_type=StreamType.Samples):
+def iso_k_line_decode(stream, min_message_interval=7.0e-3, logic_levels=None, stream_type=StreamType.Samples):
     '''Decode ISO9141 and ISO14230 data streams
 
     This is a generator function that can be used in a pipeline of waveform
     procesing operations.
-    
-    stream (sequence of (float, number) pairs)
-        A stream of 2-tuples of (time, value) pairs. The type of stream is identified
-        by the stream_type parameter. Either a series of real valued samples that will
-        be analyzed to find edge transitions or a set of pre-processed edge transitions
-        representing the 0 and 1 logic states of the K-Line waveform. When this is a sample
-        stream, an initial block of data is consumed to determine the most likely logic
-        levels in the signal.
 
-    min_msg_gap (float)
+    stream (iterable of SampleChunk objects or (float, int) pairs)
+        A sample stream or edge stream of K-line messages. The type of stream is identified
+        by the stream_type parameter. When this is a sample stream, an initial block
+        of data is consumed to determine the most likely logic levels in the signal.
+
+    min_message_interval (float)
         The minimum time between bytes for identifying the end and start
         of messages. For ISO14230 this is used in addition to the message length encoded
         in the header.
@@ -307,9 +304,7 @@ def iso_k_line_decode(stream, min_msg_gap=7.0e-3, logic_levels=None, stream_type
         or Edges
         
         
-    Yields a series of UARTFrame objects. Each frame contains subrecords marking the location
-      of sub-elements within the frame (start, data, stop). BRK conditions are reported as a
-      data value 0x00 with a framing error in the status code.
+    Yields a series of KLineStreamMessage objects.
       
     Raises AutoLevelError if stream_type = Samples and the logic levels cannot
       be determined.
@@ -472,7 +467,7 @@ def iso_k_line_decode(stream, min_msg_gap=7.0e-3, logic_levels=None, stream_type
                 total_length = get_msg_len(msg_bytes)
 
             #print('### byte:', eng.eng_si(r.start_time, 's'), eng.eng_si(r.start_time - prev_byte_end, 's'), hex(r.data))
-            if (r.start_time - prev_byte_end > min_msg_gap and len(msg_bytes) > 0) or \
+            if (r.start_time - prev_byte_end > min_message_interval and len(msg_bytes) > 0) or \
                 (total_length is not None and len(msg_bytes) == total_length):
                 # Previous message ended
                 msg = build_msg(protocol, msg_bytes)
@@ -499,7 +494,29 @@ def iso_k_line_decode(stream, min_msg_gap=7.0e-3, logic_levels=None, stream_type
         yield KLineWakeup(bounds, wakeup_edges)
 
 
-def iso_k_line_synth(messages, msg_gap=8.0e-3, idle_start=0.0, idle_end=0.0, word_interval=1.0e-3):
+def iso_k_line_synth(messages, idle_start=0.0, message_interval=8.0e-3, idle_end=0.0, word_interval=1.0e-3):
+    '''Generate synthesized ISO9141 and ISO14230 data streams
+    
+    messages (sequence of tuple of int)
+        Messages to be synthesized. Each element is a tuple of bytes to send
+        for each message.
+
+    idle_start (float)
+        The amount of idle time before the transmission of messages begins.
+
+    message_interval (float)
+        The amount of time between messages.
+    
+    idle_end (float)
+        The amount of idle time after the last message.
+
+    word_interval (float)
+        The amount of time between message bytes.
+
+    Yields an edge stream of (float, int) pairs. The first element in the iterator
+      is the initial state of the stream.
+    '''
+
     msg_its = []
     for i, msg in enumerate(messages):
         istart = idle_start if i == 0 else 0.0
@@ -507,6 +524,6 @@ def iso_k_line_synth(messages, msg_gap=8.0e-3, idle_start=0.0, idle_end=0.0, wor
         msg_its.append(uart.uart_synth(msg, bits=8, baud=10400, idle_start=istart, \
             idle_end=iend, word_interval=word_interval))
 
-    return sigp.chain_edges(msg_gap, *msg_its)
-    #return msg_its[0]
+    return sigp.chain_edges(message_interval, *msg_its)
+
 

@@ -1,4 +1,3 @@
-#!/usr/bin/python
 
 '''Ripyl protocol decode library'''
 
