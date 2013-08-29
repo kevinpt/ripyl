@@ -23,6 +23,8 @@
 
 from __future__ import print_function, division
 
+import numpy as np
+
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import string
@@ -52,6 +54,14 @@ def _waveform_bounds(raw_samples):
     }
     
     return bounds
+
+
+def _sample_vectors(s_stream):
+    wf, start_time, sample_period = stream.extract_samples(s_stream)
+    t = np.arange(start_time, start_time + len(wf) * sample_period, sample_period)
+
+    return wf, t
+
 
 def plot(channels, records, title='', label_format='text', save_file=None, figsize=None):
     '''Generic plot function
@@ -130,7 +140,8 @@ def usb_plot(channels, records, title='', label_format='text', save_file=None, f
     if len(channels.keys()) == 1:
         dm = channels[channels.keys()[0]]
         
-        dm_t, dm_wf = zip(*dm)
+        dm_wf, dm_t = _sample_vectors(dm)
+
         dm_b = _waveform_bounds(dm_wf)
     
         text_ypos = (dm_b['max'] + dm_b['ovl_top']) / 2.0
@@ -149,8 +160,9 @@ def usb_plot(channels, records, title='', label_format='text', save_file=None, f
         if 'dp' in channels.keys(): # normal USB
             dp = channels['dp']
             dm = channels['dm']
-            dp_t, dp_wf = zip(*dp)
-            dm_t, dm_wf = zip(*dm)
+
+            dp_wf, dp_t = _sample_vectors(dp)
+            dm_wf, dm_t = _sample_vectors(dm)
         
             dm_b = _waveform_bounds(dm_wf)
         
@@ -170,8 +182,9 @@ def usb_plot(channels, records, title='', label_format='text', save_file=None, f
         else: # HSIC
             strobe = channels['strobe']
             data = channels['data']
-            stb_t, stb_wf = zip(*strobe)
-            dm_t, dm_wf = zip(*data)
+
+            stb_wf, stb_t = _sample_vectors(strobe)
+            dm_wf, dm_t = _sample_vectors(data)
         
             dm_b = _waveform_bounds(dm_wf)
         
@@ -308,16 +321,14 @@ def spi_plot(channels, records, title='', label_format='text', save_file=None, f
     clk = channels['clk']
     data_io = channels['data_io']
 
-    clk_t, clk_wf = zip(*clk)
-    data_io_t, data_io_wf = zip(*data_io)
+    clk_wf, clk_t = _sample_vectors(clk)
+    data_io_wf, data_io_t = _sample_vectors(data_io)
 
-    #clk_b = _waveform_bounds(clk_wf)
     data_io_b = _waveform_bounds(data_io_wf)
 
     if 'cs' in channels.keys():
         cs = channels['cs']
-        cs_t, cs_wf = zip(*cs)
-        #cs_b = _waveform_bounds(cs_wf)
+        cs_wf, cs_t = _sample_vectors(cs)
 
     
     text_ypos = (data_io_b['max'] + data_io_b['ovl_top']) / 2.0
@@ -422,10 +433,10 @@ def i2c_plot(channels, records, title='', label_format='text', save_file=None, f
     '''
     scl = channels['scl']
     sda = channels['sda']
-    scl_t, scl_wf = zip(*scl)
-    sda_t, sda_wf = zip(*sda)
+
+    scl_wf, scl_t = _sample_vectors(scl)
+    sda_wf, sda_t = _sample_vectors(sda)
     
-    #scl_b = _waveform_bounds(scl_wf)
     sda_b = _waveform_bounds(sda_wf)
     
     text_ypos = (sda_b['max'] + sda_b['ovl_top']) / 2.0
@@ -522,8 +533,8 @@ def i2c_plot(channels, records, title='', label_format='text', save_file=None, f
 def uart_plot(samples, records, title='', label_format='text', save_file=None, figsize=None):
     '''Plot UART waveforms
     
-    samples (sequence of (float, float) tuples)
-        A sequence of waveform sample data. Each element is a tuple of (time, sample) pairs.
+    samples (iterable of SampleChunk objects)
+        A sequence of waveform sample data.
 
     records (sequence of StreamRecord objects)
         The StreamRecords used to annotate the waveforms.
@@ -541,8 +552,9 @@ def uart_plot(samples, records, title='', label_format='text', save_file=None, f
     figsize ((int, int) tuple)
         Dimensions of a saved image (w, h).
     '''
-    t, wf = zip(*samples)
-    
+
+    wf, t = _sample_vectors(samples)
+
     max_wf = max(wf)
     min_wf = min(wf)
     span = max_wf - min_wf
@@ -643,8 +655,9 @@ def ps2_plot(channels, records, title='', label_format='text', save_file=None, f
     '''
     clk = channels['clk']
     data = channels['data']
-    clk_t, clk_wf = zip(*clk)
-    data_t, data_wf = zip(*data)
+
+    clk_wf, clk_t = _sample_vectors(clk)
+    data_wf, data_t = _sample_vectors(data)
     
     #clk_b = _waveform_bounds(clk_wf)
     data_b = _waveform_bounds(data_wf)
@@ -754,7 +767,7 @@ def iso_k_line_plot(samples, records, title='', label_format='text', save_file=N
         Dimensions of a saved image (w, h).
     '''
 
-    t, wf = zip(*samples)
+    wf, t = _sample_vectors(samples)
     
     kline_b = _waveform_bounds(wf)
     
