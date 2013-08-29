@@ -54,7 +54,7 @@ class TestOnlineStats(unittest.TestCase):
         #data = range(11)
         #for n in data:
         #    os.accumulate(n)
-        os.accumulate(range(11))
+        os.accumulate_array(range(11))
         
         self.assertAlmostEqual(os.mean(), 5.0, msg='Invalid mean')
         self.assertAlmostEqual(os.std(), 3.16227766, msg='Invalid std. dev.')

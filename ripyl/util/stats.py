@@ -23,6 +23,7 @@
 
 from __future__ import print_function, division
 
+import pyximport; pyximport.install()
 import math
 
         
@@ -38,22 +39,28 @@ class OnlineStats(object):
     def accumulate(self, data):
         '''Add a new data value to the set of accumulated statistics
         
-        data (number or sequence of numbers)
+        data (number)
             New data to accumulate statistics on
         '''
+
+        self.c += 1
+        delta = data - self.m
+        self.m = self.m + delta / self.c
+        self.s = self.s + delta * (data - self.m)
+
+    def accumulate_array(self, data):
+        '''Add a new data value to the set of accumulated statistics
         
-        try:
-            for d in data:
-                self.c += 1
-                delta = d - self.m
-                self.m = self.m + delta / self.c
-                self.s = self.s + delta * (d - self.m)
-        
-        except TypeError: # Assume data is a scalar
+        data (sequence of numbers)
+            New data to accumulate statistics on
+        '''
+
+        for d in data:
             self.c += 1
-            delta = data - self.m
+            delta = d - self.m
             self.m = self.m + delta / self.c
-            self.s = self.s + delta * (data - self.m)
+            self.s = self.s + delta * (d - self.m)
+
     
     def variance(self, ddof=0):
         '''Compute the variance of the data values previously accumulated
@@ -87,4 +94,7 @@ class OnlineStats(object):
     def reset(self):
         '''Reset accumulated statistics to initial conditions'''
         self.__init__()
-        
+
+import ripyl.cython.stats as cy_stats
+#OnlineStats.accumulate = cy_stats.accumulate
+#OnlineStats = cy_stats.OnlineStats
