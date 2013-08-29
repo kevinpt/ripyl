@@ -31,7 +31,7 @@ import sys
 
 import ripyl.protocol.usb as usb
 import ripyl.sigproc as sigp
-import ripyl.streaming as streaming
+import ripyl.streaming as stream
 import test.test_support as tsup
 
 
@@ -123,18 +123,18 @@ class TestUSBFuncs(tsup.RandomSeededTestCase):
                 dp, dm = usb.usb_synth(packets, 1.0e-7, 3.0e-7)
 
                 # Do the decode
-                records_it = usb.usb_decode(dp, dm, stream_type=streaming.StreamType.Edges)
+                records_it = usb.usb_decode(dp, dm, stream_type=stream.StreamType.Edges)
             elif use_protocol == 'differential':
                 # Synthesize a differential edge waveform
                 diff_d = usb.usb_diff_synth(packets, 1.0e-7, 3.0e-7)
                 # Do the decode
-                records_it = usb.usb_diff_decode(diff_d, stream_type=streaming.StreamType.Edges)
+                records_it = usb.usb_diff_decode(diff_d, stream_type=stream.StreamType.Edges)
             else: # hsic
                 # Synthesize edge waveforms
                 strobe, data = usb.usb_hsic_synth(packets, 1.0e-7, 3.0e-7)
 
                 # Do the decode
-                records_it = usb.usb_hsic_decode(strobe, data, stream_type=streaming.StreamType.Edges)
+                records_it = usb.usb_hsic_decode(strobe, data, stream_type=stream.StreamType.Edges)
                 
             
             records = list(records_it)
@@ -182,12 +182,12 @@ class TestUSBFuncs(tsup.RandomSeededTestCase):
         # Note that these packets were collected with segmented acquisition and are ~5us
         # apart rather than the proper 1ms.
         dp_samples, sample_period, start_time = tsup.read_bin_file('test/data/usb_100segs_dp.bin')
-        dp_it = sigp.samples_to_sample_stream(dp_samples, sample_period, start_time)
+        dp_it = stream.samples_to_sample_stream(dp_samples, sample_period, start_time)
 
         dm_samples, sample_period, start_time = tsup.read_bin_file('test/data/usb_100segs_dm.bin')
-        dm_it = sigp.samples_to_sample_stream(dm_samples, sample_period, start_time)
+        dm_it = stream.samples_to_sample_stream(dm_samples, sample_period, start_time)
         
-        records_it = usb.usb_decode(dp_it, dm_it, stream_type=streaming.StreamType.Samples)
+        records_it = usb.usb_decode(dp_it, dm_it, stream_type=stream.StreamType.Samples)
         records = list(records_it)
         
         self.assertEqual(len(records), 100, 'Missing records, expected to decode 100')
@@ -205,15 +205,15 @@ class TestUSBFuncs(tsup.RandomSeededTestCase):
         # Note that these packets were collected with segmented acquisition and are ~5us
         # apart rather than the proper 1ms.
         dp_samples, sample_period, start_time = tsup.read_bin_file('test/data/usb_100segs_dp.bin')
-        dp_it = sigp.samples_to_sample_stream(dp_samples, sample_period, start_time)
+        dp_it = stream.samples_to_sample_stream(dp_samples, sample_period, start_time)
 
         dm_samples, sample_period, start_time = tsup.read_bin_file('test/data/usb_100segs_dm.bin')
-        dm_it = sigp.samples_to_sample_stream(dm_samples, sample_period, start_time)
+        dm_it = stream.samples_to_sample_stream(dm_samples, sample_period, start_time)
         
         # generate differential waveform
         d_diff_it = sigp.sum_streams(dp_it, sigp.invert(dm_it))
         
-        records_it = usb.usb_diff_decode(d_diff_it, stream_type=streaming.StreamType.Samples)
+        records_it = usb.usb_diff_decode(d_diff_it, stream_type=stream.StreamType.Samples)
         records = list(records_it)
         
         self.assertEqual(len(records), 100, 'Missing records, expected to decode 100')

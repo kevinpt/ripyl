@@ -87,7 +87,7 @@ class TestUARTFuncs(tsup.RandomSeededTestCase):
         message = 'Hello, world!'
 
         samples, sample_period, start_time = tsup.read_bin_file('test/data/uart_hello_8e2.bin')
-        txd = sigp.samples_to_sample_stream(samples, sample_period, start_time)
+        txd = stream.samples_to_sample_stream(samples, sample_period, start_time)
         frames = list(uart.uart_decode(txd, bits=bits, polarity=polarity, parity=parity, stop_bits=stop_bits))
         
         ok_status = True
@@ -110,7 +110,7 @@ class TestUARTFuncs(tsup.RandomSeededTestCase):
         message = 'Hello, world!'
 
         samples, sample_period, start_time = tsup.read_bin_file('test/data/uart_hello.bin')
-        txd = sigp.samples_to_sample_stream(samples, sample_period, start_time)
+        txd = stream.samples_to_sample_stream(samples, sample_period, start_time)
         frames = list(uart.uart_decode(txd, bits=bits, polarity=polarity, parity=parity, stop_bits=stop_bits))
         
         ok_status = True
