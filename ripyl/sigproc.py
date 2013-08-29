@@ -30,38 +30,6 @@ import numpy as np
 import scipy.signal as signal
 
 
-def samples_to_sample_stream(raw_samples, sample_period, start_time=0.0, chunk_size=1000):
-    '''Convert raw samples to a chunked sample stream
-
-    This is a generator function that can be used in a pipeline of waveform
-    procesing operations
-
-    raw_samples (iterable of numbers)
-        The samples to convert to a sample stream.
-    
-    sample_period (float)
-        The time interval between samples
-
-    start_time (float)
-        The time for the first sample
-
-    chunk_size (int)
-        The maximum number of samples for each chunk
-
-    Yields a series of SampleChunk objects representing the time and
-      sample value for each input sample. This can be fed to functions
-      that expect a chunked sample stream as input.
-    '''
-    t = start_time
-    for i in xrange(0, len(raw_samples), chunk_size):
-        chunk = np.asarray(raw_samples[i:i + chunk_size], dtype=float)
-        sc = SampleChunk(chunk, t, sample_period)
-
-        yield sc
-        t += sample_period * len(chunk)
-
-
-
 
 def remove_excess_edges(edges):
     '''Remove incorrect edge transitions from an edge stream
@@ -108,8 +76,11 @@ def edges_to_sample_stream(edges, sample_period, end_extension=None, chunk_size=
         
     end_extension (float)
         Optional amount of time to add to the end after the last edge transition
+
+    chunk_size (int)
+        Number of samples in each SampleChunk
     
-    Yields a sample stream.
+    Yields a stream of SampleChunk objects.
     '''
     t = 0.0
     
@@ -187,8 +158,9 @@ def approximate_bandwidth(rise_time):
     '''
     return 0.35 / rise_time
     
-    
-def filter_waveform(samples, sample_rate, rise_time, ripple_db=60.0, pool_size=1000, chunk_size=1000):
+   
+
+def filter_waveform(samples, sample_rate, rise_time, ripple_db=60.0, chunk_size=1000):
     '''Apply a bandwidth limiting low-pass filter to a sample stream
     
     This is a generator function.
@@ -206,14 +178,14 @@ def filter_waveform(samples, sample_rate, rise_time, ripple_db=60.0, pool_size=1
         Noise suppression in dB for the bandwidth filter stop band. This should
         be a positive value.
         
-    pool_size (int)
+    chunk_size (int)
         Internal FIR filter sample pool size. This can generally be ignored. To support
         streaming of samples, the FIR filter operation is done piecewise so we don't have
         to consume the entire input before producing filtered output. Larger values will
         reduce the number of filter operations performed. Excessively small values will
         waste time due to the reprocessing of overlapping samples between successive pools.
     
-    Yields a sample stream.
+    Yields a stream of SampleChunk objects.
     '''
 
     sample_period = 1.0 / sample_rate
@@ -230,69 +202,41 @@ def filter_waveform(samples, sample_rate, rise_time, ripple_db=60.0, pool_size=1
     taps = signal.firwin(N, cutoff_hz / nyquist, window=('kaiser', beta))
     
     # Filter delay
-    delay = 0.5 * (N-1) / sample_rate
+    # delay = 0.5 * (N-1) / sample_rate
     
-    if pool_size < 2*N:
-        pool_size = 2*N
+    if chunk_size < 2*N:
+        chunk_size = 2*N
 
-    stream_ended = False
+    samp_ce = ChunkExtractor(samples)
 
     # Get a pool of samples
-    spool = np.zeros((pool_size + N-1,), dtype = np.float)
-    sc = next(samples)
-    s_ix = 0
-    spool[0:N//2-1] += sc.samples[0] # Pad the first part of the pool with a copy of the first sample
+    spool = np.zeros((chunk_size + N-1,), dtype = np.float)
     
     # Prime the initial portion of the pool with data that will be filtered out
-    pool_start_time = sc.start_time + delay
-    fresh_pool = False
+    prime_size = N - N//2
+    sc = samp_ce.next_chunk(prime_size)
+    if sc is not None:
+        spool[0:N//2-1] += sc.samples[0] # Pad the first part of the pool with a copy of the first sample
+        spool[N//2 - 1:N - 1] = sc.samples
 
-    for i in xrange(N//2 - 1, N-1):
-        try:
-            next_sample = sc.samples[s_ix]
-            spool[i] = next_sample
-
-            s_ix += 1
-            if s_ix >= len(sc.samples):
-                s_ix = 0
-                sc = next(samples)
-
-        except StopIteration:
-            stream_ended = True
-            break
-    
-    valid_samples = 0
-    
-    while not stream_ended:
-        # Fill the pool with samples
-        if fresh_pool:
-            pool_start_time = sc.start_time + s_ix * sc.sample_period
-            #print('## pst:', pool_start_time, pool_start_time + delay, s_ix)
-            fresh_pool = False
-        for i in xrange(N-1, pool_size + N-1):
-            try:
-                next_sample = sc.samples[s_ix]
-                spool[i] = next_sample
-
-                valid_samples = i
-
-                s_ix += 1
-                if s_ix >= len(sc.samples):
-                    s_ix = 0
-                    sc = next(samples)
-
-            except StopIteration:
-                stream_ended = True
+        while True:
+            # Fill the pool with samples
+            sc = samp_ce.next_chunk(chunk_size)
+            if sc is None:
                 break
-                
-        filt = signal.lfilter(taps, 1.0, spool[:valid_samples+1])
-        
-        # copy end samples to start of pool
-        if not stream_ended:
-            spool[0:N-1] = spool[pool_size:pool_size + N-1]
-        
-        yield SampleChunk(filt[N-1:valid_samples+1], pool_start_time, sample_period)
-        fresh_pool = True
+
+            spool[N-1:len(sc.samples) + N-1] = sc.samples
+            valid_samples = len(sc.samples) + N - 1
+                    
+            filt = signal.lfilter(taps, 1.0, spool[:valid_samples]) #NOTE: there may be an off-by-one error in the slice
+            
+            # copy end samples to start of pool
+            spool[0:N-1] = spool[chunk_size:chunk_size + N-1]
+            
+            #print('$$$ ce chunk', N, valid_samples, sc.start_time, sample_period)
+
+            yield SampleChunk(filt[N-1:valid_samples], sc.start_time, sample_period)
+
 
 
 def synth_wave(edges, sample_rate, rise_time, ripple_db=60.0):

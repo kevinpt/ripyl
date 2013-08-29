@@ -490,6 +490,28 @@ def extract_samples(samples, sample_count=1000):
             sample_count = next_sc
 
 
+def extract_samples(samples):
+    '''Get all samples from a sample stream along with parameter information.
+
+    samples (iterable of SampleChunk objects)
+        The sample stream to extract samples from.
+
+    Returns a tuple containing a numpy sample array of float, the start time,
+      and the sample period.
+    '''
+
+    chunk_buf = [s for s in samples]
+    total_samples = sum(len(s.samples) for s in chunk_buf)
+
+    all_samples = np.empty(total_samples, dtype=float)
+    offset = 0
+    for s in chunk_buf:
+        all_samples[offset:offset+len(s.samples)] = s.samples
+        offset += len(s.samples)
+
+    return all_samples, chunk_buf[0].start_time, chunk_buf[0].sample_period
+
+
 def sample_stream_to_samples(samples):
     '''Get all samples from a sample stream as an array
 
@@ -499,23 +521,36 @@ def sample_stream_to_samples(samples):
     Returns a numpy array of float.
     '''
 
-    extractor = ChunkExtractor(samples)
-    samp_buf = []
-    buf_count = 0
+    return extract_samples(samples)[0]
+    
+    
 
-    while True:
-        s = extractor.next_samples()
-        if s is None:
-            break
+def samples_to_sample_stream(raw_samples, sample_period, start_time=0.0, chunk_size=1000):
+    '''Convert raw samples to a chunked sample stream
 
-        samp_buf.append(s)
-        buf_count += len(s)
+    This is a generator function that can be used in a pipeline of waveform
+    procesing operations
 
-    all_samples = np.empty(buf_count, dtype=float)
-    offset = 0
-    for s in samp_buf:
-        all_samples[offset:offset+len(s)] = s
-        offset += len(s)
+    raw_samples (iterable of numbers)
+        The samples to convert to a sample stream.
+    
+    sample_period (float)
+        The time interval between samples
 
-    return all_samples
+    start_time (float)
+        The time for the first sample
 
+    chunk_size (int)
+        The maximum number of samples for each chunk
+
+    Yields a series of SampleChunk objects representing the time and
+      sample value for each input sample. This can be fed to functions
+      that expect a chunked sample stream as input.
+    '''
+    t = start_time
+    for i in xrange(0, len(raw_samples), chunk_size):
+        chunk = np.asarray(raw_samples[i:i + chunk_size], dtype=float)
+        sc = SampleChunk(chunk, t, sample_period)
+
+        yield sc
+        t += sample_period * len(chunk)
