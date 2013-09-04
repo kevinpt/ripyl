@@ -408,6 +408,52 @@ def invert(stream):
         sc.samples *= -1.0
         yield sc
 
+
+def capacify(samples, capacitance, resistance=50.0):
+    '''Simulate an RC filter on a waveform
+
+    samples >--R--+--> out
+                  |
+                  C
+                 _|_
+
+    Warning: This function becomes unstable for small time constants (C * R).
+    It is implemented with a simple application of the RC difference equations.
+    The time step (dt) is taken from the sample period of each sample chunk
+    The results will be inaccurate for large values of dt but still largely
+    representative of the expected behavior.
+
+    This is a generator function.
+
+    samples (iterable of SampleChunk objects)
+        An iterable sample stream to modify.
+
+    capacitance (float)
+        The capacitance value
+
+    resistance (float)
+        The resistance value
+    
+    Yields a sample stream.
+    '''
+    vc = None
+    for sc in samples:
+        if vc is None: # Set initial conditions for capacitor voltage and charge
+            vc = sc.samples[0]
+            q = vc * capacitance
+
+        dt = sc.sample_period
+        #print('# vc', vc, capacitance, q, vc * capacitance, dt)
+        for j in xrange(len(sc.samples)):
+            i = (sc.samples[j] - vc) / resistance # Capacitor current
+
+            dq = i * dt # Change in charge
+            q += dq
+            vc = q / capacitance # New capacitor voltage
+            #print('$$ i, dq, d, vc', i, dq, q, vc)
+            sc.samples[j] = vc
+        yield sc
+
         
 def sum_streams(stream1, stream2):
     '''Add two sample streams together
