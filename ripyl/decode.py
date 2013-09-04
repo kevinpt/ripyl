@@ -119,11 +119,24 @@ def find_bot_top_hist_peaks(raw_samples, bins, use_kde=False, kde_bw=0.05):
     #plt.plot(bin_centers, hist)
     #plt.show()
     peaks = find_hist_peaks(hist)
+
+    if len(peaks) < 2:
+        # In some cases where 1's or 0's are significantly dominant over the other
+        # the histogram is too skewed and find_hist_peaks() sets a threshold too high.
+
+        # Split the histogram and attempt to find peaks in each half to handle this case
+        half = len(hist) // 2
+        l_peaks = find_hist_peaks(hist[:half])
+        r_peaks = find_hist_peaks(hist[half:])
+        if len(l_peaks) >= 1 and len(r_peaks) >= 1:
+            peaks = l_peaks
+            peaks.extend((p[0] + half, p[1] + half) for p in r_peaks)
+            #print('$$$$ peaks2:', peaks)
     
-    # make sure we have at least two peaks
+    # Make sure we have at least two peaks
     if len(peaks) < 2:
         return None
-    
+
 
     # Take the lower and upper peaks from the list
     end_peaks = (peaks[0], peaks[-1])
@@ -494,8 +507,10 @@ def find_logic_levels(samples, max_samples=20000, buf_size=2000):
 
     try:
         logic_levels = find_bot_top_hist_peaks(buf, 100, use_kde=True)
+        #print('### ll:', logic_levels, min(buf), max(buf))
     except ValueError:
-        return None
+        logic_levels = None
+
 
     #print('%%% logic_levels', logic_levels)
 
