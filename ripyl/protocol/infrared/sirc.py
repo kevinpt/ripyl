@@ -33,6 +33,7 @@ from ripyl.util.bitops import split_bits, join_bits
 import ripyl.protocol.infrared as ir
 
 class SIRCMessage(object):
+    '''SIRC infrared message'''
     def __init__(self, cmd, device, extended=None):
         self.cmd = cmd
         self.device = device
@@ -45,13 +46,7 @@ class SIRCMessage(object):
             return 'SIRCMessage({}, {}, {})'.format(self.cmd, self.device, self.extended)
 
     def __eq__(self, other):
-        match = True
-
-        if self.cmd != other.cmd: match = False
-        if self.device != other.device: match = False
-        if self.extended != other.extended: match = False
-        
-        return match
+        return vars(self) == vars(other)
 
     def __ne__(self, other):
         return not (self == other)
@@ -59,7 +54,7 @@ class SIRCMessage(object):
             
 
 class SIRCStreamMessage(stream.StreamSegment):
-    '''Message object for SIRC data'''
+    '''Stream message object for SIRC data'''
     def __init__(self, bounds, data=None, status=stream.StreamStatus.Ok):
         stream.StreamSegment.__init__(self, bounds, data, status=status)
         self.kind = 'SIRC message'
@@ -139,9 +134,11 @@ def sirc_decode(ir_stream, carrier_freq=40.0e3, polarity=ir.IRConfig.IdleLow, lo
         msg_start_time = es.cur_time - ts
         msg_bits = []
         bit_starts = []
+        prev_edge = 0.0
 
         # Accumulate bits until idle for too long
         while True:
+            prev_edge = es.cur_time
             ts = es.advance_to_edge()
             if not time_is_nearly(ts, one_t):
                 break  # Not the beginning of a bit
@@ -158,7 +155,8 @@ def sirc_decode(ir_stream, carrier_freq=40.0e3, polarity=ir.IRConfig.IdleLow, lo
             else:
                 break
 
-        bit_starts.append(es.cur_time) # End of last bit
+        bit_starts.append(prev_edge) # End of last bit
+        print('### last bit:', es.cur_time)
 
         if len(msg_bits) in (12, 15, 20):
             cmd = join_bits(reversed(msg_bits[0:7]))
@@ -177,17 +175,24 @@ def sirc_decode(ir_stream, carrier_freq=40.0e3, polarity=ir.IRConfig.IdleLow, lo
                 extended_range = (bit_starts[12], bit_starts[20])
                 
             msg = SIRCMessage(cmd, device, extended)
-            sm = SIRCStreamMessage((msg_start_time, es.cur_time), msg)
+            sm = SIRCStreamMessage((msg_start_time, prev_edge + 0.5*one_t), msg)
 
             cmd_ss = stream.StreamSegment((cmd_range[0], cmd_range[1]), cmd, kind='command')
             sm.subrecords.append(cmd_ss)
+            sm.subrecords[-1].annotate('data', {'_bits':7})
 
             dev_ss = stream.StreamSegment((device_range[0], device_range[1]), device, kind='device')
             sm.subrecords.append(dev_ss)
+            sm.subrecords[-1].annotate('addr')
+            if len(msg_bits) == 15:
+                sm.subrecords[-1].fields['_bits'] = 8
+            else:
+                sm.subrecords[-1].fields['_bits'] = 5
 
             if extended is not None:
                 ext_ss = stream.StreamSegment((extended_range[0], extended_range[1]), extended, kind='extended')
                 sm.subrecords.append(ext_ss)
+                sm.subrecords[-1].annotate('data', {'_bits':8})
 
 
             yield sm

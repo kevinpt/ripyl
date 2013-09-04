@@ -54,14 +54,7 @@ class NECMessage(object):
             return 'NECMessage(cmd={}, addr_low={}, addr_high={})'.format(self.cmd, self.addr_low, self.addr_high)
 
     def __eq__(self, other):
-        match = True
-
-        if self.cmd != other.cmd: match = False
-        if self.cmd_inv != other.cmd_inv: match = False
-        if self.addr_low != other.addr_low: match = False
-        if self.addr_high != other.addr_high: match = False
-        
-        return match
+        return vars(self) == vars(other)
 
     def __ne__(self, other):
         return not (self == other)
@@ -77,6 +70,9 @@ class NECRepeat(NECMessage):
 
     def __repr__(self):
         return 'NECRepeat()'
+    
+    def __str__(self):
+        return '(repeat)'
 
 
 class NECStreamMessage(stream.StreamSegment):
@@ -189,21 +185,39 @@ def nec_decode(ir_stream, carrier_freq=38.0e3, polarity=ir.IRConfig.IdleLow, log
                         # Valid command message
 
                         msg_bytes = [join_bits(reversed(msg_bits[i:i+8])) for i in xrange(0, 32, 8)]
-                        byte_bounds = [(bit_starts[i], bit_starts[i+8]) for i in xrange(0, 32, 8)]
+                        m_bounds = [(bit_starts[i], bit_starts[i+8]) for i in xrange(0, 32, 8)]
 
-                        nec_msg = NECMessage(msg_bytes[2], msg_bytes[0], msg_bytes[1], msg_bytes[3])
+                        addr_low = msg_bytes[0]
+                        addr_high = msg_bytes[1]
+                        cmd = msg_bytes[2]
+                        cmd_inv = msg_bytes[3]
+
+                        nec_msg = NECMessage(cmd, addr_low, addr_high, cmd_inv)
                         sm = NECStreamMessage((msg_start_time, es.cur_time), nec_msg)
-                        for d, bound in zip(msg_bytes, byte_bounds):
-                            sm.subrecords.append(stream.StreamSegment((bound[0], bound[1]), d, kind='command byte'))
+                        sm.annotate('frame', {}, stream.AnnotationFormat.Hidden)
+
+                        sm.subrecords.append(stream.StreamSegment((m_bounds[0][0], m_bounds[0][1]), addr_low, kind='addr-low'))
+                        sm.subrecords[-1].annotate('addr', {'_bits':8})
+                        sm.subrecords.append(stream.StreamSegment((m_bounds[1][0], m_bounds[1][1]), addr_high, kind='addr-high'))
+                        sm.subrecords[-1].annotate('addr', {'_bits':8})
+                        sm.subrecords.append(stream.StreamSegment((m_bounds[2][0], m_bounds[2][1]), cmd, kind='cmd'))
+                        sm.subrecords[-1].annotate('data', {'_bits':8})
+
+                        status = stream.StreamStatus.Ok if cmd == (~cmd_inv) & 0xFF else stream.StreamStatus.Error
+                        sm.subrecords.append(stream.StreamSegment((m_bounds[3][0], m_bounds[3][1]), cmd_inv, kind='cmd-inv', status=status))
+                        sm.subrecords[-1].annotate('check', {'_bits':8})
+
 
                         yield sm
 
             else: # repeat message
                 # Check for the stop bit
                 ts = es.advance_to_edge()
-                if time_is_nearly(ts, 560.0e-6, epsilon): # 560us stop pulse time
+                if time_is_nearly(ts, 560.0e-6): # 560us stop pulse time
                     # Valid repeat message
-                    yield NECStreamMessage((msg_start_time, es.cur_time), NECRepeat())
+                    sm = NECStreamMessage((msg_start_time, es.cur_time), NECRepeat())
+                    sm.annotate('frame', {'name':''}, stream.AnnotationFormat.String)
+                    yield sm
             
 
 
