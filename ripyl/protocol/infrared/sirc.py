@@ -156,7 +156,7 @@ def sirc_decode(ir_stream, carrier_freq=40.0e3, polarity=ir.IRConfig.IdleLow, lo
                 break
 
         bit_starts.append(prev_edge) # End of last bit
-        print('### last bit:', es.cur_time)
+        #print('### last bit:', es.cur_time)
 
         if len(msg_bits) in (12, 15, 20):
             cmd = join_bits(reversed(msg_bits[0:7]))
