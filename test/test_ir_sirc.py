@@ -35,7 +35,7 @@ import ripyl.sigproc as sigp
 import ripyl.streaming as stream
 import test.test_support as tsup
 
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 
 class TestSIRCFuncs(tsup.RandomSeededTestCase):
 
