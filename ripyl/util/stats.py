@@ -23,7 +23,7 @@
 
 from __future__ import print_function, division
 
-import pyximport; pyximport.install()
+#import pyximport; pyximport.install()
 import math
 
         
