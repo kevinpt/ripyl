@@ -9,5 +9,5 @@ import ripyl.decode
 import ripyl.streaming
 import ripyl.util
 import ripyl.protocol
-import ripyl.cython
+#import ripyl.cython
 
