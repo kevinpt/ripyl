@@ -28,14 +28,10 @@ import sys
 from optparse import OptionParser
 
 import random
+from collections import OrderedDict
 
 import ripyl
-import ripyl.protocol.uart as uart
-import ripyl.protocol.spi as spi
-import ripyl.protocol.i2c as i2c
-import ripyl.protocol.usb as usb
-import ripyl.protocol.ps2 as ps2
-import ripyl.protocol.iso_k_line as kline
+import ripyl.protocol.infrared as ir
 import ripyl.sigproc as sigp
 import ripyl.streaming as stream
 import ripyl.util.eng as eng
@@ -53,7 +49,7 @@ if matplotlib_exists:
 def main():
     '''Entry point for script'''
 
-    protocols = ('uart', 'i2c', 'spi', 'usb', 'usb-diff', 'hsic', 'ps2', 'kline')
+    protocols = ('uart', 'i2c', 'spi', 'usb', 'usb-diff', 'hsic', 'ps2', 'kline', 'rc5', 'rc6', 'nec', 'sirc')
 
     usage = '''%prog [-p PROTOCOL] [-n] [-m MSG]
     
@@ -65,7 +61,7 @@ Supported protocols:
     parser.add_option('-p', '--protocol', dest='protocol', default='uart', help='Specify protocol to use')
     parser.add_option('-n', '--no-plot', dest='no_plot', action='store_true', default=False, help='Disable matplotlib plotting')
     parser.add_option('-m', '--msg', dest='msg', default='Hello, world!', help='Input message')
-    parser.add_option('-s', '--snr', dest='snr_db', default=30.0, type=float, help='SNR in dB')
+    parser.add_option('-s', '--snr', dest='snr_db', default=40.0, type=float, help='SNR in dB')
     parser.add_option('-b', '--baud', dest='baud', type=float, help='Baud rate')
     parser.add_option('-o', '--save-plot', dest='save_file', help='Save plot to image file')
     parser.add_option('-d', '--dropout', dest='dropout', help='Dropout signal from "start,end[,level]"')
@@ -95,25 +91,21 @@ Supported protocols:
     options.protocol = options.protocol.lower()
 
     print('** Ripyl demo **\n\n')
-    
-    if options.protocol == 'uart':
-        demo_uart(options)
-    elif options.protocol == 'i2c':
-        demo_i2c(options)
-    elif options.protocol == 'spi':
-        demo_spi(options)
-    elif options.protocol in ['usb', 'usb-diff', 'hsic']:
-        demo_usb(options)
-    elif options.protocol == 'ps2':
-        demo_ps2(options)
-    elif options.protocol == 'kline':
-        demo_iso_k_line(options)
+
+    if options.protocol in protocols:
+        func = 'demo_' + options.protocol
+
+        if options.protocol in ('usb-diff', 'hsic'):
+            func = 'demo_usb'
+
+        globals()[func](options) # Call the protocol demo routine
     else:
         print('Unrecognized protocol: "{}"'.format(options.protocol))
         sys.exit(1)
 
 
 def demo_usb(options):
+    import ripyl.protocol.usb as usb
     print('USB protocol\n')
     
     # USB params
@@ -298,6 +290,7 @@ def demo_usb(options):
 
         
 def demo_spi(options):
+    import ripyl.protocol.spi as spi
     print('SPI protocol\n')
     
     # SPI params
@@ -391,6 +384,8 @@ def demo_spi(options):
 
 
 def demo_i2c(options):
+    import ripyl.protocol.i2c as i2c
+
     print('I2C protocol\n')
     
     # I2C params
@@ -405,7 +400,7 @@ def demo_i2c(options):
     byte_msg = bytearray(message.encode('latin1')) # Get raw bytes as integers
     
     transfers = []
-    transfers.append(i2c.I2CTransfer(i2c.I2C.Write, 0x42, byte_msg))
+    transfers.append(i2c.I2CTransfer(i2c.I2C.Read, 0x42, byte_msg))
     
     
     # Synthesize the waveform edge stream
@@ -429,16 +424,36 @@ def demo_i2c(options):
 
     # Decode the samples
     decode_success = True
-    records = []
     try:
-        records_it = i2c.i2c_decode(iter(nsy_scl), iter(nsy_sda))
-        records = list(records_it)
+        records = list(i2c.i2c_decode(iter(nsy_scl), iter(nsy_sda)))
         
     except stream.StreamError as e:
         print('Decode failed:\n  {}'.format(e))
         decode_success = False
+        records = []
 
+    protocol_params = {
+        'clock frequency': eng.eng_si(clock_freq, 'Hz')
+    }
 
+    wave_params = {
+        'sample rate': eng.eng_si(sample_rate, 'Hz'),
+        'rise time': eng.eng_si(rise_time, 's', 1)
+    }
+
+    plot_params = {
+        'default_title': 'I2C Simulation',
+        'decode_success': decode_success,
+        'label_format': stream.AnnotationFormat.Text
+    }
+
+    channels = OrderedDict([('SCL (V)', nsy_scl), ('SDA (V)', nsy_sda)])
+    finish_demo(records, transfers, protocol_params, wave_params, plot_params, channels, options)
+
+# FIX: restore reporting to work the same as previous I2C demo below
+
+###################3
+if False:
     # Report results
     print('\nProtocol parameters:')
     print('  clock frequency:', eng.eng_si(clock_freq, 'Hz'))
@@ -479,6 +494,8 @@ def demo_i2c(options):
 
 
 def demo_uart(options):
+    import ripyl.protocol.uart as uart
+
     print('UART protocol\n')
     
     # UART params
@@ -571,6 +588,7 @@ def demo_uart(options):
 
 
 def demo_ps2(options):
+    import ripyl.protocol.ps2 as ps2
     print('PS/2 protocol\n')
     
     # PS2 params
@@ -655,6 +673,7 @@ def demo_ps2(options):
 
 
 def demo_iso_k_line(options):
+    import ripyl.protocol.iso_k_line as kline
     print('ISO K-Line protocol\n')
     
     # K-Line params
@@ -760,6 +779,254 @@ def demo_iso_k_line(options):
             title = 'ISO K-Line Simulation'
         rplot.iso_k_line_plot(noisy_samples, records, title, save_file=options.save_file, \
             label_format='hex', figsize=options.figsize)
+
+
+
+
+def demo_rc5(options):
+    import ripyl.protocol.infrared.rc5 as rc5
+
+    # Sampled waveform params
+    carrier_freq = 36.0e3
+    sample_rate = carrier_freq * 20.0
+    rise_time = min_rise_time(sample_rate) * 4.0 # 4x min. rise time
+    noise_snr = options.snr_db
+
+    messages = [ \
+        rc5.RC5Message(cmd=0x42, addr=0x14, toggle=0), \
+        rc5.RC5Message(cmd=0x32, addr=0x1A, toggle=1)  \
+    ]
+
+    # Synthesize the waveform edge stream
+    edges = rc5.rc5_synth(messages, message_interval=5.0e-3, idle_start=1.0e-3, idle_end=1.0e-3)
+    edges = ir.modulate(edges, carrier_freq, duty_cycle=0.3)
+
+    noisy_samples = list(edges_to_waveform(edges, options, sample_rate, rise_time, 5.0, quant_full_range=10.0))
+
+    # Decode the samples
+    decode_success = True
+    try:
+        records = list(rc5.rc5_decode(iter(noisy_samples)))
+        
+    except stream.StreamError as e:
+        print('Decode failed:\n  {}'.format(e))
+        decode_success = False
+        records = []
+
+    wave_params = {
+        'sample rate': eng.eng_si(sample_rate, 'Hz'),
+        'rise time': eng.eng_si(rise_time, 's', 1)
+    }
+
+    plot_params = {
+        'default_title': 'RC5 Simulation',
+        'decode_success': decode_success,
+        'label_format': stream.AnnotationFormat.Hex
+    }
+
+    channels = OrderedDict([('Volts', noisy_samples)])
+    finish_demo(records, messages, {}, wave_params, plot_params, channels, options)
+
+
+def demo_rc6(options):
+    import ripyl.protocol.infrared.rc6 as rc6
+
+    # Sampled waveform params
+    carrier_freq = 36.0e3
+    sample_rate = carrier_freq * 20.0
+    rise_time = min_rise_time(sample_rate) * 4.0 # 4x min. rise time
+    noise_snr = options.snr_db
+
+    messages = [ \
+        rc6.RC6Message(cmd=0x42, addr=0x14, toggle=0, mode=0), \
+        rc6.RC6Message(cmd=0x32, addr=0x1A, toggle=1, mode=1)  \
+    ]
+
+    # Synthesize the waveform edge stream
+    edges = rc6.rc6_synth(messages, message_interval=5.0e-3, idle_start=1.0e-3, idle_end=1.0e-3)
+    edges = ir.modulate(edges, carrier_freq, duty_cycle=0.3)
+
+    noisy_samples = list(edges_to_waveform(edges, options, sample_rate, rise_time, 5.0, quant_full_range=10.0))
+
+    # Decode the samples
+    decode_success = True
+    try:
+        records = list(rc6.rc6_decode(iter(noisy_samples)))
+        
+    except stream.StreamError as e:
+        print('Decode failed:\n  {}'.format(e))
+        decode_success = False
+        records = []
+
+    wave_params = {
+        'sample rate': eng.eng_si(sample_rate, 'Hz'),
+        'rise time': eng.eng_si(rise_time, 's', 1)
+    }
+
+    plot_params = {
+        'default_title': 'RC6 Simulation',
+        'decode_success': decode_success,
+        'label_format': stream.AnnotationFormat.Hex
+    }
+
+    channels = OrderedDict([('Volts', noisy_samples)])
+    finish_demo(records, messages, {}, wave_params, plot_params, channels, options)
+
+
+def demo_nec(options):
+    import ripyl.protocol.infrared.nec as nec
+
+    # Sampled waveform params
+    carrier_freq = 38.0e3
+    sample_rate = carrier_freq * 20.0
+    rise_time = min_rise_time(sample_rate) * 4.0 # 4x min. rise time
+    noise_snr = options.snr_db
+
+    messages = [ \
+        nec.NECMessage(cmd=0x42, addr_low=0x14), \
+        nec.NECRepeat(), \
+        nec.NECMessage(cmd=0x32, addr_low=0x1A)  \
+    ]
+
+    # Synthesize the waveform edge stream
+    edges = nec.nec_synth(messages, message_interval=5.0e-3, idle_start=1.0e-3, idle_end=1.0e-3)
+    edges = ir.modulate(edges, carrier_freq, duty_cycle=0.3)
+
+    noisy_samples = list(edges_to_waveform(edges, options, sample_rate, rise_time, 5.0, quant_full_range=10.0))
+
+    # Decode the samples
+    decode_success = True
+    try:
+        records = list(nec.nec_decode(iter(noisy_samples)))
+        
+    except stream.StreamError as e:
+        print('Decode failed:\n  {}'.format(e))
+        decode_success = False
+        records = []
+
+    wave_params = {
+        'sample rate': eng.eng_si(sample_rate, 'Hz'),
+        'rise time': eng.eng_si(rise_time, 's', 1)
+    }
+
+    plot_params = {
+        'default_title': 'NEC Simulation',
+        'decode_success': decode_success,
+        'label_format': stream.AnnotationFormat.Hex
+    }
+
+    channels = OrderedDict([('Volts', noisy_samples)])
+    finish_demo(records, messages, {}, wave_params, plot_params, channels, options)
+
+
+
+def demo_sirc(options):
+    import ripyl.protocol.infrared.sirc as sirc
+
+    # Sampled waveform params
+    carrier_freq = 40.0e3
+    sample_rate = carrier_freq * 20.0
+    rise_time = min_rise_time(sample_rate) * 4.0 # 4x min. rise time
+    noise_snr = options.snr_db
+
+    messages = [ \
+        sirc.SIRCMessage(cmd=0x42, device=0x14), \
+        sirc.SIRCMessage(cmd=0x32, device=0x0A, extended=0x15)  \
+    ]
+
+    # Synthesize the waveform edge stream
+    edges = sirc.sirc_synth(messages, message_interval=5.0e-3, idle_start=1.0e-3, idle_end=1.0e-3)
+    edges = ir.modulate(edges, carrier_freq, duty_cycle=0.3)
+
+    noisy_samples = list(edges_to_waveform(edges, options, sample_rate, rise_time, 5.0, quant_full_range=10.0))
+
+    # Decode the samples
+    decode_success = True
+    try:
+        records = list(sirc.sirc_decode(iter(noisy_samples)))
+        
+    except stream.StreamError as e:
+        print('Decode failed:\n  {}'.format(e))
+        decode_success = False
+        records = []
+
+    wave_params = {
+        'sample rate': eng.eng_si(sample_rate, 'Hz'),
+        'rise time': eng.eng_si(rise_time, 's', 1)
+    }
+
+    plot_params = {
+        'default_title': 'SIRC Simulation',
+        'decode_success': decode_success,
+        'label_format': stream.AnnotationFormat.Hex
+    }
+
+    channels = OrderedDict([('Volts', noisy_samples)])
+    finish_demo(records, messages, {}, wave_params, plot_params, channels, options)
+
+
+
+def edges_to_waveform(edges, options, sample_rate, rise_time, gain, offset=0.0, quant_full_range=20.0):
+    # Convert to a sample stream with band-limited edges and noise
+    clean_samples = sigp.synth_wave(edges, sample_rate, rise_time)
+
+    noisy_samples = sigp.quantize(sigp.amplify(sigp.noisify(clean_samples, options.snr_db), gain=gain, \
+        offset=offset), quant_full_range)
+
+    if options.dropout is not None:
+        noisy_samples = sigp.dropout(noisy_samples, options.dropout[0], options.dropout[1], options.dropout_level)
+
+    return noisy_samples
+
+def plot_channels(channels, annotations, options, plot_params):
+    if not options.no_plot:
+        if options.title is not None:
+            title = options.title
+        else:
+            title = plot_params['default_title']
+
+
+        plotter = rplot.Plotter()
+        plotter.plot(channels, annotations, title, label_format=plot_params['label_format'])
+        if options.save_file is None:
+            plotter.show()
+        else:
+            plotter.save_plot(options.save_file)
+
+def finish_demo(decoded_recs, orig_messages, protocol_params, wave_params, plot_params, channels, options):
+
+    # Report results
+    print('\nProtocol parameters:')
+    print('  Messages:')
+    for msg in orig_messages:
+        print('   ', msg)
+
+    print('Waveform parameters:')
+    for k, v in wave_params.iteritems():
+        print( '  {}: {}'.format(k, v))
+    #print('  sample rate:', eng.eng_si(sample_rate, 'Hz'))
+    #print('  rise time:', eng.eng_si(rise_time, 's', 1))
+    print('  SNR:', options.snr_db, 'dB')
+
+
+    if plot_params['decode_success']:
+        print('\nDecoded messages:')
+        msg_match = True
+        for dmsg, omsg in zip(decoded_recs, orig_messages):
+            #if dmsg.data != omsg: #FIX: restore this in a more general way
+            #    msg_match = False
+            #    m_flag = ' < MISMATCH'
+            #else:
+            #    m_flag = ''
+            #print('  {}{}'.format(dmsg.data, m_flag))
+            pass
+
+        if msg_match:
+            print('  (matches input message)')
+        else:
+            print('  (MISMATCH to input message)')
+
+    plot_channels(channels, decoded_recs, options, plot_params)
 
 
         

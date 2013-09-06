@@ -26,7 +26,7 @@ from __future__ import print_function, division
 import itertools
 
 from ripyl.decode import *
-from ripyl.streaming import *
+import ripyl.streaming as stream
 from ripyl.util.enum import Enum
 from ripyl.util.bitops import *
 from ripyl.sigproc import remove_excess_edges
@@ -37,10 +37,10 @@ class I2C(Enum):
     Read = 1
 
 
-class I2CByte(StreamSegment):
+class I2CByte(stream.StreamSegment):
     '''Segment for a byte of I2C data'''
     def __init__(self, bounds, data=None, ack_bit=None):
-        StreamSegment.__init__(self, bounds, data)
+        stream.StreamSegment.__init__(self, bounds, data)
         self.kind = 'I2C byte'
         self.ack_bit = ack_bit
         
@@ -48,7 +48,7 @@ class I2CByte(StreamSegment):
         return str(self.data)
 
         
-class I2CAddress(StreamSegment):
+class I2CAddress(stream.StreamSegment):
     '''Segment for an I2C address
     
     The byte(s) composing the address are contained as subrecords
@@ -58,7 +58,7 @@ class I2CAddress(StreamSegment):
         r_wn (int)
             Read (1) / Write (0) bit
         '''
-        StreamSegment.__init__(self, bounds, address)
+        stream.StreamSegment.__init__(self, bounds, address)
         self.kind = 'I2C address'
         self.r_wn = r_wn
         
@@ -75,7 +75,7 @@ class I2CAddress(StreamSegment):
         return str(hex(self.data))
 
 
-def i2c_decode(scl, sda, logic_levels=None, stream_type=StreamType.Samples):
+def i2c_decode(scl, sda, logic_levels=None, stream_type=stream.StreamType.Samples):
     '''Decode an I2C data stream
     
     This is a generator function that can be used in a pipeline of waveform
@@ -132,7 +132,7 @@ def i2c_decode(scl, sda, logic_levels=None, stream_type=StreamType.Samples):
       be determined automatically.
     '''
     
-    if stream_type == StreamType.Samples:
+    if stream_type == stream.StreamType.Samples:
         if logic_levels is None:
             s_scl_it, logic_levels = check_logic_levels(scl)
         else:
@@ -175,7 +175,7 @@ def i2c_decode(scl, sda, logic_levels=None, stream_type=StreamType.Samples):
             if cname == 'sda' and not es.at_end('sda') \
             and es.cur_state('sda') == 0 and es.cur_state('scl') == 1:
                 # start condition met
-                se = StreamEvent(es.cur_time(), data=None, kind='I2C start')
+                se = stream.StreamEvent(es.cur_time(), data=None, kind='I2C start')
                 yield se
                 state = S_ADDR
                 
@@ -184,14 +184,14 @@ def i2c_decode(scl, sda, logic_levels=None, stream_type=StreamType.Samples):
             if cname == 'sda' and not es.at_end('sda'):
                 if es.cur_state('sda') == 1 and es.cur_state('scl') == 1:
                     # stop condition met
-                    se = StreamEvent(es.cur_time(), data=None, kind='I2C stop')
+                    se = stream.StreamEvent(es.cur_time(), data=None, kind='I2C stop')
                     yield se
                     state = S_IDLE
                     continue
                     
                 if es.cur_state('sda') == 0 and es.cur_state('scl') == 1:
                     # restart condition met
-                    se = StreamEvent(es.cur_time(), data=None, kind='I2C restart')
+                    se = stream.StreamEvent(es.cur_time(), data=None, kind='I2C restart')
                     yield se
                     bits = []
                     state = S_ADDR
@@ -211,6 +211,14 @@ def i2c_decode(scl, sda, logic_levels=None, stream_type=StreamType.Samples):
                     word = join_bits(bits[0:8])
                     ack_bit = bits[8]
 
+                    clock_period = (end_time - start_time) / 9.0
+                    f_bound = (start_time - 0.4 * clock_period, end_time + 0.4 * clock_period)
+                    d_start = start_time - 0.25 * clock_period
+                    d_bound = (d_start, d_start + 8.5 * clock_period)
+                    a_bound = (end_time - 0.25 * clock_period, end_time + 0.25 * clock_period)
+                    a_status = stream.StreamStatus.Ok if ack_bit == 0 else stream.StreamStatus.Error
+
+
                     if state == S_ADDR:
                         addr = word >> 1
                         r_wn = word & 0x01
@@ -220,35 +228,49 @@ def i2c_decode(scl, sda, logic_levels=None, stream_type=StreamType.Samples):
                                 # The 10-bit address being read should be the last one
                                 # written to.
                                 if prev_10b_addr is not None:
-                                    addr_10b = prev_10b_addr.data
+                                    addr_10b = prev_10b_addr
                                     
                                     # Check that the upper bits match
                                     ub = addr & 0x03
-                                    prev_ub = (addr_10b >> 8) & 0x03
+                                    prev_ub = (prev_10b_addr >> 8) & 0x03
                                     if ub != prev_ub: # This shouldn't happen
                                         addr_10b = 0xFFF # invalid address
                                     
                                 else: # This shouldn't happen
                                     addr_10b = 0xFFF # invalid address
                                 
-                                nb = I2CByte((start_time, end_time), word, ack_bit)
-                                na = I2CAddress((start_time, end_time), addr_10b, r_wn)
-                                na.subrecords.append(nb)
+                                na = I2CAddress(f_bound, addr_10b, r_wn)
+                                if addr_10b < 0xFFF:
+                                    addr_text = '{:02X} {}'.format(addr_10b, 'r' if word & 0x01 else 'w')
+                                else: # Missing second address byte
+                                    addr_text = '{:1X}?? {}'.format(addr & 0x03, 'r' if word & 0x01 else 'w')
+                                na.annotate('frame', {'value':addr_text}, stream.AnnotationFormat.String)
+                                na.subrecords.append(I2CByte(d_bound, word, ack_bit))
+                                na.subrecords[-1].annotate('addr', {'_bits':8}, stream.AnnotationFormat.Hidden)
+                                na.subrecords.append(stream.StreamSegment(a_bound, ack_bit, kind='ack', status=a_status))
+                                na.subrecords[-1].annotate('ack', {'_bits':1}, stream.AnnotationFormat.Hidden)
+
                                 yield na
                                 bits = []
                                 
                                 state = S_DATA
                             
-                            else: # 10-bit addressed write
-                                first_addr = I2CByte((start_time, end_time), word, ack_bit)
+                            else: # 10-bit addressed write: first byte
+                                first_addr = I2CByte(d_bound, word, ack_bit)
+                                first_ack = stream.StreamSegment(a_bound, ack_bit, kind='ack', status=a_status)
                                 bits = []
                                 state = S_ADDR_10B
                             
                         else: # 7-bit address
                             r_wn = word & 0x01
-                            nb = I2CByte((start_time, end_time), word, ack_bit)
-                            na = I2CAddress((start_time, end_time), addr, r_wn)
-                            na.subrecords.append(nb)
+                            na = I2CAddress(f_bound, addr, r_wn)
+                            na.annotate('frame', {}, stream.AnnotationFormat.Hidden)
+                            na.subrecords.append(I2CByte(d_bound, word, ack_bit))
+                            addr_text = '{:02X} {}'.format(word >> 1, 'r' if word & 0x01 else 'w')
+                            na.subrecords[-1].annotate('addr', {'value':addr_text, '_bits':8}, stream.AnnotationFormat.Hex)
+                            na.subrecords.append(stream.StreamSegment(a_bound, ack_bit, kind='ack', status=a_status))
+                            na.subrecords[-1].annotate('ack', {'_bits':1}, stream.AnnotationFormat.Hidden)
+
                             yield na
                             bits = []
 
@@ -257,12 +279,22 @@ def i2c_decode(scl, sda, logic_levels=None, stream_type=StreamType.Samples):
                     elif state == S_ADDR_10B: # 10-bit address
                         addr = (((first_addr.data >> 1) & 0x03) << 8) | word
                         r_wn = first_addr.data & 0x01
-                        ab2 = I2CByte((start_time, end_time), word, ack_bit)
-                        na = I2CAddress((first_addr.start_time, end_time), addr, r_wn)
+                        na = I2CAddress((first_addr.start_time - 0.4*clock_period, f_bound[1]), addr, r_wn)
+                        addr_10b = (((first_addr.data*256)>> 1) + word) & 0x3FF
+                        addr_text = '{:02X} {}'.format(addr_10b, 'r' if first_addr.data & 0x01 else 'w')
+                        na.annotate('frame', {'value':addr_text}, stream.AnnotationFormat.String)
                         na.subrecords.append(first_addr)
-                        na.subrecords.append(ab2)
+                        na.subrecords[-1].annotate('addr', {'_bits':8}, stream.AnnotationFormat.Hidden)
+                        na.subrecords.append(first_ack)
+                        na.subrecords[-1].annotate('ack', {'_bits':1}, stream.AnnotationFormat.Hidden)
+
+                        na.subrecords.append(I2CByte(d_bound, word, ack_bit))
+                        na.subrecords[-1].annotate('addr', {'_bits':8}, stream.AnnotationFormat.Hidden)
+                        na.subrecords.append(stream.StreamSegment(a_bound, ack_bit, kind='ack', status=a_status))
+                        na.subrecords[-1].annotate('ack', {'_bits':1}, stream.AnnotationFormat.Hidden)
+
                         
-                        prev_10b_addr = na
+                        prev_10b_addr = addr_10b
                         yield na
                         bits = []
 
@@ -270,12 +302,22 @@ def i2c_decode(scl, sda, logic_levels=None, stream_type=StreamType.Samples):
                                     
 
                     else: # S_DATA
-                        nb = I2CByte((start_time, end_time), word, ack_bit)
+                        nb = I2CByte(f_bound, word, ack_bit)
+                        nb.annotate('frame', {}, stream.AnnotationFormat.Hidden)
+                        d_start = start_time - 0.25 * clock_period
+                        d_end = d_start + 8.5 * clock_period
+                        nb.subrecords.append(stream.StreamSegment(d_bound, word, kind='data'))
+                        nb.subrecords[-1].annotate('data', {'_bits':8})
+                        a_start = end_time - 0.25 * clock_period
+                        a_end = end_time + 0.25 * clock_period
+                        nb.subrecords.append(stream.StreamSegment(a_bound, ack_bit, kind='ack', status=a_status))
+                        nb.subrecords[-1].annotate('ack', {'_bits':1}, stream.AnnotationFormat.Hidden)
+
                         yield nb
                         bits = []
 
 
-class I2CTransfer(StreamRecord):
+class I2CTransfer(stream.StreamRecord):
     '''Represent a transaction over the I2C bus'''
     def __init__(self, r_wn, address, data):
         '''
@@ -288,7 +330,7 @@ class I2CTransfer(StreamRecord):
         data (sequence of ints)
             Array of bytes sent in the transfer
         '''
-        StreamRecord.__init__(self, kind='I2C transfer')
+        stream.StreamRecord.__init__(self, kind='I2C transfer')
 
         self.r_wn = r_wn
         self.address = address

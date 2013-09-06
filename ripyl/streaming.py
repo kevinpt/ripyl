@@ -24,6 +24,8 @@
 from __future__ import print_function, division
 
 from ripyl.util.enum import Enum
+from ripyl.util.eng import eng_si
+import string
 
 
 class StreamType(Enum):
@@ -60,6 +62,19 @@ class StreamStatus(Enum):
     Ok = 0
     Warning = 100
     Error = 200
+
+class AnnotationFormat(Enum):
+    '''Enumeration of annotation data formats'''
+    Hidden = 0
+    General = 1
+    String = 2
+    Text = 3
+    Int = 4
+    Hex = 5
+    Bin = 6
+    Enum = 7
+
+
     
 class StreamRecord(object):
     '''Base class for protocol decoder output stream objects
@@ -78,6 +93,9 @@ class StreamRecord(object):
         self.status = status
         self.stream_id = 0 # associate this record from multiplexed data with a particular stream
         self.subrecords = []
+        self.data_format = AnnotationFormat.Hidden
+        self.style = None
+        self.fields = {}
 
     def nested_status(self):
         '''Returns the highest status value from this record and its subrecords'''
@@ -87,6 +105,14 @@ class StreamRecord(object):
             cur_status = nstat if nstat > cur_status else cur_status
             
         return cur_status
+
+    def annotate(self, style=None, fields={}, data_format=AnnotationFormat.General):
+        ''''Set annotation attributes'''
+        self.style = style
+        self.data_format = data_format
+        self.fields = fields
+
+        return self
         
     @classmethod
     def status_text(cls, status):
@@ -120,6 +146,7 @@ class StreamRecord(object):
 
     def __ne__(self, other):
         return not self == other
+
     
 class StreamSegment(StreamRecord):
     '''A stream element that spans two points in time'''
@@ -128,10 +155,80 @@ class StreamSegment(StreamRecord):
         self._start_time = time_bounds[0] # (start time, end time)
         self._end_time = time_bounds[1]
         self.data = data
+
+    def __str__(self):
+        return self.text()
+
+    def text(self, default_format=AnnotationFormat.String):
+        '''Generate a string representation of this segment's data
+
+        default_format (AnnotationFormat)
+            Set the format to use when the data_format attribute is General
+        '''
+        if self.data is None or self.data_format == AnnotationFormat.Hidden:
+            return ''
+
+        if self.data_format == AnnotationFormat.General:
+            data_format = default_format
+        else:
+            data_format = self.data_format
+
+        if data_format == AnnotationFormat.String:
+            return str(self.data)
+
+        if hasattr(self.data, '__len__'):
+            data = self.data
+        else:
+            data = (self.data,)
+
+        words = []
+        for d in data:
+            if data_format == AnnotationFormat.Int:
+                words.append(str(d))
+            elif data_format == AnnotationFormat.Hex:
+                words.append('{:02X}'.format(d))
+            elif data_format == AnnotationFormat.Text:
+                try:
+                    char = chr(d)
+                except ValueError:
+                    char = chr(0)
+
+                if char not in string.printable:
+                    char = '/{:02X}/'.format(d)
+                words.append(char)
+            else:
+                words.append('?')
+
+        if data_format == AnnotationFormat.Text:
+            return ''.join(words)
+        else:
+            return ' '.join(words)
         
     def __repr__(self):
         return 'StreamSegment(({0},{1}), {2}, \'{3}\')'.format(self.start_time, self.end_time, \
             repr(self.data), self.kind)
+
+
+    def summary(self, a=None, depth=0):
+        '''Yield string(s) summarizing this segment and all of its subrecords
+        a (StreamRecord or None)
+            StreamRecord to produce summary from. Uses self if None.
+
+        depth (int)
+            Indentation level for this summary
+        '''
+        if a is None:
+            a = self
+
+        field_name = ''
+        if 'name' in a.fields:
+            field_name = '({})'.format(a.fields['name'])
+
+        yield '{}{} - {}: {} {}'.format('  '*depth, eng_si(a.start_time, 's'), eng_si(a.end_time, 's'), a, field_name)
+        for sr in a.subrecords:
+            for s in self.summary(sr, depth+1):
+                yield s
+
 
     @property
     def start_time(self):
@@ -173,6 +270,26 @@ class StreamEvent(StreamRecord):
     def __repr__(self):
         return 'StreamEvent({0}, {1}, \'{2}\')'.format(self.time, \
             repr(self.data), self.kind)
+
+    def summary(self, a=None, depth=0):
+        '''Yield string(s) summarizing this segment and all of its subrecords
+        a (StreamRecord or None)
+            StreamRecord to produce summary from. Uses self if None.
+
+        depth (int)
+            Indentation level for this summary
+        '''
+        if a is None:
+            a = self
+
+        field_name = ''
+        if 'name' in a.fields:
+            field_name = '({})'.format(a.fields['name'])
+
+        yield '{}! {}: {} {}'.format('  '*depth, eng_si(a.time, 's'), a, field_name)
+        for sr in a.subrecords:
+            for s in self.summary(sr, depth+1):
+                yield s
 
     def __eq__(self, other):
         match = True
