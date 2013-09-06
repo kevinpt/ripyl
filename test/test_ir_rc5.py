@@ -34,8 +34,6 @@ import ripyl.sigproc as sigp
 import ripyl.streaming as stream
 import test.test_support as tsup
 
-import ripyl.annotate as ann
-
 #import matplotlib.pyplot as plt
 
 class TestRC5Funcs(tsup.RandomSeededTestCase):
