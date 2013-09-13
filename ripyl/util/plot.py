@@ -861,10 +861,12 @@ annotation_styles = {
     'data0': AnnotationStyle('blue', 0.3),
     'data1': AnnotationStyle('#5050FF', 0.3), # lighter blue
     'addr': AnnotationStyle('green', 0.3),
+    'ctrl': AnnotationStyle('orange', 0.3),
     'check_good': AnnotationStyle('yellow', 0.3),
     'check_bad': AnnotationStyle('red', 0.3),
     'ack_good': AnnotationStyle('#008F00', 0.3), # dark green
-    'ack_bad': AnnotationStyle('red', 0.3)
+    'ack_bad': AnnotationStyle('red', 0.3),
+    'misc': AnnotationStyle('0.4', 0.3)
 }
 
 plot_colors = ('blue', 'red', 'green')
@@ -942,34 +944,35 @@ class Plotter(object):
 
 
     def _plot_patches(self, a, ann_b, ann_ax):
-        
-        p_start = a.start_time
-        p_end = a.end_time
-        bot = ann_b['ovl_bot']
-        width = p_end - p_start
-        height = ann_b['ovl_top'] - bot
 
-        style = a.style
-        if style == 'data':
-            style = 'data{}'.format(self.data_ix)
-            self.data_ix = 1 - self.data_ix
+        if a.data_format != stream.AnnotationFormat.Invisible:
+            p_start = a.start_time
+            p_end = a.end_time
+            bot = ann_b['ovl_bot']
+            width = p_end - p_start
+            height = ann_b['ovl_top'] - bot
 
-        elif style == 'check':
-            style = 'check_good' if a.status == stream.StreamStatus.Ok else 'check_bad'
+            style = a.style
+            if style == 'data':
+                style = 'data{}'.format(self.data_ix)
+                self.data_ix = 1 - self.data_ix
 
-        elif style == 'ack':
-            style = 'ack_good' if a.status == stream.StreamStatus.Ok else 'ack_bad'
+            elif style == 'check':
+                style = 'check_good' if a.status == stream.StreamStatus.Ok else 'check_bad'
 
-        if style in annotation_styles:
-            color = annotation_styles[style].color
-            alpha = annotation_styles[style].alpha
+            elif style == 'ack':
+                style = 'ack_good' if a.status == stream.StreamStatus.Ok else 'ack_bad'
 
-        else: # Default
-            color = 'orange'
-            alpha = 0.3
+            if style in annotation_styles:
+                color = annotation_styles[style].color
+                alpha = annotation_styles[style].alpha
 
-        p_rect = patches.Rectangle((p_start, bot), width, height, facecolor=color, alpha=alpha)
-        ann_ax.add_patch(p_rect)
+            else: # Default
+                color = 'red'
+                alpha = 0.2
+
+            p_rect = patches.Rectangle((p_start, bot), width, height, facecolor=color, alpha=alpha)
+            ann_ax.add_patch(p_rect)
 
         inset_b = ann_b.copy()
         span = inset_b['max'] - inset_b['min']
@@ -988,8 +991,9 @@ class Plotter(object):
         else:
             label = a.text(label_format)
         if len(label) > 0:
+            size = 'small' if a.data_format == stream.AnnotationFormat.Enum else 'large'
             ann_ax.text((a.start_time + a.end_time) / 2.0, text_ypos, label, \
-                size='large', ha='center', color='black', rotation=0.0)
+                size=size, ha='center', color='black', rotation=0.0)
 
             if name_ypos:
                 try:

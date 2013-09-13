@@ -31,7 +31,7 @@ import itertools
 import math
 
 from ripyl.decode import *
-from ripyl.streaming import *
+import ripyl.streaming as stream
 from ripyl.util.enum import Enum
 from ripyl.util.bitops import *
 from ripyl.sigproc import remove_excess_edges
@@ -100,15 +100,15 @@ class USBState(Enum):
     
 class USBStreamStatus(Enum):
     '''Enumeration for USBStreamPacket and USBStreamError status codes'''
-    ShortPacketError = StreamStatus.Error + 1
-    MissingEOPError  = StreamStatus.Error + 2
-    BitStuffingError = StreamStatus.Error + 3
-    CRCError         = StreamStatus.Error + 4
+    ShortPacketError = stream.StreamStatus.Error + 1
+    MissingEOPError  = stream.StreamStatus.Error + 2
+    BitStuffingError = stream.StreamStatus.Error + 3
+    CRCError         = stream.StreamStatus.Error + 4
 
     
-class USBStreamPacket(StreamSegment):
+class USBStreamPacket(stream.StreamSegment):
     '''Encapsulates a USBPacket object (see below) into a StreamSegment'''
-    def __init__(self, bounds, sop_end, packet, crc=None, status=StreamStatus.Ok):
+    def __init__(self, bounds, sop_end, packet, crc=None, status=stream.StreamStatus.Ok, sop_end2=None, crc2=None):
         '''
         bounds ((float, float))
             2-tuple (start_time, end_time) for the packet
@@ -126,13 +126,54 @@ class USBStreamPacket(StreamSegment):
             
         status (int)
             Status code for the packet
+
+        sop_end2 (float or None)
+            The time for the end of the second SOP in an EXT packet
+
+        crc2 (int or None)
+            Optional CRC from second part of EXT packet
         '''
-        StreamSegment.__init__(self, bounds, data=None, status=status)
+        stream.StreamSegment.__init__(self, bounds, data=None, status=status)
         self.kind = 'USB packet'
         
         self.sop_end = sop_end
         self.packet = packet # USBPacket object
         self.crc = crc
+        self.sop_end2 = sop_end2
+        self.crc2 = crc2
+        self.annotate('frame', {}, stream.AnnotationFormat.Hidden)
+
+        # Create subrecords for packet fields
+        offsets = self.field_offsets()
+        self.subrecords.append(stream.StreamSegment(offsets['PID'], self.packet.pid, kind='PID'))
+        self.subrecords[-1].annotate('ctrl', {'_bits':4, '_enum':USBPID}, stream.AnnotationFormat.Enum)
+
+        used_fields = ['PID']
+
+        if 'CRC5' in offsets:
+            self.subrecords.append(stream.StreamSegment(offsets['CRC5'], join_bits(self.crc), kind='CRC5', status=self.status))
+            self.subrecords[-1].annotate('check', {'_bits':5}, stream.AnnotationFormat.Hex)
+            used_fields.append('CRC5')
+
+        elif 'CRC16' in offsets:
+            self.subrecords.append(stream.StreamSegment(offsets['CRC16'], join_bits(self.crc), kind='CRC16', status=self.status))
+            self.subrecords[-1].annotate('check', {'_bits':16}, stream.AnnotationFormat.Hex)
+            used_fields.append('CRC16')
+
+        # Add the remaining fields
+        unused_fields = [k for k in offsets.keys() if k not in used_fields]
+        # Sort them in time order
+        unused_fields = sorted(unused_fields, key=lambda f: offsets[f][0])
+
+        for field in unused_fields:
+            if field == 'Data':
+                data = self.packet.data
+            else:
+                data = None
+            self.subrecords.append(stream.StreamSegment(offsets[field], data, kind=field))
+            self.subrecords[-1].annotate('data', {}, stream.AnnotationFormat.General)
+            
+            
 
     @classmethod
     def status_text(cls, status):
@@ -141,7 +182,7 @@ class USBStreamPacket(StreamSegment):
             
             return USBStreamStatus(status)
         else:
-            return StreamSegment.status_text(status)
+            return stream.StreamSegment.status_text(status)
 
 
     def field_offsets(self):
@@ -161,6 +202,7 @@ class USBStreamPacket(StreamSegment):
         if self.packet.pid == USBPID.EXT:
             # EXT packets need a special adjustment for the fields in the second half
             part2_delta = self.sop_end2 - self.sop_end
+
             start, end = fields['SubPID']
             fields['SubPID'] = (start + part2_delta, end + part2_delta)
             
@@ -177,10 +219,10 @@ class USBStreamPacket(StreamSegment):
         return 'USBStreamPacket({}, {})'.format(self.packet, status_text)
 
 
-class USBStreamError(StreamSegment):
+class USBStreamError(stream.StreamSegment):
     '''Contains partially decoded packet data after an error has been found
     in the data stream'''
-    def __init__(self, bounds, error_data, pid=-1, status=StreamStatus.Error):
+    def __init__(self, bounds, error_data, pid=-1, status=stream.StreamStatus.Error):
         '''
         bounds ((float, float))
             2-tuple (start_time, end_time) for the packet
@@ -195,13 +237,13 @@ class USBStreamError(StreamSegment):
         status (int)
             Status code for the packet
         '''    
-        StreamSegment.__init__(self, bounds, data=error_data, status=status)
+        stream.StreamSegment.__init__(self, bounds, data=error_data, status=status)
         self.kind = 'USB error'
         
         self.pid = pid
         
     def __repr__(self):
-        status_text = StreamSegment.status_text(self.status)
+        status_text = stream.StreamSegment.status_text(self.status)
         return 'USBStreamError({}, {}, {})'.format(self.data, USBPID(self.pid), status_text)
     
 
@@ -919,7 +961,7 @@ class USBEXTPacket(USBPacket):
 
 
             
-def usb_decode(dp, dm, logic_levels=None, stream_type=StreamType.Samples):
+def usb_decode(dp, dm, logic_levels=None, stream_type=stream.StreamType.Samples):
     '''Decode a USB data stream
     
     This is a generator function that can be used in a pipeline of waveform
@@ -962,7 +1004,7 @@ def usb_decode(dp, dm, logic_levels=None, stream_type=StreamType.Samples):
     Raises StreamError if the bus speed cannot be determined.
     '''
     
-    if stream_type == StreamType.Samples:
+    if stream_type == stream.StreamType.Samples:
         if logic_levels is None:
             s_dp_it, logic_levels = check_logic_levels(dp)
         else:
@@ -1000,7 +1042,7 @@ def usb_decode(dp, dm, logic_levels=None, stream_type=StreamType.Samples):
 
     
     
-def usb_diff_decode(d_diff, logic_levels=None, stream_type=StreamType.Samples):
+def usb_diff_decode(d_diff, logic_levels=None, stream_type=stream.StreamType.Samples):
     '''Decode a differential USB data stream
     
     This is a generator function that can be used in a pipeline of waveform
@@ -1039,7 +1081,7 @@ def usb_diff_decode(d_diff, logic_levels=None, stream_type=StreamType.Samples):
     Raises StreamError if the bus speed cannot be determined.
     '''
     
-    if stream_type == StreamType.Samples:
+    if stream_type == stream.StreamType.Samples:
         if logic_levels is None:
             s_diff_it, logic_levels = check_logic_levels(d_diff)
         else:
@@ -1061,7 +1103,7 @@ def usb_diff_decode(d_diff, logic_levels=None, stream_type=StreamType.Samples):
     
     #print('### symbol rate:', bus_speed, USBClockPeriod[bus_speed])
     
-    if stream_type == StreamType.Samples:
+    if stream_type == stream.StreamType.Samples:
         # We needed the bus speed before we could properly strip just
         # the anomalous SE0s
         min_se0 = USBClockPeriod[bus_speed] * 0.75
@@ -1075,7 +1117,7 @@ def usb_diff_decode(d_diff, logic_levels=None, stream_type=StreamType.Samples):
     return records
 
 
-def usb_hsic_decode(strobe, data, logic_levels=None, stream_type=StreamType.Samples):
+def usb_hsic_decode(strobe, data, logic_levels=None, stream_type=stream.StreamType.Samples):
     '''Decode a USB HSIC data stream
     
     This is a generator function that can be used in a pipeline of waveform
@@ -1113,7 +1155,7 @@ def usb_hsic_decode(strobe, data, logic_levels=None, stream_type=StreamType.Samp
       be determined.
     '''
     
-    if stream_type == StreamType.Samples:
+    if stream_type == stream.StreamType.Samples:
         if logic_levels is None:
             s_stb_it, logic_levels = check_logic_levels(strobe)
         else:
@@ -1453,7 +1495,7 @@ def _decode_usb_state(state_seq, bus_speed):
                     crc5_bits = unstuffed_bits[8+11:8+11+5]
                     # check the CRC
                     crc_check = usb_crc5(addr_bits + endp_bits)
-                    status = USBStreamStatus.CRCError if crc_check != crc5_bits else StreamStatus.Ok
+                    status = USBStreamStatus.CRCError if crc_check != crc5_bits else stream.StreamStatus.Ok
                     
                     # Construct the stream record
                     raw_packet = USBTokenPacket(pid, addr, endp, pkt_speed)
@@ -1471,7 +1513,7 @@ def _decode_usb_state(state_seq, bus_speed):
                     crc5_bits = unstuffed_bits[8+11:8+11+5]
                     # check the CRC
                     crc_check = usb_crc5(frame_num_bits)
-                    status = USBStreamStatus.CRCError if crc_check != crc5_bits else StreamStatus.Ok
+                    status = USBStreamStatus.CRCError if crc_check != crc5_bits else stream.StreamStatus.Ok
                     
                     # Construct the stream record
                     raw_packet = USBSOFPacket(pid, frame_num, pkt_speed)
@@ -1500,7 +1542,7 @@ def _decode_usb_state(state_seq, bus_speed):
                     
                     # check the CRC
                     crc_check = table_usb_crc16(data)
-                    status = USBStreamStatus.CRCError if crc_check != crc16_bits else StreamStatus.Ok
+                    status = USBStreamStatus.CRCError if crc_check != crc16_bits else stream.StreamStatus.Ok
 
                     # Construct the stream record
                     raw_packet = USBDataPacket(pid, data, pkt_speed)
@@ -1516,7 +1558,7 @@ def _decode_usb_state(state_seq, bus_speed):
                 
                 # Construct the stream record
                 raw_packet = USBHandshakePacket(pid, pkt_speed)
-                packet = USBStreamPacket((packet_start, packet_end), sop_end, raw_packet, status=StreamStatus.Ok)
+                packet = USBStreamPacket((packet_start, packet_end), sop_end, raw_packet, status=stream.StreamStatus.Ok)
                 yield packet
 
             else: # One of the "special" packets
@@ -1543,7 +1585,7 @@ def _decode_usb_state(state_seq, bus_speed):
                         crc5_bits = unstuffed_bits[8+17+2:8+17+2+5]
                         # check the CRC
                         crc_check = usb_crc5(addr_bits + [sc] + port_bits + [s, e] + et_bits)
-                        status = USBStreamStatus.CRCError if crc_check != crc5_bits else StreamStatus.Ok
+                        status = USBStreamStatus.CRCError if crc_check != crc5_bits else stream.StreamStatus.Ok
                         
                         # Construct the stream record
                         raw_packet = USBSplitPacket(pid, addr, sc, port, s, e, et, pkt_speed)
@@ -1575,7 +1617,7 @@ def _decode_usb_state(state_seq, bus_speed):
                         crc5_1_bits = ext_packet_bits[8+11:8+11+5]
                         # check the CRC
                         crc_check = usb_crc5(addr_bits + endp_bits)
-                        status1 = USBStreamStatus.CRCError if crc_check != crc5_1_bits else StreamStatus.Ok
+                        status1 = USBStreamStatus.CRCError if crc_check != crc5_1_bits else stream.StreamStatus.Ok
                         
                         # EXT packet part 2. We should have 8 + 16 bits of data
                         if len(unstuffed_bits) < (8 + 16):
@@ -1588,14 +1630,13 @@ def _decode_usb_state(state_seq, bus_speed):
                             crc5_2_bits = unstuffed_bits[8+11:8+11+5]
                             # check the CRC
                             crc_check = usb_crc5(variable_bits)
-                            status2 = USBStreamStatus.CRCError if crc_check != crc5_2_bits else StreamStatus.Ok
+                            status2 = USBStreamStatus.CRCError if crc_check != crc5_2_bits else stream.StreamStatus.Ok
                             
                             # Construct the stream record
                             raw_packet = USBEXTPacket(USBPID.EXT, addr, endp, sub_pid, variable, pkt_speed)
                             status = max(status1, status2)
-                            packet = USBStreamPacket((ext_packet_start, packet_end), sop_end1, raw_packet, crc5_1_bits, status=status)
-                            packet.crc2 = crc5_2_bits
-                            packet.sop_end2 = sop_end
+                            packet = USBStreamPacket((ext_packet_start, packet_end), sop_end1, raw_packet, crc5_1_bits, \
+                                status=status, sop_end2=sop_end, crc2=crc5_2_bits)
                             yield packet
 
                         ext_packet_bits = None # Revert to normal processing of packets

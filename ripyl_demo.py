@@ -242,6 +242,35 @@ def demo_usb(options):
             decode_success = False
 
 
+    protocol_params = {
+        'bus speed': usb.USBSpeed(bus_speed),
+        'clock frequency': eng.eng_si(clock_freq, 'Hz')
+    }
+
+    wave_params = {
+        'sample rate': eng.eng_si(sample_rate, 'Hz'),
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
+    }
+
+    plot_params = {
+        'default_title': 'USB Simulation',
+        'label_format': stream.AnnotationFormat.Text
+    }
+
+
+    report_results(records, packets, protocol_params, wave_params, decode_success)
+
+    if options.protocol == 'usb':
+        channels = OrderedDict([('D+ (V)', nsy_dp), ('D- (V)', nsy_dm)])
+    elif options.protocol == 'usb-diff':
+        channels = OrderedDict([('D+ - D- (V)', nsy_dd)])
+    else: #HSIC
+        channels = OrderedDict([('STROBE (V)', nsy_stb), ('DATA (V)', nsy_d)])
+    plot_channels(channels, records, options, plot_params)
+
+if False:
+
     # Report results
     print('\nProtocol parameters:')
     print('  bus speed:', usb.USBSpeed(bus_speed))
@@ -341,6 +370,29 @@ def demo_spi(options):
         decode_success = False
 
 
+    protocol_params = {
+        'clock frequency': eng.eng_si(clock_freq, 'Hz'),
+        'word size': word_size,
+        'cpol': cpol,
+        'cpha': cpha
+    }
+
+    wave_params = {
+        'sample rate': eng.eng_si(sample_rate, 'Hz'),
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
+    }
+
+    plot_params = {
+        'default_title': 'SPI Simulation',
+        'label_format': stream.AnnotationFormat.Text
+    }
+
+    report_results(records, byte_msg, protocol_params, wave_params, decode_success)
+    channels = OrderedDict([('CS (V)', nsy_cs), ('CLK (V)', nsy_clk), ('MOSI / MISO (V)', nsy_data_io)])
+    plot_channels(channels, records, options, plot_params)
+
+if False: #FIX
     # Report results
     print('\nProtocol parameters:')
     print('  clock frequency:', eng.eng_si(clock_freq, 'Hz'))
@@ -438,17 +490,20 @@ def demo_i2c(options):
 
     wave_params = {
         'sample rate': eng.eng_si(sample_rate, 'Hz'),
-        'rise time': eng.eng_si(rise_time, 's', 1)
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
     }
 
     plot_params = {
         'default_title': 'I2C Simulation',
-        'decode_success': decode_success,
         'label_format': stream.AnnotationFormat.Text
     }
 
+
+    report_results(records, transfers, protocol_params, wave_params, decode_success)
     channels = OrderedDict([('SCL (V)', nsy_scl), ('SDA (V)', nsy_sda)])
-    finish_demo(records, transfers, protocol_params, wave_params, plot_params, channels, options)
+    plot_channels(channels, records, options, plot_params)
+
 
 # FIX: restore reporting to work the same as previous I2C demo below
 
@@ -547,6 +602,33 @@ def demo_uart(options):
         decode_success = False
 
 
+    protocol_params = {
+        'baud': baud,
+        'decode baud': options.baud,
+        'bits': bits,
+        'parity': parity,
+        'stop bits': stop_bits,
+        'polarity': polarity
+    }
+
+    wave_params = {
+        'sample rate': eng.eng_si(sample_rate, 'Hz'),
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
+    }
+
+    plot_params = {
+        'default_title': 'UART Simulation',
+        'label_format': stream.AnnotationFormat.Text
+    }
+
+    report_results(records, byte_msg, protocol_params, wave_params, decode_success)
+    channels = OrderedDict([('Volts', noisy_samples)])
+    plot_channels(channels, records, options, plot_params)
+
+
+if False:
+
     # Report results
     print('\nProtocol parameters:')
     print('  baud:', baud)
@@ -633,7 +715,27 @@ def demo_ps2(options):
         print('Decode failed:\n  {}'.format(e))
         decode_success = False
 
+    protocol_params = {
+        'clock frequency': eng.eng_si(clock_freq, 'Hz')
+    }
 
+    wave_params = {
+        'sample rate': eng.eng_si(sample_rate, 'Hz'),
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
+    }
+
+    plot_params = {
+        'default_title': 'PS/2 Simulation',
+        'label_format': stream.AnnotationFormat.Text
+    }
+
+
+    report_results(records, byte_msg, protocol_params, wave_params, decode_success)
+    channels = OrderedDict([('CLK (V)', nsy_clk), ('DATA (V)', nsy_data)])
+    plot_channels(channels, records, options, plot_params)
+
+if False:
     # Report results
     print('\nProtocol parameters:')
     print('  clock frequency:', eng.eng_si(clock_freq, 'Hz'))
@@ -672,7 +774,7 @@ def demo_ps2(options):
         rplot.ps2_plot({'clk':nsy_clk, 'data':nsy_data}, records, title, save_file=options.save_file, figsize=options.figsize)
 
 
-def demo_iso_k_line(options):
+def demo_kline(options):
     import ripyl.protocol.iso_k_line as kline
     print('ISO K-Line protocol\n')
     
@@ -730,7 +832,25 @@ def demo_iso_k_line(options):
         print('Decode failed:\n  {}'.format(e))
         decode_success = False
 
+    protocol_params = {
+    }
 
+    wave_params = {
+        'sample rate': eng.eng_si(sample_rate, 'Hz'),
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
+    }
+
+    plot_params = {
+        'default_title': 'ISO K-Line Simulation',
+        'label_format': stream.AnnotationFormat.Hex
+    }
+
+    report_results(records, messages, protocol_params, wave_params, decode_success)
+    channels = OrderedDict([('Volts', noisy_samples)])
+    plot_channels(channels, records, options, plot_params)
+
+if False:
     # Report results
     print('\nProtocol parameters:')
     print('  messages:')
@@ -815,17 +935,18 @@ def demo_rc5(options):
 
     wave_params = {
         'sample rate': eng.eng_si(sample_rate, 'Hz'),
-        'rise time': eng.eng_si(rise_time, 's', 1)
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
     }
 
     plot_params = {
         'default_title': 'RC5 Simulation',
-        'decode_success': decode_success,
         'label_format': stream.AnnotationFormat.Hex
     }
 
+    report_results(records, messages, {}, wave_params, decode_success)
     channels = OrderedDict([('Volts', noisy_samples)])
-    finish_demo(records, messages, {}, wave_params, plot_params, channels, options)
+    plot_channels(channels, records, options, plot_params)
 
 
 def demo_rc6(options):
@@ -860,17 +981,18 @@ def demo_rc6(options):
 
     wave_params = {
         'sample rate': eng.eng_si(sample_rate, 'Hz'),
-        'rise time': eng.eng_si(rise_time, 's', 1)
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
     }
 
     plot_params = {
         'default_title': 'RC6 Simulation',
-        'decode_success': decode_success,
         'label_format': stream.AnnotationFormat.Hex
     }
 
+    report_results(records, messages, {}, wave_params, decode_success)
     channels = OrderedDict([('Volts', noisy_samples)])
-    finish_demo(records, messages, {}, wave_params, plot_params, channels, options)
+    plot_channels(channels, records, options, plot_params)
 
 
 def demo_nec(options):
@@ -906,17 +1028,19 @@ def demo_nec(options):
 
     wave_params = {
         'sample rate': eng.eng_si(sample_rate, 'Hz'),
-        'rise time': eng.eng_si(rise_time, 's', 1)
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
     }
 
     plot_params = {
         'default_title': 'NEC Simulation',
-        'decode_success': decode_success,
         'label_format': stream.AnnotationFormat.Hex
     }
 
+    report_results(records, messages, {}, wave_params, decode_success)
     channels = OrderedDict([('Volts', noisy_samples)])
-    finish_demo(records, messages, {}, wave_params, plot_params, channels, options)
+    plot_channels(channels, records, options, plot_params)
+
 
 
 
@@ -952,17 +1076,19 @@ def demo_sirc(options):
 
     wave_params = {
         'sample rate': eng.eng_si(sample_rate, 'Hz'),
-        'rise time': eng.eng_si(rise_time, 's', 1)
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
     }
 
     plot_params = {
         'default_title': 'SIRC Simulation',
-        'decode_success': decode_success,
         'label_format': stream.AnnotationFormat.Hex
     }
 
+    
+    report_results(records, messages, {}, wave_params, decode_success) #, channels, options)
     channels = OrderedDict([('Volts', noisy_samples)])
-    finish_demo(records, messages, {}, wave_params, plot_params, channels, options)
+    plot_channels(channels, records, options, plot_params)
 
 
 
@@ -993,23 +1119,22 @@ def plot_channels(channels, annotations, options, plot_params):
         else:
             plotter.save_plot(options.save_file)
 
-def finish_demo(decoded_recs, orig_messages, protocol_params, wave_params, plot_params, channels, options):
+def report_results(decoded_recs, orig_messages, protocol_params, wave_params, decode_success):
 
     # Report results
     print('\nProtocol parameters:')
     print('  Messages:')
     for msg in orig_messages:
         print('   ', msg)
+    for k, v in protocol_params.iteritems():
+        print( '  {}: {}'.format(k, v))
 
     print('Waveform parameters:')
     for k, v in wave_params.iteritems():
         print( '  {}: {}'.format(k, v))
-    #print('  sample rate:', eng.eng_si(sample_rate, 'Hz'))
-    #print('  rise time:', eng.eng_si(rise_time, 's', 1))
-    print('  SNR:', options.snr_db, 'dB')
 
 
-    if plot_params['decode_success']:
+    if decode_success:
         print('\nDecoded messages:')
         msg_match = True
         for dmsg, omsg in zip(decoded_recs, orig_messages):
@@ -1025,8 +1150,6 @@ def finish_demo(decoded_recs, orig_messages, protocol_params, wave_params, plot_
             print('  (matches input message)')
         else:
             print('  (MISMATCH to input message)')
-
-    plot_channels(channels, decoded_recs, options, plot_params)
 
 
         

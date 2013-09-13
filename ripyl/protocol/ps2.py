@@ -25,7 +25,7 @@ from __future__ import print_function, division
 
 import itertools
 
-from ripyl.streaming import *
+import ripyl.streaming as stream
 from ripyl.util.enum import Enum
 from ripyl.decode import *
 from ripyl.util.bitops import *
@@ -33,10 +33,10 @@ from ripyl.sigproc import remove_excess_edges
 
 class PS2StreamStatus(Enum):
     '''Enumeration of PS/2 status codes'''
-    FramingError = StreamStatus.Error + 1
-    ParityError = StreamStatus.Error + 2
-    AckError = StreamStatus.Error + 3
-    TimingError = StreamStatus.Error + 4
+    FramingError = stream.StreamStatus.Error + 1
+    ParityError = stream.StreamStatus.Error + 2
+    AckError = stream.StreamStatus.Error + 3
+    TimingError = stream.StreamStatus.Error + 4
 
 
 class PS2Dir(Enum):
@@ -45,10 +45,10 @@ class PS2Dir(Enum):
     HostToDevice = 1
 
 
-class PS2Frame(StreamSegment):
+class PS2Frame(stream.StreamSegment):
     '''Frame object for PS/2 data'''
-    def __init__(self, bounds, direction=PS2Dir.DeviceToHost, data=None, status=StreamStatus.Ok):
-        StreamSegment.__init__(self, bounds, data, status=status)
+    def __init__(self, bounds, direction=PS2Dir.DeviceToHost, data=None, status=stream.StreamStatus.Ok):
+        stream.StreamSegment.__init__(self, bounds, data, status=status)
         self.kind = 'PS/2 frame'
         self.direction = direction
 
@@ -59,14 +59,14 @@ class PS2Frame(StreamSegment):
             
             return PS2StreamStatus(status)
         else:
-            return StreamSegment.status_text(status)
+            return stream.StreamSegment.status_text(status)
 
     def __str__(self):
         return chr(self.data & 0xFF)
 
 
 
-def ps2_decode(clk, data, logic_levels=None, stream_type=StreamType.Samples):
+def ps2_decode(clk, data, logic_levels=None, stream_type=stream.StreamType.Samples):
     '''Decode a PS/2 data stream
     
     This is a generator function that can be used in a pipeline of waveform
@@ -101,7 +101,7 @@ def ps2_decode(clk, data, logic_levels=None, stream_type=StreamType.Samples):
       be determined.
     '''
 
-    if stream_type == StreamType.Samples:
+    if stream_type == stream.StreamType.Samples:
         if logic_levels is None:
             s_clk_it, logic_levels = check_logic_levels(clk)
         else:
@@ -148,7 +148,7 @@ def ps2_decode(clk, data, logic_levels=None, stream_type=StreamType.Samples):
             # Some sort of framing error happened. Start over to resynchronize
             find_frame_start = True
             bits = []
-            ne = StreamEvent(es.cur_time(), kind='PS/2 resynch', \
+            ne = stream.StreamEvent(es.cur_time(), kind='PS/2 resynch', \
                 status=PS2StreamStatus.FramingError)
             yield ne
             
@@ -232,21 +232,27 @@ def ps2_decode(clk, data, logic_levels=None, stream_type=StreamType.Samples):
 
 
                 status = PS2StreamStatus.FramingError if framing_error else \
-                    PS2StreamStatus.TimingError if timing_error else StreamStatus.Ok
+                    PS2StreamStatus.TimingError if timing_error else stream.StreamStatus.Ok
 
                 nf = PS2Frame((start_time, end_time), direction, data, status=status)
+                nf.annotate('frame', {}, stream.AnnotationFormat.Hidden)
 
-                nf.subrecords.append(StreamSegment((start_time, data_time), kind='start bit'))
-                nf.subrecords.append(StreamSegment((data_time, parity_time), kind='data bits'))
+                nf.subrecords.append(stream.StreamSegment((start_time, data_time), kind='start bit'))
+                nf.subrecords[-1].annotate('misc', {'_bits':1}, stream.AnnotationFormat.Invisible)
+                nf.subrecords.append(stream.StreamSegment((data_time, parity_time), data, kind='data bits'))
+                nf.subrecords[-1].annotate('data', {'_bits':bits}, stream.AnnotationFormat.General)
 
-                status = PS2StreamStatus.ParityError if parity_error else StreamStatus.Ok
-                nf.subrecords.append(StreamSegment((parity_time, stop_time), kind='parity', status=status))
-                nf.subrecords.append(StreamSegment((stop_time, stop_end_time), kind='stop bit'))
+                status = PS2StreamStatus.ParityError if parity_error else stream.StreamStatus.Ok
+                nf.subrecords.append(stream.StreamSegment((parity_time, stop_time), kind='parity', status=status))
+                nf.subrecords[-1].annotate('check', {'_bits':1}, stream.AnnotationFormat.Hidden)
+                nf.subrecords.append(stream.StreamSegment((stop_time, stop_end_time), kind='stop bit'))
+                nf.subrecords[-1].annotate('misc', {'_bits':1}, stream.AnnotationFormat.Invisible)
 
                 if direction == PS2Dir.HostToDevice:
                     ack_error = True if bits[10] != 0 else False
-                    status = PS2StreamStatus.AckError if ack_error else StreamStatus.Ok
-                    nf.subrecords.append(StreamSegment((ack_time, end_time), kind='ack bit', status=status))
+                    status = PS2StreamStatus.AckError if ack_error else stream.StreamStatus.Ok
+                    nf.subrecords.append(stream.StreamSegment((ack_time, end_time), kind='ack bit', status=status))
+                    nf.subrecords[-1].annotate('ack', {'_bits':1}, stream.AnnotationFormat.Hidden)
 
                 bits = []
                 find_frame_start = True

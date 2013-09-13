@@ -25,12 +25,12 @@ from __future__ import print_function, division
 
 import itertools
 
-from ripyl.streaming import *
+import ripyl.streaming as stream
 from ripyl.decode import *
 from ripyl.util.bitops import *
 from ripyl.sigproc import remove_excess_edges
 
-class SPIFrame(StreamSegment):
+class SPIFrame(stream.StreamSegment):
     '''Frame object for SPI data'''
     def __init__(self, bounds, data=None):
         '''
@@ -40,7 +40,7 @@ class SPIFrame(StreamSegment):
         data (sequence of int or None)
             Optional data representing the contents of the frame
         '''
-        StreamSegment.__init__(self, bounds, data)
+        stream.StreamSegment.__init__(self, bounds, data)
         self.kind = 'SPI frame'
         self.word_size = None
         
@@ -48,7 +48,7 @@ class SPIFrame(StreamSegment):
         return str(self.data)
 
 def spi_decode(clk, data_io, cs=None, cpol=0, cpha=0, lsb_first=True, logic_levels=None, \
-    stream_type=StreamType.Samples):
+    stream_type=stream.StreamType.Samples):
     '''Decode an SPI data stream
     
     This is a generator function that can be used in a pipeline of waveform
@@ -94,7 +94,7 @@ def spi_decode(clk, data_io, cs=None, cpol=0, cpha=0, lsb_first=True, logic_leve
     Raises AutoLevelError if stream_type = Samples and the logic levels cannot
       be determined.
     '''
-    if stream_type == StreamType.Samples:
+    if stream_type == stream.StreamType.Samples:
         if logic_levels is None:
             s_clk_it, logic_levels = check_logic_levels(clk)
         else:
@@ -141,7 +141,7 @@ def spi_decode(clk, data_io, cs=None, cpol=0, cpha=0, lsb_first=True, logic_leve
 
         
         if cname == 'cs' and not es.at_end('cs'):
-            se = StreamEvent(es.cur_time(), data=es.cur_state('cs'), kind='SPI CS')
+            se = stream.StreamEvent(es.cur_time(), data=es.cur_state('cs'), kind='SPI CS')
             yield se
 
         elif cname == 'clk' and not es.at_end('clk'):
@@ -158,6 +158,7 @@ def spi_decode(clk, data_io, cs=None, cpol=0, cpha=0, lsb_first=True, logic_leve
                     
                     nf = SPIFrame((start_time, end_time), word)
                     nf.word_size = len(bits)
+                    nf.annotate('frame', {'_bits':len(bits)}, stream.AnnotationFormat.General)
                     
                     bits = []
                     start_time = None
@@ -185,6 +186,7 @@ def spi_decode(clk, data_io, cs=None, cpol=0, cpha=0, lsb_first=True, logic_leve
             
         nf = SPIFrame((start_time, end_time), word)
         nf.word_size = len(bits)
+        nf.annotate('frame', {'_bits':len(bits)}, stream.AnnotationFormat.General)
         
         yield nf
 

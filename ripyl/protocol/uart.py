@@ -26,24 +26,24 @@ from __future__ import print_function, division
 import itertools
 
 from ripyl.decode import *
-from ripyl.streaming import *
+import ripyl.streaming as stream
 from ripyl.util.enum import Enum
 
 
-class AutoBaudError(StreamError):
+class AutoBaudError(stream.StreamError):
     '''Error for failed baud rate detection'''
     pass
 
 
 class UARTStreamStatus(Enum):
     '''Enumeration of UART status codes'''
-    FramingError = StreamStatus.Error + 1
-    ParityError = StreamStatus.Error + 2
+    FramingError = stream.StreamStatus.Error + 1
+    ParityError = stream.StreamStatus.Error + 2
 
-class UARTFrame(StreamSegment):
+class UARTFrame(stream.StreamSegment):
     '''Frame object for UART data'''
-    def __init__(self, bounds, data=None, status=StreamStatus.Ok):
-        StreamSegment.__init__(self, bounds, data, status=status)
+    def __init__(self, bounds, data=None, status=stream.StreamStatus.Ok):
+        stream.StreamSegment.__init__(self, bounds, data, status=status)
         self.kind = 'UART frame'
 
     @classmethod
@@ -64,15 +64,15 @@ class UARTConfig(Enum):
     IdleHigh = 1  # Polarity settings
     IdleLow = 2
 
-def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, polarity=UARTConfig.IdleHigh, \
-    baud_rate=None, use_std_baud=True, logic_levels=None, stream_type=StreamType.Samples, baud_deque=None):
+def uart_decode(stream_data, bits=8, parity=None, stop_bits=1.0, lsb_first=True, polarity=UARTConfig.IdleHigh, \
+    baud_rate=None, use_std_baud=True, logic_levels=None, stream_type=stream.StreamType.Samples, baud_deque=None):
     
     '''Decode a UART data stream
 
     This is a generator function that can be used in a pipeline of waveform
     procesing operations.
     
-    stream (sequence of (float, number) pairs)
+    stream_data (sequence of (float, number) pairs)
         A stream of 2-tuples of (time, value) pairs. The type of stream is identified
         by the stream_type parameter. Either a series of real valued samples that will
         be analyzed to find edge transitions or a set of pre-processed edge transitions
@@ -139,15 +139,15 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, pola
 
     bits = int(bits)
     
-    if stream_type == StreamType.Samples:
+    if stream_type == stream.StreamType.Samples:
         if logic_levels is None:
-            samp_it, logic_levels = check_logic_levels(stream)
+            samp_it, logic_levels = check_logic_levels(stream_data)
         else:
-            samp_it = stream
+            samp_it = stream_data
         
         edges = find_edges(samp_it, logic_levels, hysteresis=0.4)
     else: # the stream is already a list of edges
-        edges = stream
+        edges = stream_data
         
     
     raw_symbol_rate = 0
@@ -197,7 +197,7 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, pola
         
     if baud_deque is not None:
         bd_dict = {'baud_rate': baud_rate, 'raw_symbol_rate': raw_symbol_rate}
-        if stream_type == StreamType.Samples:
+        if stream_type == stream.StreamType.Samples:
             bd_dict['logic_levels'] = logic_levels
             
         edge_list = list(edges_it)
@@ -290,16 +290,21 @@ def uart_decode(stream, bits=8, parity=None, stop_bits=1.0, lsb_first=True, pola
         end_time = es.cur_time + bit_period * 0.5
         
         # construct frame objects
-        status = UARTStreamStatus.FramingError if framing_error else StreamStatus.Ok
+        status = UARTStreamStatus.FramingError if framing_error else stream.StreamStatus.Ok
         nf = UARTFrame((start_time, end_time), byte, status=status)
+        nf.annotate('frame', {}, stream.AnnotationFormat.Hidden)
         
-        nf.subrecords.append(StreamSegment((start_time, data_time), kind='start bit'))
-        nf.subrecords.append(StreamSegment((data_time, data_end_time), byte, kind='data bits'))
+        nf.subrecords.append(stream.StreamSegment((start_time, data_time), kind='start bit'))
+        nf.subrecords[-1].annotate('misc', {'_bits':1}, stream.AnnotationFormat.Invisible)
+        nf.subrecords.append(stream.StreamSegment((data_time, data_end_time), byte, kind='data bits'))
+        nf.subrecords[-1].annotate('data', {'_bits':bits}, stream.AnnotationFormat.General)
         if parity is not None:
-            status = UARTStreamStatus.ParityError if parity_error else StreamStatus.Ok
-            nf.subrecords.append(StreamSegment((parity_time, stop_time), kind='parity', status=status))
+            status = UARTStreamStatus.ParityError if parity_error else stream.StreamStatus.Ok
+            nf.subrecords.append(stream.StreamSegment((parity_time, stop_time), kind='parity', status=status))
+            nf.subrecords[-1].annotate('check', {'_bits':1}, stream.AnnotationFormat.General)
             
-        nf.subrecords.append(StreamSegment((stop_time, end_time), kind='stop bit'))
+        nf.subrecords.append(stream.StreamSegment((stop_time, end_time), kind='stop bit'))
+        nf.subrecords[-1].annotate('misc', {'_bits':stop_bits}, stream.AnnotationFormat.Invisible)
             
         yield nf
         #print('### new byte:', es.cur_time, byte, bin(byte), chr(byte))

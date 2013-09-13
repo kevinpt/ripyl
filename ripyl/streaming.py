@@ -66,13 +66,14 @@ class StreamStatus(Enum):
 class AnnotationFormat(Enum):
     '''Enumeration of annotation data formats'''
     Hidden = 0
-    General = 1
-    String = 2
-    Text = 3
-    Int = 4
-    Hex = 5
-    Bin = 6
-    Enum = 7
+    Invisible = 1
+    General = 2
+    String = 3
+    Text = 4
+    Int = 5
+    Hex = 6
+    Bin = 7
+    Enum = 8
 
 
     
@@ -165,7 +166,8 @@ class StreamSegment(StreamRecord):
         default_format (AnnotationFormat)
             Set the format to use when the data_format attribute is General
         '''
-        if self.data is None or self.data_format == AnnotationFormat.Hidden:
+        if self.data is None or self.data_format == AnnotationFormat.Hidden \
+            or self.data_format == AnnotationFormat.Invisible:
             return ''
 
         if self.data_format == AnnotationFormat.General:
@@ -175,6 +177,9 @@ class StreamSegment(StreamRecord):
 
         if data_format == AnnotationFormat.String:
             return str(self.data)
+        elif data_format == AnnotationFormat.Enum and '_enum' in self.fields:
+            return self.fields['_enum'](self.data)
+    
 
         if hasattr(self.data, '__len__'):
             data = self.data
@@ -671,3 +676,4 @@ def samples_to_sample_stream(raw_samples, sample_period, start_time=0.0, chunk_s
 
         yield sc
         t += sample_period * len(chunk)
+
