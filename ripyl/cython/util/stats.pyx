@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-'''Statistical operations
+'''Cython implementation of util/stats.py
 '''
 
 # Copyright © 2013 Kevin Thibedeau
@@ -21,16 +21,20 @@
 # You should have received a copy of the GNU Lesser General Public
 # License along with Ripyl. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import print_function, division
+cimport cython
+from libc.math cimport sqrt
 
-import math
-
-        
-class OnlineStats(object):
+cdef class OnlineStats:
     '''Generate statistics from a data set.
     Computes mean, variance and standard deviation in a single pass through a data set.
     '''
+
+    cdef int c
+    cdef double m
+    cdef double s
+
     def __init__(self):
+        #print 'Cy OnlineStats()'
         self.c = 0
         self.m = 0.0
         self.s = 0.0
@@ -41,18 +45,24 @@ class OnlineStats(object):
         data (number)
             New data to accumulate statistics on
         '''
+        cdef double delta
+
+        #print 'Cy OnlineStats.accumulate()'
 
         self.c += 1
         delta = data - self.m
-        self.m = self.m + delta / self.c
+        self.m = self.m + delta / float(self.c)
         self.s = self.s + delta * (data - self.m)
 
-    def accumulate_array(self, data):
+
+    def accumulate_array(self, list data):
         '''Add a new data value to the set of accumulated statistics
         
         data (sequence of numbers)
             New data to accumulate statistics on
         '''
+
+        cdef double delta
 
         for d in data:
             self.c += 1
@@ -60,8 +70,8 @@ class OnlineStats(object):
             self.m = self.m + delta / self.c
             self.s = self.s + delta * (d - self.m)
 
-    
-    def variance(self, ddof=0):
+
+    def variance(self, int ddof=0):
         '''Compute the variance of the data values previously accumulated
         
         ddof (int)
@@ -72,11 +82,11 @@ class OnlineStats(object):
         Returns a float for the variance
         '''
         if self.c > 2:
-            return self.s / (self.c - ddof)
+            return self.s / float(self.c - ddof)
         else:
             return 0.0
     
-    def std(self, ddof=0):
+    def std(self, int ddof=0):
         '''Compute the standard deviation of the values previously accumulated
         
         ddof (int)
@@ -84,7 +94,7 @@ class OnlineStats(object):
 
         Returns a float for the standard deviation.
         '''
-        return math.sqrt(self.variance(ddof))
+        return sqrt(self.variance(ddof))
     
     def mean(self):
         '''Returns the mean of the values previously accumulated'''

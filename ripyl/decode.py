@@ -23,15 +23,13 @@
 
 from __future__ import print_function, division
 
-#import pyximport; pyximport.install()
-
 import numpy as np
 import scipy as sp
 import math
 import collections
 import itertools
 
-from ripyl.util.stats import OnlineStats
+import ripyl.util.stats as stats
 from ripyl.streaming import ChunkExtractor, StreamError, AutoLevelError
 
 #import matplotlib.pyplot as plt
@@ -190,7 +188,7 @@ def find_hist_peaks(hist, thresh_scale=1.0):
     
     
     # get mean of all populated bins
-    os = OnlineStats()
+    os = stats.OnlineStats()
     for b in hist:
         if b > 0:
             os.accumulate(b)
@@ -659,8 +657,6 @@ def find_edges(samples, logic, hysteresis=0.4):
 
             t += sample_period
 
-#import ripyl.cython.cy_decode as cyd
-#find_edges = cyd.find_chunked_edges
 
 
 def find_differential_edges(samples, logic, hysteresis=0.1):
