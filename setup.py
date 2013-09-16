@@ -28,8 +28,10 @@ if version is None:
 try:
     from Cython.Distutils import build_ext
     cython_exists = True
+    cmdclass = {'build_ext': build_ext }
 except ImportError:
     cython_exists = False
+    cmdclass = {}
 
 
 use_cython = False if '--without-cython' in sys.argv else True
@@ -116,7 +118,7 @@ setup(name='ripyl',
     install_requires = ['scipy >= 0.11.0', 'numpy >= 1.7.0'],
     packages = ['ripyl', 'ripyl.protocol', 'ripyl.protocol.infrared', 'ripyl.util', 'ripyl.cython'],
     py_modules = ['ripyl_demo'],
-    cmdclass = {'build_ext': build_ext },
+    cmdclass = cmdclass,
     #ext_modules = extensions,
     features = features,
     entry_points = {
