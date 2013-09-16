@@ -24,6 +24,7 @@
 import ConfigParser
 import os
 
+
 use_cython = False
 cython_prebuild = False
 
@@ -47,4 +48,18 @@ def _parse_config():
         cython_prebuild = config.getboolean('setup', 'cython_prebuild')
 
 _parse_config()
+
+
+def write_config(cfg_path, use_cython, cython_prebuild):
+    config = ConfigParser.ConfigParser()
+    config.add_section('setup')
+    config.set('setup', 'use_cython', str(use_cython))
+    config.set('setup', 'cython_prebuild', str(cython_prebuild))
+
+    with open(cfg_path, 'wb') as fh:
+        config.write(fh)
+
+
+
+
 

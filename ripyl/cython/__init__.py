@@ -2,10 +2,10 @@
 import ripyl
 
 if ripyl.config.cython_prebuild == False:
-    print 'No prebuild'
+    #print 'No prebuild'
     import pyximport; pyximport.install()
-else:
-    print 'Using prebuild'
+#else:
+    #print 'Using prebuild'
 
 import inspect
 import importlib
@@ -28,7 +28,9 @@ def find_files(pattern, path):
 def find_cy_modules():
     '''Find Cython modules'''
     # Strip extensions from module names
-    cy_files = [os.path.splitext(fn)[0] for fn in find_files('*.pyx', '.')]
+    cy_root = os.path.dirname(__file__)
+    cy_files = [os.path.splitext(fn)[0] for fn in find_files('*.pyx', cy_root)]
+    #print '### cy_files:', cy_files
 
     # Convert slashes to dotted module notation
     trans = string.maketrans('/\\', '..')
@@ -59,8 +61,12 @@ cy_module_names = find_cy_modules()
 
 cy_modules = {}
 for mname in cy_module_names:
-    #print 'importing cython:', mname
-    cy_modules[mname] = importlib.import_module('ripyl.cython.' + mname)
+    #print '##importing cython: "{}"'.format(mname)
+    full_mname = 'ripyl.cython.' + mname
+    try:
+        cy_modules[mname] = importlib.import_module(full_mname)
+    except ImportError, KeyError:
+        print 'Error: could not import Cython module:', full_mname
 
 #print 'cython modules:', cy_modules
 
