@@ -73,7 +73,7 @@ def write_config(cfg_path, use_cython, cython_prebuild):
     config.set('setup', 'use_cython', str(use_cython))
     config.set('setup', 'cython_prebuild', str(cython_prebuild))
 
-    with open(cfg_path, 'wb') as fh:
+    with open(cfg_path, 'w') as fh:
         config.write(fh)
 
 ext_modules = []
