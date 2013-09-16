@@ -63,9 +63,12 @@ def find_cy_modules():
     return cy_modules
 
 def write_config(cfg_path, use_cython, cython_prebuild):
-    import ConfigParser
+    if sys.hexversion < 0x3000000:
+        import ConfigParser as cp
+    else:
+        import configparser as cp
 
-    config = ConfigParser.ConfigParser()
+    config = cp.ConfigParser()
     config.add_section('setup')
     config.set('setup', 'use_cython', str(use_cython))
     config.set('setup', 'cython_prebuild', str(cython_prebuild))
