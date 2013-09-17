@@ -176,6 +176,7 @@ def sirc_decode(ir_stream, carrier_freq=40.0e3, polarity=ir.IRConfig.IdleLow, lo
                 
             msg = SIRCMessage(cmd, device, extended)
             sm = SIRCStreamMessage((msg_start_time, prev_edge + 0.5*one_t), msg)
+            sm.annotate('frame', {}, stream.AnnotationFormat.Hidden)
 
             cmd_ss = stream.StreamSegment((cmd_range[0], cmd_range[1]), cmd, kind='command')
             sm.subrecords.append(cmd_ss)

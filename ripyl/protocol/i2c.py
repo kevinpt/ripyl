@@ -387,8 +387,8 @@ class I2CTransfer(stream.StreamRecord):
             
         if self.address != other.address:
             match = False
-            
-        if self.data != other.data:
+        
+        if bytearray(self.data) != bytearray(other.data):
             match = False
             
         return match

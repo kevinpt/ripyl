@@ -89,13 +89,17 @@ class OBD2StreamMessage(StreamSegment):
 
         '''
         StreamSegment.__init__(self, (None, None), status=status)
-        self.msg = msg
+        self.data = msg
 
         self.kind = 'OBD-2 message'
 
     @classmethod
     def status_text(cls, status):
         return StreamSegment.status_text(status)
+
+    @property
+    def msg(self):
+        return self.data
 
     @property
     def start_time(self):

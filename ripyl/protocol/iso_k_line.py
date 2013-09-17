@@ -193,12 +193,18 @@ class KLineMessage(obd.OBD2Message):
 
         return True if cs == self.checksum.data else False
 
-    def raw_data(self):
-        '''Get the raw data (minus header and checksum) for the message
+    def raw_data(self, full_message=False):
+        '''Get the raw data for the message
+
+        full_message (bool)
+            Returns complete message including header and checksum when true
 
         Returns a list of bytes.
         '''
-        return [b.data for b in self.data]
+        if full_message:
+            return [b for a in [[b.data for b in self.header.bytes()], [b.data for b in self.data], [self.checksum.data]] for b in a]
+        else:
+            return [b.data for b in self.data]
 
 
     @property

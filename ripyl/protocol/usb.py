@@ -137,7 +137,7 @@ class USBStreamPacket(stream.StreamSegment):
         self.kind = 'USB packet'
         
         self.sop_end = sop_end
-        self.packet = packet # USBPacket object
+        self.data = packet # USBPacket object
         self.crc = crc
         self.sop_end2 = sop_end2
         self.crc2 = crc2
@@ -183,6 +183,10 @@ class USBStreamPacket(stream.StreamSegment):
             return USBStreamStatus(status)
         else:
             return stream.StreamSegment.status_text(status)
+
+    @property
+    def packet(self):
+        return self.data
 
 
     def field_offsets(self):
