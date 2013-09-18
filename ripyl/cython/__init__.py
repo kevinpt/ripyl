@@ -1,3 +1,6 @@
+#!/usr/bin/python
+
+'''Cython extension package'''
 
 import ripyl
 
@@ -34,15 +37,16 @@ def find_cy_modules():
 
     # Convert slashes to dotted module notation
     trans = string.maketrans('/\\', '..')
-    cy_modules = [f.translate(trans) for f in cy_files]
+    cy_mods = [f.translate(trans) for f in cy_files]
     
     # Remove the leading porton of the paths up to "cython"
-    cy_modules = ['.'.join(m[m.find('cython'):].split('.')[1:]) for m in cy_modules]
+    cy_mods = ['.'.join(m[m.find('cython'):].split('.')[1:]) for m in cy_mods]
 
-    return cy_modules
+    return cy_mods
 
 
 def monkeypatch_modules(modules, lib_base):
+    '''Replace pure python functions and classes with cython equivalents'''
     for mname, module in modules.iteritems():
         py_mname = '.'.join((lib_base, mname))
         if py_mname in sys.modules:

@@ -107,10 +107,11 @@ class StreamRecord(object):
             
         return cur_status
 
-    def annotate(self, style=None, fields={}, data_format=AnnotationFormat.General):
+    def annotate(self, style=None, fields=None, data_format=AnnotationFormat.General):
         ''''Set annotation attributes'''
         self.style = style
         self.data_format = data_format
+        if fields is None: fields = {}
         self.fields = fields
 
         return self
@@ -552,6 +553,7 @@ class ChunkExtractor(object):
             return None
 
     def buffered_chunk(self):
+        '''Get all remaining buffered samples'''
         return self.next_chunk(self.buf_count)
 
 
@@ -612,7 +614,7 @@ def extract_samples(samples, sample_count=1000):
             sample_count = next_sc
 
 
-def extract_samples(samples):
+def extract_all_samples(samples):
     '''Get all samples from a sample stream along with parameter information.
 
     samples (iterable of SampleChunk objects)
@@ -643,7 +645,7 @@ def sample_stream_to_samples(samples):
     Returns a numpy array of float.
     '''
 
-    return extract_samples(samples)[0]
+    return extract_all_samples(samples)[0]
     
     
 

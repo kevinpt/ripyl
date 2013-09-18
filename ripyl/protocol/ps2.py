@@ -264,7 +264,7 @@ def ps2_decode(clk, data, logic_levels=None, stream_type=stream.StreamType.Sampl
                         
 
 
-def ps2_synth(bytes, direction, clock_freq, idle_start=0.0, word_interval=0.0):
+def ps2_synth(byte_data, direction, clock_freq, idle_start=0.0, word_interval=0.0):
     '''Generate synthesized PS/2 waveform
     
     This function simulates a transmission of data over PS/2.
@@ -272,7 +272,7 @@ def ps2_synth(bytes, direction, clock_freq, idle_start=0.0, word_interval=0.0):
     This is a generator function that can be used in a pipeline of waveform
     procesing operations.
     
-    bytes (sequence of int)
+    byte_data (sequence of int)
         A sequence of bytes that will be transmitted serially
 
     direction (PS2Dir or a sequence of PS2Dir)
@@ -297,12 +297,12 @@ def ps2_synth(bytes, direction, clock_freq, idle_start=0.0, word_interval=0.0):
 
     # This is a wrapper around the actual synthesis code in _ps2_synth()
     # It unzips the yielded tuple and removes unwanted artifact edges
-    clk, data = itertools.izip(*_ps2_synth(bytes, direction, clock_freq, idle_start, word_interval))
+    clk, data = itertools.izip(*_ps2_synth(byte_data, direction, clock_freq, idle_start, word_interval))
     clk = remove_excess_edges(clk)
     data = remove_excess_edges(data)
     return clk, data
 
-def _ps2_synth(bytes, direction, clock_freq, idle_start=0.0, word_interval=0.0):
+def _ps2_synth(byte_data, direction, clock_freq, idle_start=0.0, word_interval=0.0):
     '''Core PS/2 synthesizer
     
     This is a generator function.
@@ -321,13 +321,13 @@ def _ps2_synth(bytes, direction, clock_freq, idle_start=0.0, word_interval=0.0):
         if len(direction) > 0:
             pass
     except TypeError:
-        direction = [direction] * len(bytes)
+        direction = [direction] * len(byte_data)
     
     
     yield ((t, clk),(t, data)) # initial conditions
     t += idle_start
      
-    for d, direct in zip(bytes, direction):
+    for d, direct in zip(byte_data, direction):
         bits_remaining = word_size
 
         # first bit transmitted will be at the end of the list

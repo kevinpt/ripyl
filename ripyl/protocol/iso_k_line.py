@@ -25,8 +25,6 @@
 
 from __future__ import print_function, division
 
-import itertools
-
 from ripyl.decode import *
 import ripyl.streaming as stream
 import ripyl.sigproc as sigp
@@ -161,7 +159,8 @@ class ISO14230Header(object):
             rep = 'ISO14230Header({:02x}, {:02x}, {:02x})'.format(self.option.data, self.target.data, \
             self.source.data)
         else:
-            rep = 'ISO14230Header({:02x}, {:02x}, {:02x}, {:02x})'.format(self.option.data, self.target.data, self.source.data, self.length.data)
+            rep = 'ISO14230Header({:02x}, {:02x}, {:02x}, {:02x})'.format(self.option.data, \
+            self.target.data, self.source.data, self.length.data)
 
         return rep
 
@@ -169,7 +168,8 @@ class ISO14230Header(object):
         if self.length is None:
             s = '[{:02x} {:02x} {:02x}]'.format(self.option.data, self.target.data, self.source.data)
         else:
-            s = '[{:02x} ({:02x}) {:02x} {:02x}]'.format(self.option.data, self.length.data, self.target.data, self.source.data)
+            s = '[{:02x} ({:02x}) {:02x} {:02x}]'.format(self.option.data, self.length.data, \
+            self.target.data, self.source.data)
         return s
 
 
@@ -202,7 +202,8 @@ class KLineMessage(obd.OBD2Message):
         Returns a list of bytes.
         '''
         if full_message:
-            return [b for a in [[b.data for b in self.header.bytes()], [b.data for b in self.data], [self.checksum.data]] for b in a]
+            return [b for a in [[b.data for b in self.header.bytes()], \
+                [b.data for b in self.data], [self.checksum.data]] for b in a]
         else:
             return [b.data for b in self.data]
 
@@ -460,7 +461,7 @@ def iso_k_line_decode(stream_data, min_message_interval=7.0e-3, logic_levels=Non
                     state = S_GET_MSG
                     prev_byte_end = r.end_time
                 else: # Unexpected data
-                    se = StreamEvent(r.start_time, kind='Bad init', \
+                    se = stream.StreamEvent(r.start_time, kind='Bad init', \
                         status=KLineStreamStatus.BadInitError)
                     yield se
 
@@ -493,7 +494,8 @@ def iso_k_line_decode(stream_data, min_message_interval=7.0e-3, logic_levels=Non
             if len(msg_bytes) == 2:
                 total_length = get_msg_len(msg_bytes)
 
-            #print('### byte:', eng.eng_si(r.start_time, 's'), eng.eng_si(r.start_time - prev_byte_end, 's'), hex(r.data))
+            #print('### byte:', eng.eng_si(r.start_time, 's'), \
+            #    eng.eng_si(r.start_time - prev_byte_end, 's'), hex(r.data))
             if (r.start_time - prev_byte_end > min_message_interval and len(msg_bytes) > 0) or \
                 (total_length is not None and len(msg_bytes) == total_length):
                 # Previous message ended

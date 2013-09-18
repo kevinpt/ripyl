@@ -863,7 +863,7 @@ def plot_channels(channels, annotations, options, plot_params):
         else:
             plotter.save_plot(options.save_file)
 
-def report_results(decoded_recs, orig_messages, protocol_params, wave_params, decode_success, compare_func=None):
+def report_results(decoded_recs, orig_messages, protocol_params, wave_params, decode_success, extract_func=None):
 
     # Report results
     print('\nProtocol parameters:')
@@ -878,11 +878,11 @@ def report_results(decoded_recs, orig_messages, protocol_params, wave_params, de
         print( '  {}: {}'.format(k, v))
 
 
-    if decode_success and compare_func is not None:
+    if decode_success and extract_func is not None:
         print('\nDecoded messages:')
         msg_match = True
 
-        for dmsg, omsg in [compare_func(d, o) for d, o in zip(decoded_recs, orig_messages)]:
+        for dmsg, omsg in [extract_func(d, o) for d, o in zip(decoded_recs, orig_messages)]:
             if dmsg != omsg:
                 msg_match = False
                 m_flag =  ' < MISMATCH'

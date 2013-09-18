@@ -192,21 +192,20 @@ def rc5_synth(messages, idle_start=0.0, message_interval=89.0e-3, idle_end=1.0e-
     '''
 
     t = 0.0
-    ir = 0 # idle-low
 
     pulse_width = 889.0e-6 # 889us pulse width
     
-    yield (t, ir) # set initial conditions
+    yield (t, 0) # set initial conditions; idle-low
     t += idle_start
 
     for msg in messages:
-        msg_bits = [1,0 if (msg.cmd & 0x40) else 1, msg.toggle]
+        msg_bits = [1, 0 if (msg.cmd & 0x40) else 1, msg.toggle]
         msg_bits.extend(split_bits(msg.addr, 5))
         msg_bits.extend(split_bits(msg.cmd, 6))
 
         #print('### msg_bits:', msg_bits)
 
-        coded_bits = ((0,1) if b else (1,0) for b in msg_bits) # Expand each bit into a pair of half bits
+        coded_bits = ((0, 1) if b else (1, 0) for b in msg_bits) # Expand each bit into a pair of half bits
         coded_bits = (b for sl in coded_bits for b in sl) # Flatten the tuples
 
         prev_state = 0

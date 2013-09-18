@@ -27,7 +27,6 @@ import functools
 
 import ripyl.decode as decode
 import ripyl.streaming as stream
-from ripyl.util.enum import Enum
 from ripyl.util.bitops import split_bits, join_bits
 
 import ripyl.protocol.infrared as ir
@@ -115,7 +114,6 @@ def sirc_decode(ir_stream, carrier_freq=40.0e3, polarity=ir.IRConfig.IdleLow, lo
 
     epsilon = 30.0e-6 # allow +/-30us variation for pulses and bit times
     time_is_nearly = functools.partial(ir.time_is_nearly, epsilon=epsilon)
-    time_is_at_least = functools.partial(ir.time_is_at_least, epsilon=epsilon)
 
     one_t = 600.0e-6 # 600us 1T time
 
@@ -223,11 +221,11 @@ def sirc_synth(messages, idle_start=0.0, message_interval=42.5e-3, idle_end=1.0e
     '''
 
     t = 0.0
-    ir = 0 # idle-low
+    irtx = 0 # idle-low
 
     one_t = 600.0e-6 # 600us 1T time
     
-    yield (t, ir) # set initial conditions
+    yield (t, irtx) # set initial conditions
     t += idle_start
 
     for msg in messages:
@@ -242,27 +240,27 @@ def sirc_synth(messages, idle_start=0.0, message_interval=42.5e-3, idle_end=1.0e
             msg_bits.extend(reversed(split_bits(msg.extended, 8)))
         
 
-        ir = 1 # start pulse burst
-        yield (t, ir)
+        irtx = 1 # start pulse burst
+        yield (t, irtx)
 
         t += 4 * one_t # 4T pulse
-        ir = 0
-        yield (t, ir)
+        irtx = 0
+        yield (t, irtx)
 
         for bit in msg_bits:
             t += one_t # 1T space
-            ir = 1
-            yield (t, ir)
+            irtx = 1
+            yield (t, irtx)
 
             t += (bit+1) * one_t # 1T or 2T pulse
-            ir = 0
-            yield (t, ir)
+            irtx = 0
+            yield (t, irtx)
 
         t += one_t # 1T space
         t += message_interval
             
     t += idle_end - message_interval
         
-    yield (t, ir) # Final state
+    yield (t, irtx) # Final state
 
 

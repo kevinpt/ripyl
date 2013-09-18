@@ -232,7 +232,8 @@ def spi_synth(data, word_size, clock_freq, cpol=0, cpha=0, lsb_first=True, idle_
     '''
     # This is a wrapper around the actual synthesis code in _spi_synth()
     # It unzips the yielded tuple and removes unwanted artifact edges
-    clk, data_io, cs = itertools.izip(*_spi_synth(data, word_size, clock_freq, cpol, cpha, lsb_first, idle_start, word_interval))
+    clk, data_io, cs = itertools.izip(*_spi_synth(data, word_size, clock_freq, cpol, cpha, \
+        lsb_first, idle_start, word_interval))
     clk = remove_excess_edges(clk)
     data_io = remove_excess_edges(data_io)
     cs = remove_excess_edges(cs)

@@ -23,7 +23,6 @@
 
 from __future__ import print_function
 
-import itertools
 from ripyl.streaming import SampleChunk, StreamError, ChunkExtractor
 
 import numpy as np

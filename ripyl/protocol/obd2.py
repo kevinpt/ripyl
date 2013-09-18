@@ -53,8 +53,11 @@ class OBD2Message(object):
         '''
         raise NotImplementedError
 
-    def raw_data(self):
-        '''Get the raw data (minus header and checksum) for the message
+    def raw_data(self, full_message=False):
+        '''Get the raw data for the message
+
+        full_message (bool)
+            Returns complete message including header and checksum when true
 
         Returns a list of bytes.
         '''

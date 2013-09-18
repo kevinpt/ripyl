@@ -53,7 +53,7 @@ class UARTFrame(stream.StreamSegment):
             
             return UARTStreamStatus(status)
         else:
-            return StreamSegment.status_text(status)
+            return stream.StreamSegment.status_text(status)
 
     def __str__(self):
         return chr(self.data & 0xFF)

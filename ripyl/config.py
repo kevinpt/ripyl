@@ -51,6 +51,7 @@ _parse_config()
 
 
 def write_config(cfg_path, use_cython, cython_prebuild):
+    '''Write a file for the Ripyl build configuration'''
     config = ConfigParser.ConfigParser()
     config.add_section('setup')
     config.set('setup', 'use_cython', str(use_cython))

@@ -304,12 +304,8 @@ def i2c_decode(scl, sda, logic_levels=None, stream_type=stream.StreamType.Sample
                     else: # S_DATA
                         nb = I2CByte(f_bound, word, ack_bit)
                         nb.annotate('frame', {}, stream.AnnotationFormat.Hidden)
-                        d_start = start_time - 0.25 * clock_period
-                        d_end = d_start + 8.5 * clock_period
                         nb.subrecords.append(stream.StreamSegment(d_bound, word, kind='data'))
                         nb.subrecords[-1].annotate('data', {'_bits':8})
-                        a_start = end_time - 0.25 * clock_period
-                        a_end = end_time + 0.25 * clock_period
                         nb.subrecords.append(stream.StreamSegment(a_bound, ack_bit, kind='ack', status=a_status))
                         nb.subrecords[-1].annotate('ack', {'_bits':1}, stream.AnnotationFormat.Hidden)
 
