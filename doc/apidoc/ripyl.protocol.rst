@@ -1,6 +1,14 @@
 protocol Package
 ================
 
+:mod:`protocol` Package
+-----------------------
+
+.. automodule:: ripyl.protocol
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`i2c` Module
 -----------------
 
@@ -80,4 +88,11 @@ protocol Package
     :members:
     :undoc-members:
     :show-inheritance:
+
+Subpackages
+-----------
+
+.. toctree::
+
+    ripyl.protocol.infrared
 
