@@ -12,6 +12,10 @@ The base protocols provided with Ripyl are the following:
 * :mod:`PS/2 and AT keyboard <.protocol.ps2>`
 * :mod:`USB 2.0 <.protocol.usb>` (all speeds and HSIC support)
 * :mod:`ISO K-line <.protocol.iso_k_line>` (ISO 9141 and ISO 14230 automotive protocols)
+* :mod:`RC5 <.protocol.infrared.rc5>`
+* :mod:`RC6 <.protocol.infrared.rc6>`
+* :mod:`NEC <.protocol.infrared.nec>`
+* :mod:`SIRC <.protocol.infrared.sirc>`
 
 
 All base level protocols in the library have functions to support the synthesis of arbitrary waveforms. This can be useful for testing or recreating special circumstances that would be challenging to perform with real hardware.

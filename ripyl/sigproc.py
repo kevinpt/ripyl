@@ -409,12 +409,12 @@ def invert(stream):
 
 
 def capacify(samples, capacitance, resistance=50.0):
-    '''Simulate an RC filter on a waveform
+    '''Simulate an RC filter on a waveform::
 
-    samples >--R--+--> out
-                  |
-                  C
-                 _|_
+        : samples >--R--+--> out
+        :               |
+        :               C
+        :              _|_
 
     Warning: This function becomes unstable for small time constants (C * R).
     It is implemented with a simple application of the RC difference equations.

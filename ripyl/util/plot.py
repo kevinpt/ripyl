@@ -163,7 +163,8 @@ class Plotter(object):
 
     def show(self):
         '''Show the result of plot() in an interactive window'''
-        plt.show()
+        if self.fig is not None:
+            plt.show()
 
     def save_plot(self, fname, figsize=None):
         '''Save the result of plot() to a file

@@ -45,14 +45,16 @@ spi
   Serial Peripheral Interface
 ps2
   PS/2 and AT keyboard protocol
-usb
-  USB 2.0
-usb-diff
-  USB 2.0 (differentially probed)
-hsic
-  USB 2.0 High Speed IC protocol
+usb, usb-diff, hsic
+  USB 2.0 with support for differentially probed input and the High Speed IC variant
 kline
   ISO9141 and ISO14230 "K-line" automotive interfaces
+rc5, rc6
+  Philips RC-5 and RC-6 infrared protocols
+nec
+  NEC infrared protocol
+sirc
+  Sony SIRC infrared protocol
 
 
 Here is the test message encoded as a USB data packet:
@@ -78,4 +80,4 @@ The ripyl_demo script has a variety of command line options. You can list them w
 -t TITLE, --title=TITLE  Title for plot
 -f FIGSIZE, --figsize=FIGSIZE  Figure size (w,h) in inches
 
-					
+

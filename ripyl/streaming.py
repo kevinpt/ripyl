@@ -65,15 +65,15 @@ class StreamStatus(Enum):
 
 class AnnotationFormat(Enum):
     '''Enumeration of annotation data formats'''
-    Hidden = 0
-    Invisible = 1
-    General = 2
-    String = 3
-    Text = 4
+    Hidden = 0      # Invisible text label
+    Invisible = 1   # Invisible text label and rectangle
+    General = 2     # Generic label format controlled by the default_format attribute of StreamRecord.text()
+    String = 3      # The data attribute is treated as a string
+    Text = 4        # The data attribute is a sequence of characters to be converted into a string
     Int = 5
     Hex = 6
     Bin = 7
-    Enum = 8
+    Enum = 8        # The data attribute is an enumeration value
 
 
     
@@ -108,58 +108,26 @@ class StreamRecord(object):
         return cur_status
 
     def annotate(self, style=None, fields=None, data_format=AnnotationFormat.General):
-        ''''Set annotation attributes'''
+        ''''Set annotation attributes
+
+        style (string or None)
+            The name of a style to use for drawing a rectangle representing this record
+            (as defined in ripyl.util.plot.annotation_styles)
+
+        fields (dict of string:value)
+            A set of arbitrary info fields that may be displayed as attributes of this record.
+            The special field '_bits' identifies the number of data bits in this record
+            The special field '_enum' identifies an enumeration type for this record's data attribute
+
+        data_format (AnnotationFormat)
+            The format for the text label
+        '''
         self.style = style
         self.data_format = data_format
         if fields is None: fields = {}
         self.fields = fields
 
         return self
-        
-    @classmethod
-    def status_text(cls, status):
-        '''Returns the string representation of a status code'''
-        if status == StreamStatus.Ok or status == StreamStatus.Warning or \
-            status == StreamStatus.Error:
-            
-            return StreamStatus(status)
-        else:
-            return 'unknown <{}>'.format(status)
-
-
-    def __repr__(self):
-        return 'StreamRecord(\'{0}\')'.format(self.kind)
-
-    def __eq__(self, other):
-        match = True
-        if self.kind != other.kind: match = False
-        if self.status != other.status: match = False
-        if self.stream_id != other.stream_id: match = False
-        if len(self.subrecords) != len(other.subrecords):
-            match = False
-        else:
-            for s, o in zip(self.subrecords, other.subrecords):
-                if s != o:
-                    match = False
-                    break
-
-        return match
-                
-
-    def __ne__(self, other):
-        return not self == other
-
-    
-class StreamSegment(StreamRecord):
-    '''A stream element that spans two points in time'''
-    def __init__(self, time_bounds, data=None, kind='unknown segment', status=StreamStatus.Ok):
-        StreamRecord.__init__(self, kind, status)
-        self._start_time = time_bounds[0] # (start time, end time)
-        self._end_time = time_bounds[1]
-        self.data = data
-
-    def __str__(self):
-        return self.text()
 
     def text(self, default_format=AnnotationFormat.String):
         '''Generate a string representation of this segment's data
@@ -209,6 +177,53 @@ class StreamSegment(StreamRecord):
             return ''.join(words)
         else:
             return ' '.join(words)
+
+        
+    @classmethod
+    def status_text(cls, status):
+        '''Returns the string representation of a status code'''
+        if status == StreamStatus.Ok or status == StreamStatus.Warning or \
+            status == StreamStatus.Error:
+            
+            return StreamStatus(status)
+        else:
+            return 'unknown <{}>'.format(status)
+
+
+    def __repr__(self):
+        return 'StreamRecord(\'{0}\')'.format(self.kind)
+
+    def __eq__(self, other):
+        match = True
+        if self.kind != other.kind: match = False
+        if self.status != other.status: match = False
+        if self.stream_id != other.stream_id: match = False
+        if len(self.subrecords) != len(other.subrecords):
+            match = False
+        else:
+            for s, o in zip(self.subrecords, other.subrecords):
+                if s != o:
+                    match = False
+                    break
+
+        return match
+                
+
+    def __ne__(self, other):
+        return not self == other
+
+    
+class StreamSegment(StreamRecord):
+    '''A stream element that spans two points in time'''
+    def __init__(self, time_bounds, data=None, kind='unknown segment', status=StreamStatus.Ok):
+        StreamRecord.__init__(self, kind, status)
+        self._start_time = time_bounds[0] # (start time, end time)
+        self._end_time = time_bounds[1]
+        self.data = data
+
+    def __str__(self):
+        return self.text()
+
         
     def __repr__(self):
         return 'StreamSegment(({0},{1}), {2}, \'{3}\')'.format(self.start_time, self.end_time, \

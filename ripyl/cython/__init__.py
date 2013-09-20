@@ -19,7 +19,7 @@ import string
 
 
 def find_files(pattern, path):
-    ''''Recursively search for files that match a specified pattern'''
+    '''Recursively search for files that match a specified pattern'''
     result = []
     for root, dirs, files in os.walk(path):
         for name in files:

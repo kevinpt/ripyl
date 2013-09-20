@@ -20,11 +20,14 @@ It can process a waveform like this:
 
 .. image:: image/uart_hello_small.png
 
+The library provides decoded information in an easily traversed tree detailing the time and data for each sub-element of a protocol transmission.
+
 Features include:
     * Multi-protocol support:
         ==== === ======== ==========
         HSIC I2C ISO 9141 ISO 14230
         PS/2 SPI UART     USB 2.0  
+        RC5  RC6 NEC      SIRC
         ==== === ======== ==========
     * Protocol simulation
     * Annotated plotting
