@@ -118,6 +118,7 @@ class StreamRecord(object):
             A set of arbitrary info fields that may be displayed as attributes of this record.
             The special field '_bits' identifies the number of data bits in this record
             The special field '_enum' identifies an enumeration type for this record's data attribute
+            The special field 'value' is a string that will override any other source of label text
 
         data_format (AnnotationFormat)
             The format for the text label
@@ -160,7 +161,7 @@ class StreamRecord(object):
             if data_format == AnnotationFormat.Int:
                 words.append(str(d))
             elif data_format == AnnotationFormat.Hex:
-                words.append('{:02X}'.format(d))
+                words.append('16#{:02X}#'.format(d))
             elif data_format == AnnotationFormat.Text:
                 try:
                     char = chr(d)
@@ -168,7 +169,7 @@ class StreamRecord(object):
                     char = chr(0)
 
                 if char not in string.printable:
-                    char = '/{:02X}/'.format(d)
+                    char = '16#{:02X}#'.format(d)
                 words.append(char)
             else:
                 words.append('?')

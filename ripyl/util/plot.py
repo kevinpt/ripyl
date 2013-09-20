@@ -28,6 +28,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import string
+import re
 
 import ripyl.streaming as stream
 
@@ -35,11 +36,9 @@ import ripyl.streaming as stream
 
 class AnnotationStyle(object):
     '''Set styling for plot annotation boxes'''
-    def __init__(self, color, alpha, text_color='black', angle=0.0):
+    def __init__(self, color, alpha):
         self.color = color
         self.alpha = alpha
-        self.text_color = text_color
-        self.angle = angle
 
 annotation_styles = {
     'frame': AnnotationStyle('orange', 0.2),
@@ -52,6 +51,23 @@ annotation_styles = {
     'ack_good': AnnotationStyle('#008F00', 0.3), # dark green
     'ack_bad': AnnotationStyle('red', 0.3),
     'misc': AnnotationStyle('0.4', 0.3)
+}
+
+class LabelStyle(object):
+    '''Set styling for annotation labels'''
+    def __init__(self, color='black', angle=0.0, size='large', italic=False, bold=False):
+        self.color = color
+        self.angle = angle
+        self.size = size
+        self.italic = italic
+        self.bold = bold
+
+label_styles = {
+    'normal': LabelStyle(),
+    'hex': LabelStyle('#006F00'),
+    'bin': LabelStyle('#00006F'),
+    'enum': LabelStyle('#00006F', size='small', italic=True),
+    'nonprinting': LabelStyle('red', 45.0)
 }
 
 # Color sequence for waveform traces (bottom to top)
@@ -230,10 +246,38 @@ class Plotter(object):
             label = a.fields['value']
         else:
             label = a.text(label_format)
+
+        applied_format = label_format if a.data_format == stream.AnnotationFormat.General else a.data_format
+
         if len(label) > 0:
-            size = 'small' if a.data_format == stream.AnnotationFormat.Enum else 'large'
+            # Get the label style
+            bl = based_literal.match(label)
+
+            if a.data_format == stream.AnnotationFormat.Enum:
+                label_style_name = 'enum'
+            elif bl:
+                base = int(bl.groups()[0])
+                if base == 2:
+                    label_style_name = 'bin'
+                elif base == 16:
+                    if applied_format == stream.AnnotationFormat.Text:
+                        label_style_name = 'nonprinting'
+                    else:
+                        label_style_name = 'hex'
+                else:
+                    label_style_name = 'hex' #default
+
+                label = bl.groups()[1]
+            else:
+                label_style_name = 'normal'
+
+            ls = label_styles[label_style_name]
+
+            weight = 'bold' if ls.bold else 'normal'
+            style = 'italic' if ls.italic else 'normal'
             ann_ax.text((a.start_time + a.end_time) / 2.0, text_ypos, label, \
-                size=size, ha='center', color='black', rotation=0.0)
+                size=ls.size, ha='center', color=ls.color, rotation=ls.angle, \
+                weight=weight, style=style)
 
             if name_ypos:
                 try:
@@ -249,6 +293,7 @@ class Plotter(object):
         for sr in a.subrecords:
             self._draw_text(sr, text_ypos, ann_ax, label_format, name_ypos)
 
+based_literal = re.compile('^(\d{1,2})#([^#]+)#$')
 
 
 
