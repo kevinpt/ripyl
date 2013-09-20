@@ -369,6 +369,9 @@ def demo_i2c(options):
     
     transfers = []
     transfers.append(i2c.I2CTransfer(i2c.I2C.Read, 0x42, byte_msg))
+
+    #transfers = [i2c.I2CTransfer(i2c.I2C.Write, 0x42, bytearray('I2C 1')), \
+    #    i2c.I2CTransfer(i2c.I2C.Read, 0x42, bytearray('I2C 2'))]
     
     
     # Synthesize the waveform edge stream
@@ -861,7 +864,7 @@ def plot_channels(channels, annotations, options, plot_params):
         if options.save_file is None:
             plotter.show()
         else:
-            plotter.save_plot(options.save_file)
+            plotter.save_plot(options.save_file, options.figsize)
 
 def report_results(decoded_recs, orig_messages, protocol_params, wave_params, decode_success, extract_func=None):
 
