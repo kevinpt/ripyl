@@ -984,13 +984,13 @@ def usb_decode(dp, dm, logic_levels=None, stream_type=stream.StreamType.Samples)
     
     
     The dp and dm parameters are edge or sample streams.
-    Each is a stream of 2-tuples of (time, value) pairs. The type of stream is identified
-    by the stream_type parameter. Either a series of real valued samples that will be
-    analyzed to find edge transitions or a set of pre-processed edge transitions
-    representing the 0 and 1 logic states of the waveforms. When this is a sample
-    stream, an initial block of data on the dp stream is consumed to determine the most
-    likely logic levels in the signal and the bus speed.
-    
+    Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
+    of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
+    parameter. Sample streams will be analyzed to find edge transitions representing
+    0 and 1 logic states of the waveforms. With sample streams, an initial block of data
+    on the dp stream is consumed to determine the most likely logic levels in the signal
+    and the bus speed.
+
     dp (iterable of SampleChunk objects or (float, int) pairs)
         A sample stream or edge stream representing a USB D+ signal
     
@@ -1064,13 +1064,13 @@ def usb_diff_decode(d_diff, logic_levels=None, stream_type=stream.StreamType.Sam
     Low speed device keep-alive EOPs are not reported in the decoded results.
     
     
-    The d_diff parameter is a stream of 2-tuples of (time, value) pairs. The type of stream
-    is identified by the stream_type parameter. Either a series of real valued samples that
-    will be analyzed to find edge transitions or a set of pre-processed edge transitions
-    representing the -1, 0, and 1 logic states of the differential waveform. When this is a
-    sample stream, an initial block of data is consumed to determine the most
-    likely logic levels in the signal and the bus speed.
-    
+    The d_diff parameter is an edge or sample stream.
+    Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
+    of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
+    parameter. Sample streams will be analyzed to find edge transitions representing
+    0 and 1 logic states of the waveforms. With sample streams, an initial block of data
+    is consumed to determine the most likely logic levels in the signal and the bus speed.
+
     d_diff (iterable of SampleChunk objects or (float, int) pairs)
         A sample stream or edge stream representing a USB differential (D+ - D-) signal.
 
@@ -1137,12 +1137,13 @@ def usb_hsic_decode(strobe, data, logic_levels=None, stream_type=stream.StreamTy
     signals.
     
     The strobe and data parameters are edge or sample streams.
-    Each is a stream of 2-tuples of (time, value) pairs. The type of stream is identified
-    by the stream_type parameter. Either a series of real valued samples that will be
-    analyzed to find edge transitions or a set of pre-processed edge transitions
-    representing the 0 and 1 logic states of the waveforms. When this is a sample
-    stream, an initial block of data on the strobe stream is consumed to determine the most
-    likely logic levels in the signal. The bus speed is fixed at 480Mb/s.
+    Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
+    of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
+    parameter. Sample streams will be analyzed to find edge transitions representing
+    0 and 1 logic states of the waveforms. With sample streams, an initial block of data
+    on the strobe stream is consumed to determine the most likely logic levels in the signal.
+
+    The bus speed is fixed at 480Mb/s.
     
     strobe (iterable of SampleChunk objects or (float, int) pairs)
         A sample stream or edge stream representing an HSIC strobe signal

@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Getting started with Ripyl &mdash; Ripyl 1.0.1 documentation</title>
+    <title>Getting started with Ripyl &mdash; Ripyl 1.1 documentation</title>
     
     <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0.1',
+        VERSION:     '1.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="Ripyl 1.0.1 documentation" href="../index.html" />
+    <link rel="top" title="Ripyl 1.1 documentation" href="../index.html" />
     <link rel="next" title="Ripyl tutorial" href="tutorial.html" />
     <link rel="prev" title="Installing Ripyl" href="installation.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="installation.html" title="Installing Ripyl"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.0.1 documentation</a> &raquo;</li> 
+        <li><a href="../index.html">Ripyl 1.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -68,37 +68,39 @@
 </pre></div>
 </div>
 <p>This will display some information about the parameters used for the UART protocol and the sampling of the internal synthesizer. If the decode was successful the &#8220;Decoded message:&#8221; will display the original message encoded in the protocol. If <a class="reference external" href="http://matplotlib.org/">matplotlib</a> is installed you will also see a plot of the simulated UART waveform annotated with graphics showing the location of frames, data bits (blue) and parity bits (yellow or red).</p>
-<img alt="../_images/uart_hello.png" src="../_images/uart_hello.png" />
+<a class="reference internal image-reference" href="../_images/uart_hello.png"><img alt="../_images/uart_hello.png" src="../_images/uart_hello.png" style="width: 520.0px; height: 260.0px;" /></a>
 <p>We can make changes to the synthesized waveform to explore the effect it has on Ripyl.</p>
-<div class="highlight-sh"><div class="highlight"><pre>&gt; ripyl_demo -p uart -d <span class="s2">&quot;3.2e-4, 4.09e-4&quot;</span>
+<div class="highlight-sh"><div class="highlight"><pre>&gt; ripyl_demo -p uart -d <span class="s2">&quot;3.4e-4, 5.1e-4&quot;</span>
 </pre></div>
 </div>
-<img alt="../_images/uart_hello_err.png" src="../_images/uart_hello_err.png" />
-<p>The dropout option (-d) forces the synthesized waveform to a fixed level between the specified start and end times. This causes errors in the decode process which show up in the plotted results. You can see that dropout introduces parity and framing errors that force the decoder out of sync with the correct data. In this case the UART decoder recovers on its own by the sixth character but recovery is not a guarantee. This is an inherent issue with the decoding of corrupt UART signals and not an failure specific to Ripyl.</p>
+<a class="reference internal image-reference" href="../_images/uart_hello_err.png"><img alt="../_images/uart_hello_err.png" src="../_images/uart_hello_err.png" style="width: 520.0px; height: 260.0px;" /></a>
+<p>The dropout option (-d) forces the synthesized waveform to a fixed level between the specified start and end times. This causes errors in the decode process which show up in the plotted results. You can see that dropout introduces parity and framing errors that force the decoder out of sync with the correct data. The decoder may or may not recover on its own. This is an inherent issue with the decoding of corrupt UART signals and not a failure specific to Ripyl.</p>
 <p>You can examine all of the protocols supported by Ripyl with <tt class="docutils literal"><span class="pre">ripyl_demo</span></tt>. The available protocols are:</p>
 <dl class="docutils">
 <dt>uart</dt>
 <dd>Asynchronous serial</dd>
 <dt>i2c</dt>
-<dd>Inter-IC bus</dd>
+<dd>Inter-IC (I<sup>2</sup>C) bus</dd>
 <dt>spi</dt>
 <dd>Serial Peripheral Interface</dd>
 <dt>ps2</dt>
 <dd>PS/2 and AT keyboard protocol</dd>
-<dt>usb</dt>
-<dd>USB 2.0</dd>
-<dt>usb-diff</dt>
-<dd>USB 2.0 (differentially probed)</dd>
-<dt>hsic</dt>
-<dd>USB 2.0 High Speed IC protocol</dd>
+<dt>usb, usb-diff, hsic</dt>
+<dd>USB 2.0 with support for differentially probed input and the High Speed IC variant</dd>
 <dt>kline</dt>
 <dd>ISO9141 and ISO14230 &#8220;K-line&#8221; automotive interfaces</dd>
+<dt>rc5, rc6</dt>
+<dd>Philips RC-5 and RC-6 infrared protocols</dd>
+<dt>nec</dt>
+<dd>NEC infrared protocol</dd>
+<dt>sirc</dt>
+<dd>Sony SIRC infrared protocol</dd>
 </dl>
 <p>Here is the test message encoded as a USB data packet:</p>
 <div class="highlight-sh"><div class="highlight"><pre>&gt; ripyl_demo -p usb
 </pre></div>
 </div>
-<img alt="../_images/usb_hello.png" src="../_images/usb_hello.png" />
+<a class="reference internal image-reference" href="../_images/usb_hello.png"><img alt="../_images/usb_hello.png" src="../_images/usb_hello.png" style="width: 520.0px; height: 260.0px;" /></a>
 <p>The packet is shown with the PID (Data0), data payload, and checksum (0x6d71).</p>
 <p>The ripyl_demo script has a variety of command line options. You can list them with the -h switch:</p>
 <table class="docutils option-list" frame="void" rules="none">
@@ -143,6 +145,14 @@
 <kbd><span class="option">-f <var>FIGSIZE</var></span>, <span class="option">--figsize=<var>FIGSIZE</var></span></kbd></td>
 </tr>
 <tr><td>&nbsp;</td><td>Figure size (w,h) in inches</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-l</span>, <span class="option">--label-names</span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>Show field names for text labels</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-a</span>, <span class="option">--no-annotation</span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>Disable plot annotation</td></tr>
 </tbody>
 </table>
 </div>
@@ -212,7 +222,7 @@
         <li class="right" >
           <a href="installation.html" title="Installing Ripyl"
              >previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.0.1 documentation</a> &raquo;</li> 
+        <li><a href="../index.html">Ripyl 1.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

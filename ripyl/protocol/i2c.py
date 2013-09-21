@@ -82,13 +82,12 @@ def i2c_decode(scl, sda, logic_levels=None, stream_type=stream.StreamType.Sample
     processing operations.
 
     The scl, and sda parameters are edge or sample streams.
-    Each is a stream of 2-tuples of (time, value) pairs. The type of stream is identified
-    by the stream_type parameter. Either a series of real valued samples that will be
-    analyzed to find edge transitions or a set of pre-processed edge transitions
-    representing the 0 and 1 logic states of the waveforms. When this is a sample
-    stream, an initial block of data on the scl stream is consumed to determine the most
-    likely logic levels in the signal.
-    
+    Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
+    of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
+    parameter. Sample streams will be analyzed to find edge transitions representing
+    0 and 1 logic states of the waveforms. With sample streams, an initial block of data
+    on the scl stream is consumed to determine the most likely logic levels in the signal.
+
     scl (iterable of SampleChunk objects or (float, int) pairs)
         A sample stream or edge stream representing the I2C serial clock
 

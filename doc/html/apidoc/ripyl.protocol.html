@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>protocol Package &mdash; Ripyl 1.0.1 documentation</title>
+    <title>protocol Package &mdash; Ripyl 1.1 documentation</title>
     
     <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0.1',
+        VERSION:     '1.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,10 +25,10 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="Ripyl 1.0.1 documentation" href="../index.html" />
+    <link rel="top" title="Ripyl 1.1 documentation" href="../index.html" />
     <link rel="up" title="ripyl Package" href="ripyl.html" />
-    <link rel="next" title="util Package" href="ripyl.util.html" />
-    <link rel="prev" title="ripyl Package" href="ripyl.html" /> 
+    <link rel="next" title="infrared Package" href="ripyl.protocol.infrared.html" />
+    <link rel="prev" title="cython Package" href="ripyl.cython.html" /> 
   </head>
   <body>
     <div class="related">
@@ -41,12 +41,12 @@
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="ripyl.util.html" title="util Package"
+          <a href="ripyl.protocol.infrared.html" title="infrared Package"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="ripyl.html" title="ripyl Package"
+          <a href="ripyl.cython.html" title="cython Package"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.0.1 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Ripyl 1.1 documentation</a> &raquo;</li>
           <li><a href="modules.html" >ripyl</a> &raquo;</li>
           <li><a href="ripyl.html" accesskey="U">ripyl Package</a> &raquo;</li> 
       </ul>
@@ -59,6 +59,10 @@
             
   <div class="section" id="protocol-package">
 <h1>protocol Package<a class="headerlink" href="#protocol-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">protocol</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-ripyl.protocol"></span><p>Protocol package</p>
+</div>
 <div class="section" id="module-ripyl.protocol.i2c">
 <span id="i2c-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">i2c</span></tt> Module<a class="headerlink" href="#module-ripyl.protocol.i2c" title="Permalink to this headline">¶</a></h2>
 <p>I2C protocol decoder</p>
@@ -142,19 +146,18 @@
 <p>This is a generator function that can be used in a pipeline of waveform
 processing operations.</p>
 <p>The scl, and sda parameters are edge or sample streams.
-Each is a stream of 2-tuples of (time, value) pairs. The type of stream is identified
-by the stream_type parameter. Either a series of real valued samples that will be
-analyzed to find edge transitions or a set of pre-processed edge transitions
-representing the 0 and 1 logic states of the waveforms. When this is a sample
-stream, an initial block of data on the scl stream is consumed to determine the most
-likely logic levels in the signal.</p>
+Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
+of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
+parameter. Sample streams will be analyzed to find edge transitions representing
+0 and 1 logic states of the waveforms. With sample streams, an initial block of data
+on the scl stream is consumed to determine the most likely logic levels in the signal.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>scl</strong> (<em>sequence of (float, number) pairs</em>) &#8211; An iterable representing the I2C serial clock</li>
-<li><strong>sda</strong> (<em>sequence of (float, number) pairs</em>) &#8211; An iterable representing the I2C serial data</li>
+<li><strong>scl</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream representing the I2C serial clock</li>
+<li><strong>sda</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream representing the I2C serial data</li>
 <li><strong>logic_levels</strong> (<em>(float, float) or None</em>) &#8211; Optional pair that indicates (low, high) logic levels of the sample
 stream. When present, auto level detection is disabled. This has no effect on
 edge streams.</li>
@@ -359,12 +362,16 @@ These are the bytes in the 0x55, key1, key2, ~key2 ~wakeup init sequence.</p>
 
 <dl class="method">
 <dt id="ripyl.protocol.iso_k_line.KLineMessage.raw_data">
-<tt class="descname">raw_data</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.protocol.iso_k_line.KLineMessage.raw_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the raw data (minus header and checksum) for the message</p>
+<tt class="descname">raw_data</tt><big>(</big><em>full_message=False</em><big>)</big><a class="headerlink" href="#ripyl.protocol.iso_k_line.KLineMessage.raw_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the raw data for the message</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>full_message</strong> (<em>bool</em>) &#8211; </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Complete message including header and checksum when true</td>
+</tr>
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of bytes.</td>
 </tr>
 </tbody>
@@ -452,22 +459,22 @@ These are the bytes in the 0x55, key1, key2, ~key2 ~wakeup init sequence.</p>
 
 <dl class="function">
 <dt id="ripyl.protocol.iso_k_line.iso_k_line_decode">
-<tt class="descclassname">ripyl.protocol.iso_k_line.</tt><tt class="descname">iso_k_line_decode</tt><big>(</big><em>stream</em>, <em>min_msg_gap=0.007</em>, <em>logic_levels=None</em>, <em>stream_type=1</em><big>)</big><a class="headerlink" href="#ripyl.protocol.iso_k_line.iso_k_line_decode" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ripyl.protocol.iso_k_line.</tt><tt class="descname">iso_k_line_decode</tt><big>(</big><em>stream_data</em>, <em>min_message_interval=0.007</em>, <em>logic_levels=None</em>, <em>stream_type=1</em><big>)</big><a class="headerlink" href="#ripyl.protocol.iso_k_line.iso_k_line_decode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Decode ISO9141 and ISO14230 data streams</p>
 <p>This is a generator function that can be used in a pipeline of waveform
 procesing operations.</p>
+<p>Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
+of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
+parameter. Sample streams will be analyzed to find edge transitions representing
+0 and 1 logic states of the waveforms. With sample streams, an initial block of data
+is consumed to determine the most likely logic levels in the signal.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>stream</strong> (<em>sequence of (float, number) pairs</em>) &#8211; A stream of 2-tuples of (time, value) pairs. The type of stream is identified
-by the stream_type parameter. Either a series of real valued samples that will
-be analyzed to find edge transitions or a set of pre-processed edge transitions
-representing the 0 and 1 logic states of the K-Line waveform. When this is a sample
-stream, an initial block of data is consumed to determine the most likely logic
-levels in the signal.</li>
-<li><strong>min_msg_gap</strong> (<em>float</em>) &#8211; The minimum time between bytes for identifying the end and start
+<li><strong>stream_data</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream of K-line messages.</li>
+<li><strong>min_message_interval</strong> (<em>float</em>) &#8211; The minimum time between bytes for identifying the end and start
 of messages. For ISO14230 this is used in addition to the message length encoded
 in the header.</li>
 <li><strong>logic_levels</strong> (<em>(float, float) or None</em>) &#8211; Optional pair that indicates (low, high) logic levels of the sample
@@ -478,9 +485,7 @@ or Edges</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An iterator yielding  a series of UARTFrame objects. Each frame contains subrecords marking the location
-of sub-elements within the frame (start, data, stop). BRK conditions are reported as a
-data value 0x00 with a framing error in the status code.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An iterator yielding  a series of KLineStreamMessage objects.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first last">AutoLevelError if stream_type = Samples and the logic levels cannot
@@ -493,8 +498,29 @@ be determined.</p>
 
 <dl class="function">
 <dt id="ripyl.protocol.iso_k_line.iso_k_line_synth">
-<tt class="descclassname">ripyl.protocol.iso_k_line.</tt><tt class="descname">iso_k_line_synth</tt><big>(</big><em>messages</em>, <em>msg_gap=0.008</em>, <em>idle_start=0.0</em>, <em>idle_end=0.0</em>, <em>word_interval=0.001</em><big>)</big><a class="headerlink" href="#ripyl.protocol.iso_k_line.iso_k_line_synth" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<tt class="descclassname">ripyl.protocol.iso_k_line.</tt><tt class="descname">iso_k_line_synth</tt><big>(</big><em>messages</em>, <em>idle_start=0.0</em>, <em>message_interval=0.008</em>, <em>idle_end=0.0</em>, <em>word_interval=0.001</em><big>)</big><a class="headerlink" href="#ripyl.protocol.iso_k_line.iso_k_line_synth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate synthesized ISO9141 and ISO14230 data streams</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>messages</strong> (<em>sequence of tuple of int</em>) &#8211; Messages to be synthesized. Each element is a tuple of bytes to send
+for each message.</li>
+<li><strong>idle_start</strong> (<em>float</em>) &#8211; The amount of idle time before the transmission of messages begins.</li>
+<li><strong>message_interval</strong> (<em>float</em>) &#8211; The amount of time between messages.</li>
+<li><strong>idle_end</strong> (<em>float</em>) &#8211; The amount of idle time after the last message.</li>
+<li><strong>word_interval</strong> (<em>float</em>) &#8211; The amount of time between message bytes.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  an edge stream of (float, int) pairs. The first element in the iterator
+is the initial state of the stream.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </div>
 <div class="section" id="module-ripyl.protocol.lm73">
@@ -646,12 +672,16 @@ I2CTransfer objects produced by i2c_decode() or reconstruct_i2c_transfers() resp
 
 <dl class="method">
 <dt id="ripyl.protocol.obd2.OBD2Message.raw_data">
-<tt class="descname">raw_data</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.protocol.obd2.OBD2Message.raw_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the raw data (minus header and checksum) for the message</p>
+<tt class="descname">raw_data</tt><big>(</big><em>full_message=False</em><big>)</big><a class="headerlink" href="#ripyl.protocol.obd2.OBD2Message.raw_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the raw data for the message</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>full_message</strong> (<em>bool</em>) &#8211; </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Complete message including header and checksum when true</td>
+</tr>
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A list of bytes.</td>
 </tr>
 </tbody>
@@ -698,6 +728,11 @@ I2CTransfer objects produced by i2c_decode() or reconstruct_i2c_transfers() resp
 <tt class="descname">end_time</tt><a class="headerlink" href="#ripyl.protocol.obd2.OBD2StreamMessage.end_time" title="Permalink to this definition">¶</a></dt>
 <dd><p>Message end time</p>
 </dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.protocol.obd2.OBD2StreamMessage.msg">
+<tt class="descname">msg</tt><a class="headerlink" href="#ripyl.protocol.obd2.OBD2StreamMessage.msg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ripyl.protocol.obd2.OBD2StreamMessage.start_time">
@@ -842,12 +877,19 @@ from the input records and any additional non-message stream objects.</td>
 
 <dl class="class">
 <dt id="ripyl.protocol.ps2.PS2Frame">
-<em class="property">class </em><tt class="descclassname">ripyl.protocol.ps2.</tt><tt class="descname">PS2Frame</tt><big>(</big><em>bounds</em>, <em>direction=0</em>, <em>data=None</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.ps2.PS2Frame" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="ripyl.html#ripyl.streaming.StreamSegment" title="ripyl.streaming.StreamSegment"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamSegment</span></tt></a></p>
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.ps2.</tt><tt class="descname">PS2Frame</tt><big>(</big><em>data</em>, <em>direction=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.ps2.PS2Frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Frame object for PS/2 data</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="ripyl.protocol.ps2.PS2StreamFrame">
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.ps2.</tt><tt class="descname">PS2StreamFrame</tt><big>(</big><em>bounds</em>, <em>frame</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.ps2.PS2StreamFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ripyl.html#ripyl.streaming.StreamSegment" title="ripyl.streaming.StreamSegment"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamSegment</span></tt></a></p>
+<p>Streaming frame object for PS/2 data</p>
 <dl class="classmethod">
-<dt id="ripyl.protocol.ps2.PS2Frame.status_text">
-<em class="property">classmethod </em><tt class="descname">status_text</tt><big>(</big><em>status</em><big>)</big><a class="headerlink" href="#ripyl.protocol.ps2.PS2Frame.status_text" title="Permalink to this definition">¶</a></dt>
+<dt id="ripyl.protocol.ps2.PS2StreamFrame.status_text">
+<em class="property">classmethod </em><tt class="descname">status_text</tt><big>(</big><em>status</em><big>)</big><a class="headerlink" href="#ripyl.protocol.ps2.PS2StreamFrame.status_text" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -885,20 +927,18 @@ from the input records and any additional non-message stream objects.</td>
 <dd><p>Decode a PS/2 data stream</p>
 <p>This is a generator function that can be used in a pipeline of waveform
 processing operations.</p>
-<p>The clk and data parameters are edge or sample streams.
-Each is a stream of 2-tuples of (time, value) pairs. The type of stream is identified
-by the stream_type parameter. Either a series of real valued samples that will be
-analyzed to find edge transitions or a set of pre-processed edge transitions
-representing the 0 and 1 logic states of the waveforms. When this is a sample
-stream, an initial block of data on the clk stream is consumed to determine the most
-likely logic levels in the signal.</p>
+<p>Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
+of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
+parameter. Sample streams will be analyzed to find edge transitions representing
+0 and 1 logic states of the waveforms. With sample streams, an initial block of data
+on the clk stream is consumed to determine the most likely logic levels in the signal.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>clk</strong> (<em>sequence of (float, number) pairs</em>) &#8211; PS/2 clk stream</li>
-<li><strong>data</strong> (<em>sequence of (float, number) pairs</em>) &#8211; PS/2 data stream.</li>
+<li><strong>clk</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream representing a PS/2 clk signal</li>
+<li><strong>data</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream representing a PS/2 data signal.</li>
 <li><strong>logic_levels</strong> (<em>(float, float) or None</em>) &#8211; Optional pair that indicates (low, high) logic levels of the sample
 stream. When present, auto level detection is disabled. This has no effect on
 edge streams.</li>
@@ -907,7 +947,7 @@ or Edges</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An iterator yielding  a series of PS2Frame objects.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An iterator yielding  a series of PS2StreamFrame objects.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first last">AutoLevelError if stream_type = Samples and the logic levels cannot
@@ -920,7 +960,7 @@ be determined.</p>
 
 <dl class="function">
 <dt id="ripyl.protocol.ps2.ps2_synth">
-<tt class="descclassname">ripyl.protocol.ps2.</tt><tt class="descname">ps2_synth</tt><big>(</big><em>bytes</em>, <em>direction</em>, <em>clock_freq</em>, <em>idle_start=0.0</em>, <em>word_interval=0.0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.ps2.ps2_synth" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ripyl.protocol.ps2.</tt><tt class="descname">ps2_synth</tt><big>(</big><em>frames</em>, <em>clock_freq</em>, <em>idle_start=0.0</em>, <em>word_interval=0.0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.ps2.ps2_synth" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate synthesized PS/2 waveform</p>
 <p>This function simulates a transmission of data over PS/2.</p>
 <p>This is a generator function that can be used in a pipeline of waveform
@@ -930,10 +970,7 @@ procesing operations.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>bytes</strong> (<em>sequence of int</em>) &#8211; A sequence of bytes that will be transmitted serially</li>
-<li><strong>direction</strong> (<em>PS2Dir or a sequence of PS2Dir</em>) &#8211; If a scalar, the direction for all bytes transmitted.
-If a sequence of PS2Dir values, the direction of each corresponding
-byte in the bytes sequence.</li>
+<li><strong>frames</strong> (<em>sequence of PS2Frame</em>) &#8211; A sequence of PS2Frame objects that will be transmitted serially</li>
 <li><strong>clock_freq</strong> (<em>float</em>) &#8211; The PS/2 clock frequency. 10kHz - 13KHz typ.</li>
 <li><strong>idle_start</strong> (<em>float</em>) &#8211; The amount of idle time before the transmission of data begins</li>
 <li><strong>word_interval</strong> (<em>float</em>) &#8211; The amount of time between data bytes</li>
@@ -996,20 +1033,20 @@ and are accessed through obd2.decode_obd2_command().</p>
 <p>This is a generator function that can be used in a pipeline of waveform
 processing operations.</p>
 <p>The clk, data_io, and cs parameters are edge or sample streams.
-Each is a stream of 2-tuples of (time, value) pairs. The type of stream is identified
-by the stream_type parameter. Either a series of real valued samples that will be
-analyzed to find edge transitions or a set of pre-processed edge transitions
-representing the 0 and 1 logic states of the waveforms. When this is a sample
-stream, an initial block of data on the clk stream is consumed to determine the most
-likely logic levels in the signal.</p>
+Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
+of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
+parameter. Sample streams will be analyzed to find edge transitions representing
+0 and 1 logic states of the waveforms. With sample streams, an initial block of data
+on the clk stream is consumed to determine the most likely logic levels in the signal.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>clk</strong> (<em>sequence of (float, number) pairs</em>) &#8211; SPI clk stream</li>
-<li><strong>data_io</strong> (<em>sequence of (float, number) pairs</em>) &#8211; SPI MOSI or MISO stream.</li>
-<li><strong>cs</strong> (<em>sequence of (float, float) pairs</em>) &#8211; SPI chip select stream. Can be None if cs is not available.</li>
+<li><strong>clk</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream representing an SPI clk signal</li>
+<li><strong>data_io</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream representing an SPI MOSI or MISO signal.</li>
+<li><strong>cs</strong> (<em>iterable of SampleChunk objects or (float, int) pairs or None</em>) &#8211; A sample stream or edge stream representing an SPI chip select signal.
+Can be None if cs is not available.</li>
 <li><strong>cpol</strong> (<em>int</em>) &#8211; Clock polarity: 0 or 1 (the idle state of the clock signal)</li>
 <li><strong>cpha</strong> (<em>int</em>) &#8211; Clock phase: 0 or 1 (data is sampled on the 1st clock edge (0) or the 2nd (1))</li>
 <li><strong>lsb_first</strong> (<em>bool</em>) &#8211; Flag indicating whether the Least Significant Bit is transmitted first.</li>
@@ -1124,21 +1161,21 @@ yielded is the initial state of the waveforms.</p>
 
 <dl class="function">
 <dt id="ripyl.protocol.uart.uart_decode">
-<tt class="descclassname">ripyl.protocol.uart.</tt><tt class="descname">uart_decode</tt><big>(</big><em>stream</em>, <em>bits=8</em>, <em>parity=None</em>, <em>stop_bits=1.0</em>, <em>lsb_first=True</em>, <em>polarity=1</em>, <em>baud_rate=None</em>, <em>use_std_baud=True</em>, <em>logic_levels=None</em>, <em>stream_type=1</em>, <em>baud_deque=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.uart.uart_decode" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ripyl.protocol.uart.</tt><tt class="descname">uart_decode</tt><big>(</big><em>stream_data</em>, <em>bits=8</em>, <em>parity=None</em>, <em>stop_bits=1.0</em>, <em>lsb_first=True</em>, <em>polarity=1</em>, <em>baud_rate=None</em>, <em>use_std_baud=True</em>, <em>logic_levels=None</em>, <em>stream_type=1</em>, <em>baud_deque=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.uart.uart_decode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Decode a UART data stream</p>
 <p>This is a generator function that can be used in a pipeline of waveform
 procesing operations.</p>
+<p>Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
+of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
+parameter. Sample streams will be analyzed to find edge transitions representing
+0 and 1 logic states of the waveforms. With sample streams, an initial block of data
+is consumed to determine the most likely logic levels in the signal.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>stream</strong> (<em>sequence of (float, number) pairs</em>) &#8211; A stream of 2-tuples of (time, value) pairs. The type of stream is identified
-by the stream_type parameter. Either a series of real valued samples that will
-be analyzed to find edge transitions or a set of pre-processed edge transitions
-representing the 0 and 1 logic states of the UART waveform. When this is a sample
-stream, an initial block of data is consumed to determine the most likely logic
-levels in the signal.</li>
+<li><strong>stream_data</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream representing a serial data signal.</li>
 <li><strong>bits</strong> (<em>int</em>) &#8211; The number of bits in each word. Typically 5, 7, 8, or 9.</li>
 <li><strong>parity</strong> (<em>string or None</em>) &#8211; The type of parity to use. One of None, &#8216;even&#8217;, or &#8216;odd&#8217;</li>
 <li><strong>stop_bits</strong> (<em>number</em>) &#8211; The number of stop bits. Typically 1, 1.5, or 2</li>
@@ -1640,7 +1677,7 @@ in the data stream</p>
 
 <dl class="class">
 <dt id="ripyl.protocol.usb.USBStreamPacket">
-<em class="property">class </em><tt class="descclassname">ripyl.protocol.usb.</tt><tt class="descname">USBStreamPacket</tt><big>(</big><em>bounds</em>, <em>sop_end</em>, <em>packet</em>, <em>crc=None</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.usb.USBStreamPacket" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.usb.</tt><tt class="descname">USBStreamPacket</tt><big>(</big><em>bounds</em>, <em>sop_end</em>, <em>packet</em>, <em>crc=None</em>, <em>status=0</em>, <em>sop_end2=None</em>, <em>crc2=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.usb.USBStreamPacket" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="ripyl.html#ripyl.streaming.StreamSegment" title="ripyl.streaming.StreamSegment"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamSegment</span></tt></a></p>
 <p>Encapsulates a USBPacket object (see below) into a StreamSegment</p>
 <dl class="method">
@@ -1657,6 +1694,11 @@ Start and end are the inclusive times for the start and end of a field.</td>
 </tbody>
 </table>
 </dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.protocol.usb.USBStreamPacket.packet">
+<tt class="descname">packet</tt><a class="headerlink" href="#ripyl.protocol.usb.USBStreamPacket.packet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="classmethod">
 <dt id="ripyl.protocol.usb.USBStreamPacket.status_text">
@@ -1788,19 +1830,19 @@ processing operations.</p>
 For differential USB decode see the function usb_diff_decode().</p>
 <p>Low speed device keep-alive EOPs are not reported in the decoded results.</p>
 <p>The dp and dm parameters are edge or sample streams.
-Each is a stream of 2-tuples of (time, value) pairs. The type of stream is identified
-by the stream_type parameter. Either a series of real valued samples that will be
-analyzed to find edge transitions or a set of pre-processed edge transitions
-representing the 0 and 1 logic states of the waveforms. When this is a sample
-stream, an initial block of data on the dp stream is consumed to determine the most
-likely logic levels in the signal and the bus speed.</p>
+Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
+of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
+parameter. Sample streams will be analyzed to find edge transitions representing
+0 and 1 logic states of the waveforms. With sample streams, an initial block of data
+on the dp stream is consumed to determine the most likely logic levels in the signal
+and the bus speed.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>dp</strong> (<em>sequence of (float, number) pairs</em>) &#8211; USB D+ stream</li>
-<li><strong>dm</strong> (<em>sequence of (float, number) pairs</em>) &#8211; USB D- stream</li>
+<li><strong>dp</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream representing a USB D+ signal</li>
+<li><strong>dm</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream representing a USB D- signal</li>
 <li><strong>logic_levels</strong> (<em>(float, float) or None</em>) &#8211; Optional pair that indicates (low, high) logic levels of the sample
 stream. When present, auto level detection is disabled. This has no effect on
 edge streams.</li>
@@ -1832,18 +1874,18 @@ processing operations.</p>
 <p>This function decodes USB data captured from a differential (D+)-(D-) signal.
 For single-ended USB decode see the function usb_decode().</p>
 <p>Low speed device keep-alive EOPs are not reported in the decoded results.</p>
-<p>The d_diff parameter is a stream of 2-tuples of (time, value) pairs. The type of stream
-is identified by the stream_type parameter. Either a series of real valued samples that
-will be analyzed to find edge transitions or a set of pre-processed edge transitions
-representing the -1, 0, and 1 logic states of the differential waveform. When this is a
-sample stream, an initial block of data is consumed to determine the most
-likely logic levels in the signal and the bus speed.</p>
+<p>The d_diff parameter is an edge or sample stream.
+Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
+of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
+parameter. Sample streams will be analyzed to find edge transitions representing
+0 and 1 logic states of the waveforms. With sample streams, an initial block of data
+is consumed to determine the most likely logic levels in the signal and the bus speed.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>d_diff</strong> (<em>sequence of (float, number) pairs</em>) &#8211; USB differential D stream</li>
+<li><strong>d_diff</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream representing a USB differential (D+ - D-) signal.</li>
 <li><strong>logic_levels</strong> (<em>(float, float) or None</em>) &#8211; Optional pair that indicates (low, high) logic levels of the sample
 stream. When present, auto level detection is disabled. This has no effect on
 edge streams.</li>
@@ -1903,19 +1945,19 @@ processing operations.</p>
 <p>This function decodes USB HSIC data captured from the two single-ended strobe and data
 signals.</p>
 <p>The strobe and data parameters are edge or sample streams.
-Each is a stream of 2-tuples of (time, value) pairs. The type of stream is identified
-by the stream_type parameter. Either a series of real valued samples that will be
-analyzed to find edge transitions or a set of pre-processed edge transitions
-representing the 0 and 1 logic states of the waveforms. When this is a sample
-stream, an initial block of data on the strobe stream is consumed to determine the most
-likely logic levels in the signal. The bus speed is fixed at 480Mb/s.</p>
+Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
+of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
+parameter. Sample streams will be analyzed to find edge transitions representing
+0 and 1 logic states of the waveforms. With sample streams, an initial block of data
+on the strobe stream is consumed to determine the most likely logic levels in the signal.</p>
+<p>The bus speed is fixed at 480Mb/s.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>strobe</strong> (<em>sequence of (float, number) pairs</em>) &#8211; HSIC strobe stream</li>
-<li><strong>data</strong> (<em>sequence of (float, number) pairs</em>) &#8211; HSIC data stream</li>
+<li><strong>strobe</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream representing an HSIC strobe signal</li>
+<li><strong>data</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream representing an HSIC data signal</li>
 <li><strong>logic_levels</strong> (<em>(float, float) or None</em>) &#8211; Optional pair that indicates (low, high) logic levels of the sample
 stream. When present, auto level detection is disabled. This has no effect on
 edge streams.</li>
@@ -2056,6 +2098,22 @@ will SOF packets.</td>
 </dd></dl>
 
 </div>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ripyl.protocol.infrared.html">infrared Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.infrared.html#id1"><tt class="docutils literal"><span class="pre">infrared</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.infrared.html#module-ripyl.protocol.infrared.ir_common"><tt class="docutils literal"><span class="pre">ir_common</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.infrared.html#module-ripyl.protocol.infrared.nec"><tt class="docutils literal"><span class="pre">nec</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.infrared.html#module-ripyl.protocol.infrared.rc5"><tt class="docutils literal"><span class="pre">rc5</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.infrared.html#module-ripyl.protocol.infrared.rc6"><tt class="docutils literal"><span class="pre">rc6</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.infrared.html#module-ripyl.protocol.infrared.sirc"><tt class="docutils literal"><span class="pre">sirc</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
 </div>
 
 
@@ -2070,6 +2128,7 @@ will SOF packets.</td>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">protocol Package</a><ul>
+<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">protocol</span></tt> Package</a></li>
 <li><a class="reference internal" href="#module-ripyl.protocol.i2c"><tt class="docutils literal"><span class="pre">i2c</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.protocol.iso_k_line"><tt class="docutils literal"><span class="pre">iso_k_line</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.protocol.lm73"><tt class="docutils literal"><span class="pre">lm73</span></tt> Module</a></li>
@@ -2080,16 +2139,19 @@ will SOF packets.</td>
 <li><a class="reference internal" href="#module-ripyl.protocol.uart"><tt class="docutils literal"><span class="pre">uart</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.protocol.usb"><tt class="docutils literal"><span class="pre">usb</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.protocol.usb_transact"><tt class="docutils literal"><span class="pre">usb_transact</span></tt> Module</a></li>
+<li><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="ripyl.html"
-                        title="previous chapter">ripyl Package</a></p>
+  <p class="topless"><a href="ripyl.cython.html"
+                        title="previous chapter">cython Package</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="ripyl.util.html"
-                        title="next chapter">util Package</a></p>
+  <p class="topless"><a href="ripyl.protocol.infrared.html"
+                        title="next chapter">infrared Package</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../_sources/apidoc/ripyl.protocol.txt"
@@ -2122,12 +2184,12 @@ will SOF packets.</td>
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="ripyl.util.html" title="util Package"
+          <a href="ripyl.protocol.infrared.html" title="infrared Package"
              >next</a> |</li>
         <li class="right" >
-          <a href="ripyl.html" title="ripyl Package"
+          <a href="ripyl.cython.html" title="cython Package"
              >previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.0.1 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Ripyl 1.1 documentation</a> &raquo;</li>
           <li><a href="modules.html" >ripyl</a> &raquo;</li>
           <li><a href="ripyl.html" >ripyl Package</a> &raquo;</li> 
       </ul>

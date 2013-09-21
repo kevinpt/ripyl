@@ -293,10 +293,14 @@ def iso_k_line_decode(stream_data, min_message_interval=7.0e-3, logic_levels=Non
     This is a generator function that can be used in a pipeline of waveform
     procesing operations.
 
+    Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
+    of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
+    parameter. Sample streams will be analyzed to find edge transitions representing
+    0 and 1 logic states of the waveforms. With sample streams, an initial block of data
+    is consumed to determine the most likely logic levels in the signal.
+
     stream_data (iterable of SampleChunk objects or (float, int) pairs)
-        A sample stream or edge stream of K-line messages. The type of stream is identified
-        by the stream_type parameter. When this is a sample stream, an initial block
-        of data is consumed to determine the most likely logic levels in the signal.
+        A sample stream or edge stream of K-line messages.
 
     min_message_interval (float)
         The minimum time between bytes for identifying the end and start

@@ -87,19 +87,17 @@ def ps2_decode(clk, data, logic_levels=None, stream_type=stream.StreamType.Sampl
     This is a generator function that can be used in a pipeline of waveform
     processing operations.
     
-    The clk and data parameters are edge or sample streams.
-    Each is a stream of 2-tuples of (time, value) pairs. The type of stream is identified
-    by the stream_type parameter. Either a series of real valued samples that will be
-    analyzed to find edge transitions or a set of pre-processed edge transitions
-    representing the 0 and 1 logic states of the waveforms. When this is a sample
-    stream, an initial block of data on the clk stream is consumed to determine the most
-    likely logic levels in the signal.
+    Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
+    of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
+    parameter. Sample streams will be analyzed to find edge transitions representing
+    0 and 1 logic states of the waveforms. With sample streams, an initial block of data
+    on the clk stream is consumed to determine the most likely logic levels in the signal.
     
     clk (iterable of SampleChunk objects or (float, int) pairs)
         A sample stream or edge stream representing a PS/2 clk signal
     
     data (iterable of SampleChunk objects or (float, int) pairs)
-        A sample stream or edge stream representing PS/2 data signal.
+        A sample stream or edge stream representing a PS/2 data signal.
     
     logic_levels ((float, float) or None)
         Optional pair that indicates (low, high) logic levels of the sample

@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>util Package &mdash; Ripyl 1.0.1 documentation</title>
+    <title>util Package &mdash; Ripyl 1.1 documentation</title>
     
     <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0.1',
+        VERSION:     '1.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,9 +25,9 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="Ripyl 1.0.1 documentation" href="../index.html" />
+    <link rel="top" title="Ripyl 1.1 documentation" href="../index.html" />
     <link rel="up" title="ripyl Package" href="ripyl.html" />
-    <link rel="prev" title="protocol Package" href="ripyl.protocol.html" /> 
+    <link rel="prev" title="infrared Package" href="ripyl.protocol.infrared.html" /> 
   </head>
   <body>
     <div class="related">
@@ -40,9 +40,9 @@
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="ripyl.protocol.html" title="protocol Package"
+          <a href="ripyl.protocol.infrared.html" title="infrared Package"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.0.1 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Ripyl 1.1 documentation</a> &raquo;</li>
           <li><a href="modules.html" >ripyl</a> &raquo;</li>
           <li><a href="ripyl.html" accesskey="U">ripyl Package</a> &raquo;</li> 
       </ul>
@@ -57,7 +57,7 @@
 <h1>util Package<a class="headerlink" href="#util-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="id1">
 <h2><tt class="xref py py-mod docutils literal"><span class="pre">util</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
-<span class="target" id="module-ripyl.util"></span><p>Ripyl protocol decode library</p>
+<span class="target" id="module-ripyl.util"></span><p>Ripyl utility functions</p>
 </div>
 <div class="section" id="module-ripyl.util.bitops">
 <span id="bitops-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">bitops</span></tt> Module<a class="headerlink" href="#module-ripyl.util.bitops" title="Permalink to this headline">¶</a></h2>
@@ -209,24 +209,41 @@ attribute name for an encoded enumeration value.</p>
 <div class="section" id="module-ripyl.util.plot">
 <span id="plot-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">plot</span></tt> Module<a class="headerlink" href="#module-ripyl.util.plot" title="Permalink to this headline">¶</a></h2>
 <p>Annotated protocol plotting</p>
-<dl class="function">
-<dt id="ripyl.util.plot.i2c_plot">
-<tt class="descclassname">ripyl.util.plot.</tt><tt class="descname">i2c_plot</tt><big>(</big><em>channels</em>, <em>records</em>, <em>title=''</em>, <em>label_format='text'</em>, <em>save_file=None</em>, <em>figsize=None</em><big>)</big><a class="headerlink" href="#ripyl.util.plot.i2c_plot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot I2C waveforms</p>
+<dl class="class">
+<dt id="ripyl.util.plot.AnnotationStyle">
+<em class="property">class </em><tt class="descclassname">ripyl.util.plot.</tt><tt class="descname">AnnotationStyle</tt><big>(</big><em>color</em>, <em>alpha</em><big>)</big><a class="headerlink" href="#ripyl.util.plot.AnnotationStyle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Set styling for plot annotation boxes</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="ripyl.util.plot.LabelStyle">
+<em class="property">class </em><tt class="descclassname">ripyl.util.plot.</tt><tt class="descname">LabelStyle</tt><big>(</big><em>color='black'</em>, <em>angle=0.0</em>, <em>size='large'</em>, <em>italic=False</em>, <em>bold=False</em><big>)</big><a class="headerlink" href="#ripyl.util.plot.LabelStyle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Set styling for annotation labels</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="ripyl.util.plot.Plotter">
+<em class="property">class </em><tt class="descclassname">ripyl.util.plot.</tt><tt class="descname">Plotter</tt><a class="headerlink" href="#ripyl.util.plot.Plotter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Manage annotated waveform plotting</p>
+<dl class="method">
+<dt id="ripyl.util.plot.Plotter.plot">
+<tt class="descname">plot</tt><big>(</big><em>channels</em>, <em>annotations</em>, <em>title=''</em>, <em>label_format=5</em>, <em>show_names=False</em><big>)</big><a class="headerlink" href="#ripyl.util.plot.Plotter.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot annotated waveform data</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>channels</strong> (<em>dict</em>) &#8211; A dict of waveform sample data keyed by channel name. Each value is a sequence
-of tuples representing (time, sample) pairs for a channel.
-The keys must be &#8216;scl&#8217; and &#8216;sda&#8217;.</li>
-<li><strong>records</strong> (<em>sequence of StreamRecord objects</em>) &#8211; The StreamRecords used to annotate the waveforms.</li>
-<li><strong>title</strong> (<em>string</em>) &#8211; Title of the plot.</li>
-<li><strong>label_format</strong> (<em>string</em>) &#8211; Format for text annotations. One of &#8216;text&#8217; or &#8216;hex&#8217;.</li>
-<li><strong>save_file</strong> (<em>string</em>) &#8211; Name of file to save plot to. If None, the plot is displayed in a matplotlib
-interactive window.</li>
-<li><strong>figsize</strong> (<em>(int, int) tuple</em>) &#8211; Dimensions of a saved image (w, h).</li>
+<li><strong>channels</strong> (<em>dict of string:sample stream</em>) &#8211; A dict of waveform sample data keyed by the string label
+used for each channel&#8217;s vertical axis.</li>
+<li><strong>annotations</strong> (<em>sequence of StreamRecord</em>) &#8211; The annotation data produced by a protocol decoder</li>
+<li><strong>title</strong> (<em>string</em>) &#8211; Title for the plot</li>
+<li><strong>label_format</strong> (<em>AnnotationFormat</em>) &#8211; data format to apply for annotation records with a data_format attribute
+equal to AnnotationFormat.General</li>
+<li><strong>show_names</strong> (<em>bool</em>) &#8211; </li>
 </ul>
 </td>
 </tr>
@@ -234,22 +251,17 @@ interactive window.</li>
 </table>
 </dd></dl>
 
-<dl class="function">
-<dt id="ripyl.util.plot.iso_k_line_plot">
-<tt class="descclassname">ripyl.util.plot.</tt><tt class="descname">iso_k_line_plot</tt><big>(</big><em>samples</em>, <em>records</em>, <em>title=''</em>, <em>label_format='text'</em>, <em>save_file=None</em>, <em>figsize=None</em><big>)</big><a class="headerlink" href="#ripyl.util.plot.iso_k_line_plot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot ISO9141 and ISO14230 waveforms</p>
+<dl class="method">
+<dt id="ripyl.util.plot.Plotter.save_plot">
+<tt class="descname">save_plot</tt><big>(</big><em>fname</em>, <em>figsize=None</em><big>)</big><a class="headerlink" href="#ripyl.util.plot.Plotter.save_plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the result of plot() to a file</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>samples</strong> (<em>sequence of (float, float) tuples</em>) &#8211; A sequence of waveform sample data. Each element is a tuple of (time, sample) pairs.</li>
-<li><strong>records</strong> (<em>sequence of StreamRecord objects</em>) &#8211; The StreamRecords used to annotate the waveforms.</li>
-<li><strong>title</strong> (<em>string</em>) &#8211; Title of the plot.</li>
-<li><strong>label_format</strong> (<em>string</em>) &#8211; Format for text annotations. One of &#8216;text&#8217; or &#8216;hex&#8217;.</li>
-<li><strong>save_file</strong> (<em>string</em>) &#8211; Name of file to save plot to. If None, the plot is displayed in a matplotlib
-interactive window.</li>
-<li><strong>figsize</strong> (<em>(int, int) tuple</em>) &#8211; Dimensions of a saved image (w, h).</li>
+<li><strong>fname</strong> (<em>string</em>) &#8211; Name of the file to save a plot image to</li>
+<li><strong>figsize</strong> (<em>(number,number)</em>) &#8211; The (x,y) dimensions of the image in inches. Matplotlib uses 100DPI.</li>
 </ul>
 </td>
 </tr>
@@ -257,209 +269,24 @@ interactive window.</li>
 </table>
 </dd></dl>
 
-<dl class="function">
-<dt id="ripyl.util.plot.plot">
-<tt class="descclassname">ripyl.util.plot.</tt><tt class="descname">plot</tt><big>(</big><em>channels</em>, <em>records</em>, <em>title=''</em>, <em>label_format='text'</em>, <em>save_file=None</em>, <em>figsize=None</em><big>)</big><a class="headerlink" href="#ripyl.util.plot.plot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generic plot function</p>
-<p>Dispatches to the protocol specific plotters based on the keys in the channels dict</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>channels</strong> (<em>dict</em>) &#8211; A dict of waveform sample data keyed by channel name.</li>
-<li><strong>records</strong> (<em>sequence of StreamRecord objects</em>) &#8211; The StreamRecords used to annotate the waveforms.</li>
-<li><strong>title</strong> (<em>string</em>) &#8211; Title of the plot.</li>
-<li><strong>label_format</strong> (<em>string</em>) &#8211; Format for text annotations. One of &#8216;text&#8217; or &#8216;hex&#8217;.</li>
-<li><strong>save_file</strong> (<em>string</em>) &#8211; Name of file to save plot to. If None, the plot is displayed in a matplotlib
-interactive window.</li>
-<li><strong>figsize</strong> (<em>(int, int) tuple</em>) &#8211; Dimensions of a saved image (w, h).</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
+<dl class="method">
+<dt id="ripyl.util.plot.Plotter.show">
+<tt class="descname">show</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.util.plot.Plotter.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show the result of plot() in an interactive window</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="ripyl.util.plot.ps2_plot">
-<tt class="descclassname">ripyl.util.plot.</tt><tt class="descname">ps2_plot</tt><big>(</big><em>channels</em>, <em>records</em>, <em>title=''</em>, <em>label_format='text'</em>, <em>save_file=None</em>, <em>figsize=None</em><big>)</big><a class="headerlink" href="#ripyl.util.plot.ps2_plot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot SPI waveforms</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>channels</strong> (<em>dict</em>) &#8211; A dict of waveform sample data keyed by channel name. Each value is a sequence
-of tuples representing (time, sample) pairs for a channel.
-The keys must be &#8216;clk&#8217; and &#8216;data&#8217;.</li>
-<li><strong>records</strong> (<em>sequence of StreamRecord objects</em>) &#8211; The StreamRecords used to annotate the waveforms.</li>
-<li><strong>title</strong> (<em>string</em>) &#8211; Title of the plot.</li>
-<li><strong>label_format</strong> (<em>string</em>) &#8211; Format for text annotations. One of &#8216;text&#8217; or &#8216;hex&#8217;.</li>
-<li><strong>save_file</strong> (<em>string</em>) &#8211; Name of file to save plot to. If None, the plot is displayed in a matplotlib
-interactive window.</li>
-<li><strong>figsize</strong> (<em>(int, int) tuple</em>) &#8211; Dimensions of a saved image (w, h).</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
+<dl class="method">
+<dt id="ripyl.util.plot.Plotter.waveform_bounds">
+<tt class="descname">waveform_bounds</tt><big>(</big><em>raw_samples</em><big>)</big><a class="headerlink" href="#ripyl.util.plot.Plotter.waveform_bounds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve the y-axis boundaries for annotation elements</p>
 </dd></dl>
 
-<dl class="function">
-<dt id="ripyl.util.plot.spi_plot">
-<tt class="descclassname">ripyl.util.plot.</tt><tt class="descname">spi_plot</tt><big>(</big><em>channels</em>, <em>records</em>, <em>title=''</em>, <em>label_format='text'</em>, <em>save_file=None</em>, <em>figsize=None</em><big>)</big><a class="headerlink" href="#ripyl.util.plot.spi_plot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot SPI waveforms</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>channels</strong> (<em>dict</em>) &#8211; A dict of waveform sample data keyed by channel name. Each value is a sequence
-of tuples representing (time, sample) pairs for a channel.
-The keys must be &#8216;clk&#8217; and &#8216;data_io&#8217;. If a chip select is included it must be
-keyed with &#8216;cs&#8217;.</li>
-<li><strong>records</strong> (<em>sequence of StreamRecord objects</em>) &#8211; The StreamRecords used to annotate the waveforms.</li>
-<li><strong>title</strong> (<em>string</em>) &#8211; Title of the plot.</li>
-<li><strong>label_format</strong> (<em>string</em>) &#8211; Format for text annotations. One of &#8216;text&#8217; or &#8216;hex&#8217;.</li>
-<li><strong>save_file</strong> (<em>string</em>) &#8211; Name of file to save plot to. If None, the plot is displayed in a matplotlib
-interactive window.</li>
-<li><strong>figsize</strong> (<em>(int, int) tuple</em>) &#8211; Dimensions of a saved image (w, h).</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="ripyl.util.plot.uart_plot">
-<tt class="descclassname">ripyl.util.plot.</tt><tt class="descname">uart_plot</tt><big>(</big><em>samples</em>, <em>records</em>, <em>title=''</em>, <em>label_format='text'</em>, <em>save_file=None</em>, <em>figsize=None</em><big>)</big><a class="headerlink" href="#ripyl.util.plot.uart_plot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot UART waveforms</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>samples</strong> (<em>sequence of (float, float) tuples</em>) &#8211; A sequence of waveform sample data. Each element is a tuple of (time, sample) pairs.</li>
-<li><strong>records</strong> (<em>sequence of StreamRecord objects</em>) &#8211; The StreamRecords used to annotate the waveforms.</li>
-<li><strong>title</strong> (<em>string</em>) &#8211; Title of the plot.</li>
-<li><strong>label_format</strong> (<em>string</em>) &#8211; Format for text annotations. One of &#8216;text&#8217; or &#8216;hex&#8217;.</li>
-<li><strong>save_file</strong> (<em>string</em>) &#8211; Name of file to save plot to. If None, the plot is displayed in a matplotlib
-interactive window.</li>
-<li><strong>figsize</strong> (<em>(int, int) tuple</em>) &#8211; Dimensions of a saved image (w, h).</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="ripyl.util.plot.usb_plot">
-<tt class="descclassname">ripyl.util.plot.</tt><tt class="descname">usb_plot</tt><big>(</big><em>channels</em>, <em>records</em>, <em>title=''</em>, <em>label_format='text'</em>, <em>save_file=None</em>, <em>figsize=None</em><big>)</big><a class="headerlink" href="#ripyl.util.plot.usb_plot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot USB and HSIC waveforms</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>channels</strong> (<em>dict</em>) &#8211; A dict of waveform sample data keyed by channel name. Each value is a sequence
-of tuples representing (time, sample) pairs for a channel.
-For single-ended USB the keys must be &#8216;dp&#8217; and &#8216;dm&#8217;. For HSIC the keys must be
-&#8216;strobe&#8217; and &#8216;data&#8217;. For differential USB the key can be anything.</li>
-<li><strong>records</strong> (<em>sequence of StreamRecord objects</em>) &#8211; The StreamRecords used to annotate the waveforms.</li>
-<li><strong>title</strong> (<em>string</em>) &#8211; Title of the plot.</li>
-<li><strong>label_format</strong> (<em>string</em>) &#8211; Format for text annotations. One of &#8216;text&#8217; or &#8216;hex&#8217;.</li>
-<li><strong>save_file</strong> (<em>string</em>) &#8211; Name of file to save plot to. If None, the plot is displayed in a matplotlib
-interactive window.</li>
-<li><strong>figsize</strong> (<em>(int, int) tuple</em>) &#8211; Dimensions of a saved image (w, h).</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 </div>
 <div class="section" id="module-ripyl.util.stats">
 <span id="stats-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">stats</span></tt> Module<a class="headerlink" href="#module-ripyl.util.stats" title="Permalink to this headline">¶</a></h2>
 <p>Statistical operations</p>
-<dl class="class">
-<dt id="ripyl.util.stats.OnlineStats">
-<em class="property">class </em><tt class="descclassname">ripyl.util.stats.</tt><tt class="descname">OnlineStats</tt><a class="headerlink" href="#ripyl.util.stats.OnlineStats" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
-<p>Generate statistics from a data set.
-Computes mean, variance and standard deviation in a single pass through a data set.</p>
-<dl class="method">
-<dt id="ripyl.util.stats.OnlineStats.accumulate">
-<tt class="descname">accumulate</tt><big>(</big><em>data</em><big>)</big><a class="headerlink" href="#ripyl.util.stats.OnlineStats.accumulate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add a new data value to the set of accumulated statistics</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>number or sequence of numbers</em>) &#8211; New data to accumulate statistics on</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="ripyl.util.stats.OnlineStats.mean">
-<tt class="descname">mean</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.util.stats.OnlineStats.mean" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The mean of the values previously accumulated</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="ripyl.util.stats.OnlineStats.reset">
-<tt class="descname">reset</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.util.stats.OnlineStats.reset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reset accumulated statistics to initial conditions</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ripyl.util.stats.OnlineStats.std">
-<tt class="descname">std</tt><big>(</big><em>ddof=0</em><big>)</big><a class="headerlink" href="#ripyl.util.stats.OnlineStats.std" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the standard deviation of the values previously accumulated</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ddof</strong> (<em>int</em>) &#8211; [See variance()]</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A float for the standard deviation.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="ripyl.util.stats.OnlineStats.variance">
-<tt class="descname">variance</tt><big>(</big><em>ddof=0</em><big>)</big><a class="headerlink" href="#ripyl.util.stats.OnlineStats.variance" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the variance of the data values previously accumulated</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ddof</strong> (<em>int</em>) &#8211; Delta Degrees of Freedom. Divisor for variance is N - ddof.
-Use 0 for a data set which repsresents an entire population.
-Use 1 for a data set representing a population sample.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A float for the variance</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
 </div>
 </div>
 
@@ -486,8 +313,8 @@ Use 1 for a data set representing a population sample.</td>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="ripyl.protocol.html"
-                        title="previous chapter">protocol Package</a></p>
+  <p class="topless"><a href="ripyl.protocol.infrared.html"
+                        title="previous chapter">infrared Package</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../_sources/apidoc/ripyl.util.txt"
@@ -520,9 +347,9 @@ Use 1 for a data set representing a population sample.</td>
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="ripyl.protocol.html" title="protocol Package"
+          <a href="ripyl.protocol.infrared.html" title="infrared Package"
              >previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.0.1 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Ripyl 1.1 documentation</a> &raquo;</li>
           <li><a href="modules.html" >ripyl</a> &raquo;</li>
           <li><a href="ripyl.html" >ripyl Package</a> &raquo;</li> 
       </ul>

@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>ripyl Package &mdash; Ripyl 1.0.1 documentation</title>
+    <title>ripyl Package &mdash; Ripyl 1.1 documentation</title>
     
     <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0.1',
+        VERSION:     '1.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,9 +25,9 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="Ripyl 1.0.1 documentation" href="../index.html" />
+    <link rel="top" title="Ripyl 1.1 documentation" href="../index.html" />
     <link rel="up" title="ripyl" href="modules.html" />
-    <link rel="next" title="protocol Package" href="ripyl.protocol.html" />
+    <link rel="next" title="cython Package" href="ripyl.cython.html" />
     <link rel="prev" title="ripyl" href="modules.html" /> 
   </head>
   <body>
@@ -41,12 +41,12 @@
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="ripyl.protocol.html" title="protocol Package"
+          <a href="ripyl.cython.html" title="cython Package"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="modules.html" title="ripyl"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.0.1 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Ripyl 1.1 documentation</a> &raquo;</li>
           <li><a href="modules.html" accesskey="U">ripyl</a> &raquo;</li> 
       </ul>
     </div>  
@@ -61,6 +61,16 @@
 <div class="section" id="id1">
 <h2><tt class="xref py py-mod docutils literal"><span class="pre">ripyl</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <span class="target" id="module-ripyl.__init__"></span><p>Ripyl protocol decode library</p>
+</div>
+<div class="section" id="module-ripyl.config">
+<span id="config-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">config</span></tt> Module<a class="headerlink" href="#module-ripyl.config" title="Permalink to this headline">¶</a></h2>
+<p>Manage Ripyl configuration data</p>
+<dl class="function">
+<dt id="ripyl.config.write_config">
+<tt class="descclassname">ripyl.config.</tt><tt class="descname">write_config</tt><big>(</big><em>cfg_path</em>, <em>use_cython</em>, <em>cython_prebuild</em><big>)</big><a class="headerlink" href="#ripyl.config.write_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a file for the Ripyl build configuration</p>
+</dd></dl>
+
 </div>
 <div class="section" id="module-ripyl.decode">
 <span id="decode-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">decode</span></tt> Module<a class="headerlink" href="#module-ripyl.decode" title="Permalink to this headline">¶</a></h2>
@@ -221,11 +231,10 @@ fails.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>samples</strong> (<em>iterator of (float, number) tuples</em>) &#8211; An iterable representing a sequence of samples. Each sample is a
-2-tuple representing the time of the sample and the sample&#8217;s value.
-This iterator is internally tee&#8217;d and becomes invalidated for further
-use. The return value includes a new sample stream to retrieve samples
-from.</li>
+<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; An iterable sample stream. Each element is a SampleChunk containing
+an array of samples. This iterator is internally tee&#8217;d and becomes
+invalidated for further use. The return value includes a new sample
+stream to retrieve samples from.</li>
 <li><strong>max_samples</strong> (<em>int</em>) &#8211; The maximum number of samples to consume from the samples iterable.
 This should be at least 2x buf_size and will be coerced to that value
 if it is less.</li>
@@ -298,8 +307,8 @@ to be valid. This is performed by the remove_short_diff_0s() function.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>samples</strong> (<em>sequence of (float, number) tuples</em>) &#8211; An iterable representing a sequence of samples. Each sample is a
-2-tuple representing the time of the sample and the sample&#8217;s value.</li>
+<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; An iterable sample stream. Each element is a SampleChunk containing
+an array of samples.</li>
 <li><strong>logic</strong> (<em>(float, float)</em>) &#8211; A 2-tuple (low, high) representing the mean logic levels in the sampled waveform
 for -1 and +1. The logic level for 0 is assumed to be midway between these two.</li>
 <li><strong>hysteresis</strong> (<em>float</em>) &#8211; A value between 0.0 and 1.0 representing the amount of hysteresis the use for
@@ -321,40 +330,8 @@ tuples are detected edges.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="ripyl.decode.find_edges">
-<tt class="descclassname">ripyl.decode.</tt><tt class="descname">find_edges</tt><big>(</big><em>samples</em>, <em>logic</em>, <em>hysteresis=0.4</em><big>)</big><a class="headerlink" href="#ripyl.decode.find_edges" title="Permalink to this definition">¶</a></dt>
-<dd><p>Find the edges in a sampled digital waveform</p>
-<p>This is a generator function that can be used in a pipeline of waveform
-procesing operations.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>samples</strong> (<em>sequence of (float, number) tuples</em>) &#8211; An iterable representing a sequence of samples. Each sample is a
-2-tuple representing the time of the sample and the sample&#8217;s value.</li>
-<li><strong>logic</strong> (<em>(float, float)</em>) &#8211; A 2-tuple (low, high) representing the mean logic levels in the sampled waveform</li>
-<li><strong>hysteresis</strong> (<em>float</em>) &#8211; A value between 0.0 and 1.0 representing the amount of hysteresis the use for
-detecting valid edge crossings.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An iterator yielding  a series of 2-tuples (time, value) representing the time and
-logic value (0 or 1) for each edge transition. The first tuple
-yielded is the initial state of the sampled waveform. All remaining
-tuples are detected edges.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first last">StreamError if the stream is empty</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
 <dt id="ripyl.decode.find_hist_peaks">
-<tt class="descclassname">ripyl.decode.</tt><tt class="descname">find_hist_peaks</tt><big>(</big><em>hist</em><big>)</big><a class="headerlink" href="#ripyl.decode.find_hist_peaks" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ripyl.decode.</tt><tt class="descname">find_hist_peaks</tt><big>(</big><em>hist</em>, <em>thresh_scale=1.0</em><big>)</big><a class="headerlink" href="#ripyl.decode.find_hist_peaks" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find all peaks in a histogram
 This uses a modification of the method employed by the &#8220;peaks&#8221; function in
 LeCroy digital oscilloscopes. The original algorithm is described in various manuals
@@ -364,16 +341,22 @@ normally distributed (i.e. there is some noise present in the data set).
 For synthetic waveforms lacking noise or any intermediate samples between discrete
 logic levels, the statistical measures used to determine the threshold for a peak
 are not valid. The threshold t2 ends up being too large and valid peaks may be
-excluded. To avoid this problem the histogram can be sampled from a KDE instead.</p>
+excluded. To avoid this problem the histogram can be sampled from a KDE instead or
+the thresh_scale parameter can be set to a lower value.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>hist</strong> (<em>sequence of ints</em>) &#8211; A sequence representing the histogram bin counts. Typically the first parameter
-returned by numpy.histogram() or a KDE from scipy.stats.gaussian_kde().</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>hist</strong> (<em>sequence of int</em>) &#8211; A sequence representing the histogram bin counts. Typically the first parameter
+returned by numpy.histogram() or a KDE from scipy.stats.gaussian_kde().</li>
+<li><strong>thresh_scale</strong> (<em>float</em>) &#8211; Apply a scale factor to the internal threshold for peak classification.</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A list of peaks where each peak is a 2-tuple representing the
-start and end indices of the peak in hist.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A list of peaks where each peak is a 2-tuple representing the
+start and end indices of the peak in hist.</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -398,8 +381,8 @@ a solitary edge after the 400th sample.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>samples</strong> (<em>sequence of (float, number) tuples</em>) &#8211; An iterable representing a sequence of samples. Each sample is a
-2-tuple representing the time of the sample and the sample&#8217;s value.</li>
+<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; An iterable sample stream. Each element is a SampleChunk containing
+an array of samples.</li>
 <li><strong>max_samples</strong> (<em>int</em>) &#8211; The maximum number of samples to consume from the samples iterable.
 This should be at least 2x buf_size and will be coerced to that value
 if it is less.</li>
@@ -512,7 +495,7 @@ procesing operations.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>diff_edges</strong> (<em>sequence of (float, int) tuples</em>) &#8211; An iterable of 2-tuples representing each edge transition.
+<li><strong>diff_edges</strong> (<em>iterable of (float, int) tuples</em>) &#8211; An iterable of 2-tuples representing each edge transition.
 The 2-tuples <em>must</em> be in the absolute time form (time, logic level).
 The logic levels should be in the set (-1, 0, 1) as produced by
 find_differential_edges().</li>
@@ -549,7 +532,7 @@ tuples are detected edges.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>samples</strong> (<em>sequence of (float, number) tuples</em>) &#8211; An iterable sample stream of (time, value) pairs.</li>
+<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; An iterable sample stream to modify.</li>
 <li><strong>gain</strong> (<em>float</em>) &#8211; The gain multiplier for the samples</li>
 <li><strong>offset</strong> (<em>float</em>) &#8211; The additive offset for the samples</li>
 </ul>
@@ -579,10 +562,66 @@ tuples are detected edges.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="ripyl.sigproc.capacify">
+<tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">capacify</tt><big>(</big><em>samples</em>, <em>capacitance</em>, <em>resistance=50.0</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.capacify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simulate an RC filter on a waveform:</p>
+<div class="highlight-python"><pre>: samples &gt;--R--+--&gt; out
+:               |
+:               C
+:              _|_</pre>
+</div>
+<p>Warning: This function becomes unstable for small time constants (C * R).
+It is implemented with a simple application of the RC difference equations.
+The time step (dt) is taken from the sample period of each sample chunk
+The results will be inaccurate for large values of dt but still largely
+representative of the expected behavior.</p>
+<p>This is a generator function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; An iterable sample stream to modify.</li>
+<li><strong>capacitance</strong> (<em>float</em>) &#8211; The capacitance value</li>
+<li><strong>resistance</strong> (<em>float</em>) &#8211; The resistance value</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  a sample stream.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="ripyl.sigproc.chain">
 <tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">chain</tt><big>(</big><em>stream_gap_time</em>, <em>*streams</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.chain" title="Permalink to this definition">¶</a></dt>
-<dd><p>Combine a sequence of streams together.</p>
-<p>A set of sample or edge streams are concatenated together with updated time
+<dd><p>Combine a sequence of sample streams together.</p>
+<p>A set of sample streams are concatenated together with updated time
+stamps to maintain monotonically increasing time.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>stream_gap_time</strong> (<em>float</em>) &#8211; The time interval added between successive streams</li>
+<li><strong>streams</strong> (<em>sequence of iterables containing SampleChunk objects</em>) &#8211; A sequence of streams</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  a sample stream representing the data from each stream in order</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.sigproc.chain_edges">
+<tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">chain_edges</tt><big>(</big><em>stream_gap_time</em>, <em>*streams</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.chain_edges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combine a sequence of edge streams together.</p>
+<p>A set of edge streams are concatenated together with updated time
 stamps to maintain monotonically increasing time.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -594,7 +633,7 @@ stamps to maintain monotonically increasing time.</p>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  a stream representing the data from each stream in order</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  an edge stream representing the data from each stream in order</p>
 </td>
 </tr>
 </tbody>
@@ -613,7 +652,7 @@ repacing samples with a fixed value.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>samples</strong> (<em>sequence of (float, number) tuples</em>) &#8211; An iterable sample stream of (time, value) pairs.</li>
+<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; An iterable sample stream to modify.</li>
 <li><strong>start_time</strong> (<em>float</em>) &#8211; Start of the dropout phase</li>
 <li><strong>end_time</strong> (<em>float</em>) &#8211; End of the dropout phase</li>
 <li><strong>val</strong> (<em>float</em>) &#8211; The sample value to substitute during the dropout phase</li>
@@ -629,20 +668,21 @@ repacing samples with a fixed value.</p>
 
 <dl class="function">
 <dt id="ripyl.sigproc.edges_to_sample_stream">
-<tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">edges_to_sample_stream</tt><big>(</big><em>edges</em>, <em>sample_period</em>, <em>end_extension=None</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.edges_to_sample_stream" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">edges_to_sample_stream</tt><big>(</big><em>edges</em>, <em>sample_period</em>, <em>end_extension=None</em>, <em>chunk_size=1000</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.edges_to_sample_stream" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert an edge stream to a sample stream</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>edges</strong> (<em>sequence of (float, int) tuples</em>) &#8211; An edge stream to sample</li>
+<li><strong>edges</strong> (<em>iterable of (float, int) tuples</em>) &#8211; An edge stream to sample</li>
 <li><strong>sample_period</strong> (<em>float</em>) &#8211; The sample period for converting the edge stream</li>
 <li><strong>end_extension</strong> (<em>float</em>) &#8211; Optional amount of time to add to the end after the last edge transition</li>
+<li><strong>chunk_size</strong> (<em>int</em>) &#8211; Number of samples in each SampleChunk</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  a sample stream.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  a stream of SampleChunk objects.</p>
 </td>
 </tr>
 </tbody>
@@ -651,7 +691,7 @@ repacing samples with a fixed value.</p>
 
 <dl class="function">
 <dt id="ripyl.sigproc.filter_waveform">
-<tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">filter_waveform</tt><big>(</big><em>samples</em>, <em>sample_rate</em>, <em>rise_time</em>, <em>ripple_db=60.0</em>, <em>pool_size=1000</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.filter_waveform" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">filter_waveform</tt><big>(</big><em>samples</em>, <em>sample_rate</em>, <em>rise_time</em>, <em>ripple_db=60.0</em>, <em>chunk_size=1000</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.filter_waveform" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply a bandwidth limiting low-pass filter to a sample stream</p>
 <p>This is a generator function.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -659,12 +699,12 @@ repacing samples with a fixed value.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>samples</strong> (<em>sequence of (float, number) tuples</em>) &#8211; A sample stream to be filtered.</li>
+<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; An iterable sample stream to be filtered.</li>
 <li><strong>sample_rate</strong> (<em>float</em>) &#8211; The sample rate for converting the sample stream.</li>
 <li><strong>rise_time</strong> (<em>float</em>) &#8211; Rise (and fall) time for the filtered samples.</li>
 <li><strong>ripple_db</strong> (<em>float</em>) &#8211; Noise suppression in dB for the bandwidth filter stop band. This should
 be a positive value.</li>
-<li><strong>pool_size</strong> (<em>int</em>) &#8211; Internal FIR filter sample pool size. This can generally be ignored. To support
+<li><strong>chunk_size</strong> (<em>int</em>) &#8211; Internal FIR filter sample pool size. This can generally be ignored. To support
 streaming of samples, the FIR filter operation is done piecewise so we don&#8217;t have
 to consume the entire input before producing filtered output. Larger values will
 reduce the number of filter operations performed. Excessively small values will
@@ -672,7 +712,7 @@ waste time due to the reprocessing of overlapping samples between successive poo
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  a sample stream.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  a stream of SampleChunk objects.</p>
 </td>
 </tr>
 </tbody>
@@ -688,11 +728,9 @@ waste time due to the reprocessing of overlapping samples between successive poo
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>stream</strong> (<em>sequence of (float, number) tuples</em>) &#8211; An iterable of stream (time, value) pairs. The stream can either be samples
-or a diferential edge stream containing (-1, 0, 1) values that must be
-inverted.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; An iterable sample stream to modify.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">An iterator yielding  a stream of inverted elements</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">An iterator yielding  a sample stream.</td>
 </tr>
 </tbody>
 </table>
@@ -710,7 +748,7 @@ due to floating point inaccuracies.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sample_rate</strong> (<em>int</em>) &#8211; The sample rate to determine rise time from</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sample_rate</strong> (<em>number</em>) &#8211; The sample rate to determine rise time from</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A float for the minimum acceptable rise time.</td>
 </tr>
@@ -729,7 +767,7 @@ due to floating point inaccuracies.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>samples</strong> (<em>sequence of (float, number) tuples</em>) &#8211; An iterable sample stream of (time, value) pairs.</li>
+<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; An iterable sample stream to modify.</li>
 <li><strong>snr_db</strong> (<em>float</em>) &#8211; The Signal to Noise Ratio in dB. This value is only accurate if the
 input samples are normalized to the range 0.0 to 1.0. Any amplification
 should be applied after noisify() for the SNR to be correct.</li>
@@ -753,7 +791,7 @@ should be applied after noisify() for the SNR to be correct.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>samples</strong> (<em>sequence of (float, number) tuples</em>) &#8211; An iterable sample stream of (time, value) pairs.</li>
+<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; An iterable sample stream to modify.</li>
 <li><strong>full_scale</strong> (<em>float</em>) &#8211; The full scale range for digitizer being emulated. For example,
 a scope with 8 vertical divisions set at 2V/div. will have a
 full scale range of 2V*8 = 16V</li>
@@ -782,35 +820,9 @@ pairs with a non-changing value.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>edges</strong> (<em>sequence of (float, int) tuples</em>) &#8211; An edge stream to filter for extraneous non-edges</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>edges</strong> (<em>iterable of (float, int) tuples</em>) &#8211; An edge stream to filter for extraneous non-edges</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">An iterator yielding  an edge stream.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="ripyl.sigproc.samples_to_sample_stream">
-<tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">samples_to_sample_stream</tt><big>(</big><em>raw_samples</em>, <em>sample_period</em>, <em>start_time=0.0</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.samples_to_sample_stream" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert raw samples to a sample stream</p>
-<p>This is a generator function that can be used in a pipeline of waveform
-procesing operations</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>raw_samples</strong> (<em>sequence of numbers</em>) &#8211; An iterable of sample values</li>
-<li><strong>sample_period</strong> (<em>float</em>) &#8211; The time interval between samples</li>
-<li><strong>start_time</strong> (<em>float</em>) &#8211; The time for the first sample</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  a series of 2-tuples (time, value) representing the time and
-sample value for each input sample. This can be fed to functions
-that expect a sample stream as input.</p>
-</td>
 </tr>
 </tbody>
 </table>
@@ -829,8 +841,8 @@ terminates when either of the two streams ends.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>stream1</strong> (<em>sequence of (float, number) tuples</em>) &#8211; </li>
-<li><strong>stream2</strong> (<em>sequence of (float, number) tuples</em>) &#8211; The two sample streams to have their corresponding values added together.</li>
+<li><strong>stream1</strong> (<em>iterable of SampleChunk objects</em>) &#8211; </li>
+<li><strong>stream2</strong> (<em>iterable of SampleChunk objects</em>) &#8211; The two sample streams to have their corresponding values added together.</li>
 </ul>
 </td>
 </tr>
@@ -871,11 +883,123 @@ be a positive value.</li>
 <div class="section" id="module-ripyl.streaming">
 <span id="streaming-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">streaming</span></tt> Module<a class="headerlink" href="#module-ripyl.streaming" title="Permalink to this headline">¶</a></h2>
 <p>Data streaming common classes</p>
+<dl class="class">
+<dt id="ripyl.streaming.AnnotationFormat">
+<em class="property">class </em><tt class="descclassname">ripyl.streaming.</tt><tt class="descname">AnnotationFormat</tt><a class="headerlink" href="#ripyl.streaming.AnnotationFormat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ripyl.util.html#ripyl.util.enum.Enum" title="ripyl.util.enum.Enum"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.util.enum.Enum</span></tt></a></p>
+<p>Enumeration of annotation data formats</p>
+<dl class="attribute">
+<dt id="ripyl.streaming.AnnotationFormat.Bin">
+<tt class="descname">Bin</tt><em class="property"> = 7</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.Bin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.streaming.AnnotationFormat.Enum">
+<tt class="descname">Enum</tt><em class="property"> = 8</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.Enum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.streaming.AnnotationFormat.General">
+<tt class="descname">General</tt><em class="property"> = 2</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.General" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.streaming.AnnotationFormat.Hex">
+<tt class="descname">Hex</tt><em class="property"> = 6</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.Hex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.streaming.AnnotationFormat.Hidden">
+<tt class="descname">Hidden</tt><em class="property"> = 0</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.Hidden" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.streaming.AnnotationFormat.Int">
+<tt class="descname">Int</tt><em class="property"> = 5</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.Int" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.streaming.AnnotationFormat.Invisible">
+<tt class="descname">Invisible</tt><em class="property"> = 1</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.Invisible" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.streaming.AnnotationFormat.String">
+<tt class="descname">String</tt><em class="property"> = 3</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.String" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.streaming.AnnotationFormat.Text">
+<tt class="descname">Text</tt><em class="property"> = 4</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.Text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="exception">
 <dt id="ripyl.streaming.AutoLevelError">
 <em class="property">exception </em><tt class="descclassname">ripyl.streaming.</tt><tt class="descname">AutoLevelError</tt><big>(</big><em>msg='Unable to find avg. logic levels of waveform'</em><big>)</big><a class="headerlink" href="#ripyl.streaming.AutoLevelError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#ripyl.streaming.StreamError" title="ripyl.streaming.StreamError"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamError</span></tt></a></p>
 <p>Custom exception class auto-level errors</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="ripyl.streaming.ChunkExtractor">
+<em class="property">class </em><tt class="descclassname">ripyl.streaming.</tt><tt class="descname">ChunkExtractor</tt><big>(</big><em>stream</em><big>)</big><a class="headerlink" href="#ripyl.streaming.ChunkExtractor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Utility class that pulls arbitrarily sized chunks from a sample stream</p>
+<dl class="method">
+<dt id="ripyl.streaming.ChunkExtractor.buffered_chunk">
+<tt class="descname">buffered_chunk</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.streaming.ChunkExtractor.buffered_chunk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all remaining buffered samples</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ripyl.streaming.ChunkExtractor.next_chunk">
+<tt class="descname">next_chunk</tt><big>(</big><em>chunk_size=1000</em><big>)</big><a class="headerlink" href="#ripyl.streaming.ChunkExtractor.next_chunk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a new chunk of samples from the stream</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>chunk_size</strong> (<em>int</em>) &#8211; The number of samples for this chunk.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A samplechunk object. if the stream had fewer than chunk_size samples
+remaining then the SampleChunk.samples array is sized to hold only those samples.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None if the stream has ended.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ripyl.streaming.ChunkExtractor.next_samples">
+<tt class="descname">next_samples</tt><big>(</big><em>sample_count=1000</em><big>)</big><a class="headerlink" href="#ripyl.streaming.ChunkExtractor.next_samples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a new set of raw samples from the stream</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sample_count</strong> (<em>int</em>) &#8211; The number of samples for the array.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A numpy array of float. if the stream had fewer than sample_count samples
+remaining then the array is sized to hold only those samples.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">None if the stream has ended.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ripyl.streaming.SampleChunk">
+<em class="property">class </em><tt class="descclassname">ripyl.streaming.</tt><tt class="descname">SampleChunk</tt><big>(</big><em>samples</em>, <em>start_time</em>, <em>sample_period</em><big>)</big><a class="headerlink" href="#ripyl.streaming.SampleChunk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>&#8216;Sample stream object</p>
+<p>This represents a &#8220;chunk&#8221; of samples contained in a numpy array
+stored in the samples attribute.</p>
 </dd></dl>
 
 <dl class="exception">
@@ -890,6 +1014,23 @@ be a positive value.</li>
 <em class="property">class </em><tt class="descclassname">ripyl.streaming.</tt><tt class="descname">StreamEvent</tt><big>(</big><em>time</em>, <em>data=None</em>, <em>kind='unknown event'</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.streaming.StreamEvent" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#ripyl.streaming.StreamRecord" title="ripyl.streaming.StreamRecord"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamRecord</span></tt></a></p>
 <p>A stream element that occurs at a specific point in time</p>
+<dl class="method">
+<dt id="ripyl.streaming.StreamEvent.summary">
+<tt class="descname">summary</tt><big>(</big><em>a=None</em>, <em>depth=0</em><big>)</big><a class="headerlink" href="#ripyl.streaming.StreamEvent.summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yield string(s) summarizing this segment and all of its subrecords
+a (StreamRecord or None)</p>
+<blockquote>
+<div>StreamRecord to produce summary from. Uses self if None.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>depth</strong> (<em>int</em>) &#8211; Indentation level for this summary</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -911,6 +1052,29 @@ be a positive value.</li>
 </tr>
 </tbody>
 </table>
+<dl class="method">
+<dt id="ripyl.streaming.StreamRecord.annotate">
+<tt class="descname">annotate</tt><big>(</big><em>style=None</em>, <em>fields=None</em>, <em>data_format=2</em><big>)</big><a class="headerlink" href="#ripyl.streaming.StreamRecord.annotate" title="Permalink to this definition">¶</a></dt>
+<dd><p>&#8216;Set annotation attributes</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>style</strong> (<em>string or None</em>) &#8211; The name of a style to use for drawing a rectangle representing this record
+(as defined in ripyl.util.plot.annotation_styles)</li>
+<li><strong>fields</strong> (<em>dict of string:value</em>) &#8211; A set of arbitrary info fields that may be displayed as attributes of this record.
+The special field &#8216;_bits&#8217; identifies the number of data bits in this record
+The special field &#8216;_enum&#8217; identifies an enumeration type for this record&#8217;s data attribute
+The special field &#8216;value&#8217; is a string that will override any other source of label text</li>
+<li><strong>data_format</strong> (<em>AnnotationFormat</em>) &#8211; The format for the text label</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="method">
 <dt id="ripyl.streaming.StreamRecord.nested_status">
 <tt class="descname">nested_status</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.streaming.StreamRecord.nested_status" title="Permalink to this definition">¶</a></dt>
@@ -937,6 +1101,20 @@ be a positive value.</li>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="ripyl.streaming.StreamRecord.text">
+<tt class="descname">text</tt><big>(</big><em>default_format=3</em><big>)</big><a class="headerlink" href="#ripyl.streaming.StreamRecord.text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a string representation of this segment&#8217;s data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>default_format</strong> (<em>AnnotationFormat</em>) &#8211; Set the format to use when the data_format attribute is General</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -953,6 +1131,23 @@ be a positive value.</li>
 <dt id="ripyl.streaming.StreamSegment.start_time">
 <tt class="descname">start_time</tt><a class="headerlink" href="#ripyl.streaming.StreamSegment.start_time" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="ripyl.streaming.StreamSegment.summary">
+<tt class="descname">summary</tt><big>(</big><em>a=None</em>, <em>depth=0</em><big>)</big><a class="headerlink" href="#ripyl.streaming.StreamSegment.summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yield string(s) summarizing this segment and all of its subrecords
+a (StreamRecord or None)</p>
+<blockquote>
+<div>StreamRecord to produce summary from. Uses self if None.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>depth</strong> (<em>int</em>) &#8211; Indentation level for this summary</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
@@ -996,6 +1191,47 @@ be a positive value.</li>
 </dd></dl>
 
 <dl class="function">
+<dt id="ripyl.streaming.extract_all_samples">
+<tt class="descclassname">ripyl.streaming.</tt><tt class="descname">extract_all_samples</tt><big>(</big><em>samples</em><big>)</big><a class="headerlink" href="#ripyl.streaming.extract_all_samples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all samples from a sample stream along with parameter information.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; The sample stream to extract samples from.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A tuple containing a numpy sample array of float, the start time,
+and the sample period.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.streaming.extract_samples">
+<tt class="descclassname">ripyl.streaming.</tt><tt class="descname">extract_samples</tt><big>(</big><em>samples</em>, <em>sample_count=1000</em><big>)</big><a class="headerlink" href="#ripyl.streaming.extract_samples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new gerator that yields sample arrays of the desired size</p>
+<p>This is a generator function. Its send() method can be used to change the
+value of sample_count mid-stream.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; The sample stream to extract samples from.</li>
+<li><strong>sample_count</strong> (<em>int</em>) &#8211; The number of samples for the arrays.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  a series of numpy arrays. If the stream has fewer than sample_count samples
+remaining then the array is sized to hold only those samples.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="ripyl.streaming.load_stream">
 <tt class="descclassname">ripyl.streaming.</tt><tt class="descname">load_stream</tt><big>(</big><em>fh</em><big>)</big><a class="headerlink" href="#ripyl.streaming.load_stream" title="Permalink to this definition">¶</a></dt>
 <dd><p>Restore a stream of StreamRecord objects from a file</p>
@@ -1030,6 +1266,73 @@ Records with time signatures from each input stream are kept in chronological or
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  a stream of StreamRecord objects.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.streaming.rechunkify">
+<tt class="descclassname">ripyl.streaming.</tt><tt class="descname">rechunkify</tt><big>(</big><em>samples</em>, <em>chunk_size=1000</em><big>)</big><a class="headerlink" href="#ripyl.streaming.rechunkify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new gerator that yields SampleChunk objects of the desired size</p>
+<p>This is a generator function. Its send() method can be used to change the
+value of chunk_size mid-stream.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; The sample stream to extract SampleChunk objects from.</li>
+<li><strong>chunk_size</strong> (<em>int</em>) &#8211; The number of samples for the SampleChunk objects.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  a series of SampleChunk objects. If the stream has fewer than chunk_size samples
+remaining then the SampleChunk.samples array is sized to hold only those samples.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.streaming.sample_stream_to_samples">
+<tt class="descclassname">ripyl.streaming.</tt><tt class="descname">sample_stream_to_samples</tt><big>(</big><em>samples</em><big>)</big><a class="headerlink" href="#ripyl.streaming.sample_stream_to_samples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all samples from a sample stream as an array</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; The sample stream to extract samples from.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A numpy array of float.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.streaming.samples_to_sample_stream">
+<tt class="descclassname">ripyl.streaming.</tt><tt class="descname">samples_to_sample_stream</tt><big>(</big><em>raw_samples</em>, <em>sample_period</em>, <em>start_time=0.0</em>, <em>chunk_size=1000</em><big>)</big><a class="headerlink" href="#ripyl.streaming.samples_to_sample_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert raw samples to a chunked sample stream</p>
+<p>This is a generator function that can be used in a pipeline of waveform
+procesing operations</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>raw_samples</strong> (<em>iterable of numbers</em>) &#8211; The samples to convert to a sample stream.</li>
+<li><strong>sample_period</strong> (<em>float</em>) &#8211; The time interval between samples</li>
+<li><strong>start_time</strong> (<em>float</em>) &#8211; The time for the first sample</li>
+<li><strong>chunk_size</strong> (<em>int</em>) &#8211; The maximum number of samples for each chunk</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  a series of SampleChunk objects representing the time and
+sample value for each input sample. This can be fed to functions
+that expect a chunked sample stream as input.</p>
 </td>
 </tr>
 </tbody>
@@ -1118,7 +1421,12 @@ This generator will terminate if the number of output samples is specified.</p>
 <h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="ripyl.cython.html">cython Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.cython.html#id1"><tt class="docutils literal"><span class="pre">cython</span></tt> Package</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="ripyl.protocol.html">protocol Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#id1"><tt class="docutils literal"><span class="pre">protocol</span></tt> Package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.i2c"><tt class="docutils literal"><span class="pre">i2c</span></tt> Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.iso_k_line"><tt class="docutils literal"><span class="pre">iso_k_line</span></tt> Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.lm73"><tt class="docutils literal"><span class="pre">lm73</span></tt> Module</a></li>
@@ -1129,6 +1437,18 @@ This generator will terminate if the number of output samples is specified.</p>
 <li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.uart"><tt class="docutils literal"><span class="pre">uart</span></tt> Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.usb"><tt class="docutils literal"><span class="pre">usb</span></tt> Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.usb_transact"><tt class="docutils literal"><span class="pre">usb_transact</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ripyl.protocol.infrared.html">infrared Package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.infrared.html#id1"><tt class="docutils literal"><span class="pre">infrared</span></tt> Package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.infrared.html#module-ripyl.protocol.infrared.ir_common"><tt class="docutils literal"><span class="pre">ir_common</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.infrared.html#module-ripyl.protocol.infrared.nec"><tt class="docutils literal"><span class="pre">nec</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.infrared.html#module-ripyl.protocol.infrared.rc5"><tt class="docutils literal"><span class="pre">rc5</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.infrared.html#module-ripyl.protocol.infrared.rc6"><tt class="docutils literal"><span class="pre">rc6</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.infrared.html#module-ripyl.protocol.infrared.sirc"><tt class="docutils literal"><span class="pre">sirc</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="ripyl.util.html">util Package</a><ul>
@@ -1158,6 +1478,7 @@ This generator will terminate if the number of output samples is specified.</p>
   <ul>
 <li><a class="reference internal" href="#">ripyl Package</a><ul>
 <li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">ripyl</span></tt> Package</a></li>
+<li><a class="reference internal" href="#module-ripyl.config"><tt class="docutils literal"><span class="pre">config</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.decode"><tt class="docutils literal"><span class="pre">decode</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.sigproc"><tt class="docutils literal"><span class="pre">sigproc</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.streaming"><tt class="docutils literal"><span class="pre">streaming</span></tt> Module</a></li>
@@ -1173,8 +1494,8 @@ This generator will terminate if the number of output samples is specified.</p>
   <p class="topless"><a href="modules.html"
                         title="previous chapter">ripyl</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="ripyl.protocol.html"
-                        title="next chapter">protocol Package</a></p>
+  <p class="topless"><a href="ripyl.cython.html"
+                        title="next chapter">cython Package</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../_sources/apidoc/ripyl.txt"
@@ -1207,12 +1528,12 @@ This generator will terminate if the number of output samples is specified.</p>
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="ripyl.protocol.html" title="protocol Package"
+          <a href="ripyl.cython.html" title="cython Package"
              >next</a> |</li>
         <li class="right" >
           <a href="modules.html" title="ripyl"
              >previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.0.1 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Ripyl 1.1 documentation</a> &raquo;</li>
           <li><a href="modules.html" >ripyl</a> &raquo;</li> 
       </ul>
     </div>

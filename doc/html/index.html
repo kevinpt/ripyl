@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Ripyl library documentation &mdash; Ripyl 1.0.1 documentation</title>
+    <title>Ripyl library documentation &mdash; Ripyl 1.1 documentation</title>
     
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.0.1',
+        VERSION:     '1.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Ripyl 1.0.1 documentation" href="#" />
+    <link rel="top" title="Ripyl 1.1 documentation" href="#" />
     <link rel="next" title="Installing Ripyl" href="rst/installation.html" /> 
   </head>
   <body>
@@ -41,7 +41,7 @@
         <li class="right" >
           <a href="rst/installation.html" title="Installing Ripyl"
              accesskey="N">next</a> |</li>
-        <li><a href="#">Ripyl 1.0.1 documentation</a> &raquo;</li> 
+        <li><a href="#">Ripyl 1.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -61,6 +61,7 @@ advanced protocols.</p>
 <img alt="_images/uart_plain.png" src="_images/uart_plain.png" />
 <p>... and produce an annotated result like this:</p>
 <img alt="_images/uart_hello_small.png" src="_images/uart_hello_small.png" />
+<p>The library provides decoded information in an easily traversed tree detailing the time and data for each sub-element of a protocol transmission.</p>
 <dl class="docutils">
 <dt>Features include:</dt>
 <dd><ul class="first last">
@@ -68,28 +69,37 @@ advanced protocols.</p>
 <dt>Multi-protocol support:</dt>
 <dd><table border="1" class="first last docutils">
 <colgroup>
-<col width="16%" />
-<col width="12%" />
-<col width="32%" />
-<col width="40%" />
+<col width="22%" />
+<col width="20%" />
+<col width="28%" />
+<col width="30%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><p class="first last">HSIC</p>
+<tr class="row-odd"><td><p class="first last"><a class="reference internal" href="rst/protocols.html#hsic"><em>HSIC</em></a></p>
 </td>
-<td><p class="first last">I2C</p>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#i2c"><em>I2C</em></a></p>
 </td>
-<td><p class="first last">ISO 9141</p>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#kline"><em>ISO 9141</em></a></p>
 </td>
-<td><p class="first last">ISO 14230</p>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#kline"><em>ISO 14230</em></a></p>
 </td>
 </tr>
-<tr class="row-even"><td><p class="first last">PS/2</p>
+<tr class="row-even"><td><p class="first last"><a class="reference internal" href="rst/protocols.html#ps2"><em>PS/2</em></a></p>
 </td>
-<td><p class="first last">SPI</p>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#spi"><em>SPI</em></a></p>
 </td>
-<td><p class="first last">UART</p>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#uart"><em>UART</em></a></p>
 </td>
-<td><p class="first last">USB 2.0</p>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#usb"><em>USB 2.0</em></a></p>
+</td>
+</tr>
+<tr class="row-odd"><td><p class="first last"><a class="reference internal" href="rst/protocols.html#rc5"><em>RC5</em></a></p>
+</td>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#rc6"><em>RC6</em></a></p>
+</td>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#nec"><em>NEC</em></a></p>
+</td>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#sirc"><em>SIRC</em></a></p>
 </td>
 </tr>
 </tbody>
@@ -120,6 +130,7 @@ advanced protocols.</p>
 <li class="toctree-l1"><a class="reference internal" href="rst/installation.html">Installing Ripyl</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="rst/installation.html#dependencies">Dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rst/installation.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/installation.html#id1">Cython</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rst/installation.html#testing">Testing</a></li>
 </ul>
 </li>
@@ -144,7 +155,21 @@ advanced protocols.</p>
 <li class="toctree-l2"><a class="reference internal" href="rst/data_structures.html#iterators">Iterators</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="rst/protocols.html">Ripyl protocols</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/protocols.html">Ripyl protocols</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#i2c">I<sup>2</sup>C</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#iso-k-line-iso-9141-and-iso-14230">ISO K-line (ISO 9141 and ISO 14230)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#lm73">LM73</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#nec-infrared">NEC Infrared</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#obd-2">OBD-2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#ps-2">PS/2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#philips-rc-5-infrared">Philips RC-5 Infrared</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#philips-rc-6-infrared">Philips RC-6 Infrared</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#sony-sirc-infrared">Sony SIRC Infrared</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#spi">SPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#uart">UART</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#usb-2-0">USB 2.0</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="apidoc/modules.html">ripyl</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="apidoc/ripyl.html">ripyl Package</a></li>
 </ul>
@@ -217,7 +242,7 @@ advanced protocols.</p>
         <li class="right" >
           <a href="rst/installation.html" title="Installing Ripyl"
              >next</a> |</li>
-        <li><a href="#">Ripyl 1.0.1 documentation</a> &raquo;</li> 
+        <li><a href="#">Ripyl 1.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
