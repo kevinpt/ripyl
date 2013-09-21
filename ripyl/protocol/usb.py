@@ -148,6 +148,12 @@ class USBStreamPacket(stream.StreamSegment):
         self.subrecords.append(stream.StreamSegment(offsets['PID'], self.packet.pid, kind='PID'))
         self.subrecords[-1].annotate('ctrl', {'_bits':4, '_enum':USBPID}, stream.AnnotationFormat.Enum)
 
+        if packet.pid == USBPID.PRE:
+            if packet.speed == USBSpeed.HighSpeed:
+                self.subrecords[-1].annotate('ctrl', {'_bits':4, '_value':'ERR'}, stream.AnnotationFormat.Enum)
+            else:
+                self.subrecords[-1].annotate('ctrl', {'_bits':4, '_value':'PRE'}, stream.AnnotationFormat.Enum)
+
         used_fields = ['PID']
 
         if 'CRC5' in offsets:

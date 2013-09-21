@@ -145,6 +145,9 @@ class StreamRecord(object):
         else:
             data_format = self.data_format
 
+        if '_value' in self.fields and (data_format == AnnotationFormat.String or data_format == AnnotationFormat.Enum):
+            return str(self.fields['_value'])
+
         if data_format == AnnotationFormat.String:
             return str(self.data)
         elif data_format == AnnotationFormat.Enum and '_enum' in self.fields:
