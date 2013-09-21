@@ -67,6 +67,8 @@ Supported protocols:
     parser.add_option('-d', '--dropout', dest='dropout', help='Dropout signal from "start,end[,level]"')
     parser.add_option('-t', '--title', dest='title', help='Title for plot')
     parser.add_option('-f', '--figsize', dest='figsize', help='Figure size (w,h) in inches')
+    parser.add_option('-l', '--label-names', dest='show_names', action='store_true', default=False, help='Show field names for text labels')
+    parser.add_option('-a', '--no-annotation', dest='no_annotation', action='store_true', default=False, help='Disable plot annotation')
     
     options, args = parser.parse_args()
     
@@ -128,13 +130,21 @@ def demo_usb(options):
     #packets.append(usb.USBTokenPacket(usb.USBPID.TokenOut, 0x6c, 0x2, bus_speed))
     #packets.append(usb.USBSOFPacket(usb.USBPID.SOF, 0x12, bus_speed))
     #packets = [usb.USBTokenPacket(usb.USBPID.TokenOut, 0x07, 0x01, bus_speed)]
-    # m1 = bytearray('Ripyl supports')
-    # packets.append(usb.USBDataPacket(usb.USBPID.Data0, m1, bus_speed))
-    # packets.append(usb.USBHandshakePacket(usb.USBPID.ACK, bus_speed))
-    # packets.append(usb.USBTokenPacket(usb.USBPID.TokenOut, 0x07, 0x01, bus_speed, delay=0.8e-7))
-    # m2 = bytearray('USB 2.0 HS')
-    # packets.append(usb.USBDataPacket(usb.USBPID.Data1, m2, bus_speed))
-    # packets.append(usb.USBHandshakePacket(usb.USBPID.ACK, bus_speed))
+
+    #bus_speed = usb.USBSpeed.HighSpeed
+    #packets = [usb.USBSOFPacket(usb.USBPID.SOF, 0x12, bus_speed), \
+    #    usb.USBTokenPacket(usb.USBPID.TokenOut, 0x6c, 0x2, bus_speed), \
+    #    usb.USBHandshakePacket(usb.USBPID.ACK, bus_speed)]
+
+    #packets = [usb.USBTokenPacket(usb.USBPID.TokenOut, 0x07, 0x01, bus_speed, delay=0.8e-7),
+    #    usb.USBDataPacket(usb.USBPID.Data1, bytearray('Ripyl supports HSIC'), bus_speed),
+    #    usb.USBHandshakePacket(usb.USBPID.ACK, bus_speed)]
+
+    #packets = [usb.USBDataPacket(usb.USBPID.Data0, bytearray('Full'), usb.USBSpeed.FullSpeed),
+    #    usb.USBHandshakePacket(usb.USBPID.PRE, usb.USBSpeed.FullSpeed),
+    #    usb.USBDataPacket(usb.USBPID.Data1, bytearray('Low'), usb.USBSpeed.LowSpeed)]
+    #packets[-1].swap_jk = True
+
 
     if options.protocol == 'usb':
         # Synthesize the waveform edge stream
@@ -288,11 +298,21 @@ def demo_spi(options):
     
     message = options.msg
     byte_msg = bytearray(message.encode('latin1')) # Get raw bytes as integers
+    idle_start = 0.0
 
+    #byte_msg = bytearray('SPI 1')
+    #idle_start = 1.0e-6
 
     # Synthesize the waveform edge stream
     # This can be fed directly into spi_decode() if an analog waveform is not needed
-    clk, data_io, cs = spi.spi_synth(byte_msg, word_size, clock_freq, cpol, cpha)
+    clk, data_io, cs = spi.spi_synth(byte_msg, word_size, clock_freq, cpol, cpha, idle_start=idle_start)
+
+    #byte_msg = bytearray('SPI 2')
+    #idle_start = 2.0e-6
+    #clk2, data_io2, cs2 = spi.spi_synth(byte_msg, word_size, clock_freq, cpol, cpha, idle_start=idle_start)
+    #clk = sigp.chain_edges(0.0, clk, clk2)
+    #data_io = sigp.chain_edges(0.0, data_io, data_io2)
+    #cs = sigp.chain_edges(0.0, cs, cs2)
     
     # Convert to a sample stream with band-limited edges and noise
     cln_clk_it = sigp.synth_wave(clk, sample_rate, rise_time)
@@ -446,10 +466,17 @@ def demo_uart(options):
     message = options.msg
 
     byte_msg = bytearray(message.encode('latin1')) # Get raw bytes as integers
+
+    #byte_msg = bytearray('UART 1')
     
     # Synthesize the waveform edge stream
     # This can be fed directly into uart_decode() if an analog waveform is not needed
     edges_it = uart.uart_synth(byte_msg, bits, baud, parity, stop_bits, idle_start=8.0 / baud, idle_end=8.0 / baud)
+
+    #byte_msg = bytearray('UART 2')
+    #edges2_it = uart.uart_synth(byte_msg, bits, baud, parity, stop_bits, idle_start=8.0 / baud, idle_end=8.0 / baud)
+    #edges_it = sigp.chain_edges(0.0, edges_it, edges2_it)
+
     
     # Convert to a sample stream with band-limited edges and noise
     clean_samples_it = sigp.synth_wave(edges_it, sample_rate, rise_time)
@@ -521,6 +548,9 @@ def demo_ps2(options):
     message = options.msg
     byte_msg = bytearray(message.encode('latin1')) # Get raw bytes as integers
     direction = [random.choice([ps2.PS2Dir.DeviceToHost, ps2.PS2Dir.HostToDevice]) for b in byte_msg]
+
+    #byte_msg = bytearray('2hst 2dev')
+    #direction = [ps2.PS2Dir.DeviceToHost]*4 + [ps2.PS2Dir.HostToDevice]*5
 
 
     # Synthesize the waveform edge stream
@@ -601,7 +631,9 @@ def demo_kline(options):
         # Sagem proprietary SID
         [0x68, 0x6A, 0xF1, 0x22, 0x00, 0x1A, 0xFF],
         [0x48, 0x6B, 0xD1, 0x62, 0x00, 0x1A, 0x00, 0x35, 0x35]
-    ]    
+    ]
+
+    #messages = messages[0:2]
 
 
     
@@ -665,6 +697,8 @@ def demo_rc5(options):
         rc5.RC5Message(cmd=0x32, addr=0x1A, toggle=1)  \
     ]
 
+    #messages = [messages[0]]
+
     # Synthesize the waveform edge stream
     edges = rc5.rc5_synth(messages, message_interval=5.0e-3, idle_start=1.0e-3, idle_end=1.0e-3)
     edges = ir.modulate(edges, carrier_freq, duty_cycle=0.3)
@@ -710,6 +744,8 @@ def demo_rc6(options):
         rc6.RC6Message(cmd=0x42, addr=0x14, toggle=0, mode=0), \
         rc6.RC6Message(cmd=0x32, addr=0x1A, toggle=1, mode=1)  \
     ]
+
+    #messages = [messages[0]]
 
     # Synthesize the waveform edge stream
     edges = rc6.rc6_synth(messages, message_interval=5.0e-3, idle_start=1.0e-3, idle_end=1.0e-3)
@@ -758,6 +794,8 @@ def demo_nec(options):
         nec.NECMessage(cmd=0x32, addr_low=0x1A)  \
     ]
 
+    #messages = messages[0:2]
+
     # Synthesize the waveform edge stream
     edges = nec.nec_synth(messages, message_interval=5.0e-3, idle_start=1.0e-3, idle_end=1.0e-3)
     edges = ir.modulate(edges, carrier_freq, duty_cycle=0.3)
@@ -805,6 +843,8 @@ def demo_sirc(options):
         sirc.SIRCMessage(cmd=0x42, device=0x14), \
         sirc.SIRCMessage(cmd=0x32, device=0x0A, extended=0x15)  \
     ]
+
+    #messages = [messages[1]]
 
     # Synthesize the waveform edge stream
     edges = sirc.sirc_synth(messages, message_interval=5.0e-3, idle_start=1.0e-3, idle_end=1.0e-3)
@@ -860,7 +900,8 @@ def plot_channels(channels, annotations, options, plot_params):
 
 
         plotter = rplot.Plotter()
-        plotter.plot(channels, annotations, title, label_format=plot_params['label_format'])
+        annotations = None if options.no_annotation else annotations
+        plotter.plot(channels, annotations, title, label_format=plot_params['label_format'], show_names=options.show_names)
         if options.save_file is None:
             plotter.show()
         else:

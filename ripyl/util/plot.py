@@ -162,15 +162,16 @@ class Plotter(object):
         self.axes[-1].set_xlim(vectors[ann_chan][1][0], vectors[ann_chan][1][-1])
 
 
-        for a in annotations:
-            if not isinstance(a, stream.StreamSegment):
-                continue
+        if annotations is not None:
+            for a in annotations:
+                if not isinstance(a, stream.StreamSegment):
+                    continue
 
-            self.data_ix = 0
-            self._plot_patches(a, ann_b, ann_ax)
+                self.data_ix = 0
+                self._plot_patches(a, ann_b, ann_ax)
 
-            # Draw annotation text
-            self._draw_text(a, text_ypos, ann_ax, label_format, name_ypos)
+                # Draw annotation text
+                self._draw_text(a, text_ypos, ann_ax, label_format, name_ypos)
 
         self.fig.tight_layout()
         self.fig.subplots_adjust(bottom=0.12)
