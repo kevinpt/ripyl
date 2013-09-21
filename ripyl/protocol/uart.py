@@ -72,13 +72,9 @@ def uart_decode(stream_data, bits=8, parity=None, stop_bits=1.0, lsb_first=True,
     This is a generator function that can be used in a pipeline of waveform
     procesing operations.
     
-    stream_data (sequence of (float, number) pairs)
-        A stream of 2-tuples of (time, value) pairs. The type of stream is identified
-        by the stream_type parameter. Either a series of real valued samples that will
-        be analyzed to find edge transitions or a set of pre-processed edge transitions
-        representing the 0 and 1 logic states of the UART waveform. When this is a sample
-        stream, an initial block of data is consumed to determine the most likely logic
-        levels in the signal.
+    stream_data (iterable of SampleChunk objects or (float, int) pairs)
+        A sample stream or edge stream representing a serial data signal.
+        The type of stream is identified by the stream_type parameter.
     
     bits (int)
         The number of bits in each word. Typically 5, 7, 8, or 9.

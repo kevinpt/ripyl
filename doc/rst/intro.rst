@@ -35,14 +35,14 @@ We can make changes to the synthesized waveform to explore the effect it has on 
 .. image:: ../image/uart_hello_err.png
     :scale: 65%
 
-The dropout option (-d) forces the synthesized waveform to a fixed level between the specified start and end times. This causes errors in the decode process which show up in the plotted results. You can see that dropout introduces parity and framing errors that force the decoder out of sync with the correct data. In this case the UART decoder recovers on its own by the sixth character but recovery is not a guarantee. This is an inherent issue with the decoding of corrupt UART signals and not an failure specific to Ripyl.
+The dropout option (-d) forces the synthesized waveform to a fixed level between the specified start and end times. This causes errors in the decode process which show up in the plotted results. You can see that dropout introduces parity and framing errors that force the decoder out of sync with the correct data. The decoder may or may not recover on its own. This is an inherent issue with the decoding of corrupt UART signals and not a failure specific to Ripyl.
 
 You can examine all of the protocols supported by Ripyl with ``ripyl_demo``. The available protocols are:
 
 uart
   Asynchronous serial
 i2c
-  Inter-IC bus
+  Inter-IC (I\ :sup:`2`\ C) bus
 spi
   Serial Peripheral Interface
 ps2

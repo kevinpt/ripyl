@@ -80,11 +80,11 @@ def ps2_decode(clk, data, logic_levels=None, stream_type=stream.StreamType.Sampl
     stream, an initial block of data on the clk stream is consumed to determine the most
     likely logic levels in the signal.
     
-    clk (sequence of (float, number) pairs)
-        PS/2 clk stream
+    clk (iterable of SampleChunk objects or (float, int) pairs)
+        A sample stream or edge stream representing a PS/2 clk signal
     
-    data (sequence of (float, number) pairs)
-        PS/2 data stream.
+    data (iterable of SampleChunk objects or (float, int) pairs)
+        A sample stream or edge stream representing PS/2 data signal.
     
     logic_levels ((float, float) or None)
         Optional pair that indicates (low, high) logic levels of the sample

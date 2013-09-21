@@ -89,11 +89,11 @@ def i2c_decode(scl, sda, logic_levels=None, stream_type=stream.StreamType.Sample
     stream, an initial block of data on the scl stream is consumed to determine the most
     likely logic levels in the signal.
     
-    scl (sequence of (float, number) pairs)
-        An iterable representing the I2C serial clock
-    
-    sda (sequence of (float, number) pairs)
-        An iterable representing the I2C serial data
+    scl (iterable of SampleChunk objects or (float, int) pairs)
+        A sample stream or edge stream representing the I2C serial clock
+
+    sda (iterable of SampleChunk objects or (float, int) pairs)
+        A sample stream or edge stream representing the I2C serial data
 
     logic_levels ((float, float) or None)
         Optional pair that indicates (low, high) logic levels of the sample

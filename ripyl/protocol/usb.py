@@ -991,11 +991,11 @@ def usb_decode(dp, dm, logic_levels=None, stream_type=stream.StreamType.Samples)
     stream, an initial block of data on the dp stream is consumed to determine the most
     likely logic levels in the signal and the bus speed.
     
-    dp (sequence of (float, number) pairs)
-        USB D+ stream
+    dp (iterable of SampleChunk objects or (float, int) pairs)
+        A sample stream or edge stream representing a USB D+ signal
     
-    dm (sequence of (float, number) pairs)
-        USB D- stream
+    dm (iterable of SampleChunk objects or (float, int) pairs)
+        A sample stream or edge stream representing a USB D- signal
 
     logic_levels ((float, float) or None)
         Optional pair that indicates (low, high) logic levels of the sample
@@ -1071,8 +1071,8 @@ def usb_diff_decode(d_diff, logic_levels=None, stream_type=stream.StreamType.Sam
     sample stream, an initial block of data is consumed to determine the most
     likely logic levels in the signal and the bus speed.
     
-    d_diff (sequence of (float, number) pairs)
-        USB differential D stream
+    d_diff (iterable of SampleChunk objects or (float, int) pairs)
+        A sample stream or edge stream representing a USB differential (D+ - D-) signal.
 
     logic_levels ((float, float) or None)
         Optional pair that indicates (low, high) logic levels of the sample
@@ -1144,11 +1144,11 @@ def usb_hsic_decode(strobe, data, logic_levels=None, stream_type=stream.StreamTy
     stream, an initial block of data on the strobe stream is consumed to determine the most
     likely logic levels in the signal. The bus speed is fixed at 480Mb/s.
     
-    strobe (sequence of (float, number) pairs)
-        HSIC strobe stream
+    strobe (iterable of SampleChunk objects or (float, int) pairs)
+        A sample stream or edge stream representing an HSIC strobe signal
     
-    data (sequence of (float, number) pairs)
-        HSIC data stream
+    data (iterable of SampleChunk objects or (float, int) pairs)
+        A sample stream or edge stream representing an HSIC data signal
 
     logic_levels ((float, float) or None)
         Optional pair that indicates (low, high) logic levels of the sample

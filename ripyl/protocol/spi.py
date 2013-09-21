@@ -62,14 +62,15 @@ def spi_decode(clk, data_io, cs=None, cpol=0, cpha=0, lsb_first=True, logic_leve
     stream, an initial block of data on the clk stream is consumed to determine the most
     likely logic levels in the signal.
     
-    clk (sequence of (float, number) pairs)
-        SPI clk stream
+    clk (iterable of SampleChunk objects or (float, int) pairs)
+        A sample stream or edge stream representing an SPI clk signal
     
-    data_io (sequence of (float, number) pairs)
-        SPI MOSI or MISO stream.
+    data_io (iterable of SampleChunk objects or (float, int) pairs)
+        A sample stream or edge stream representing an SPI MOSI or MISO signal.
     
-    cs (sequence of (float, float) pairs)
-        SPI chip select stream. Can be None if cs is not available.
+    cs (iterable of SampleChunk objects or (float, int) pairs or None)
+        A sample stream or edge stream representing an SPI chip select signal.
+        Can be None if cs is not available.
     
     cpol (int)
         Clock polarity: 0 or 1 (the idle state of the clock signal)

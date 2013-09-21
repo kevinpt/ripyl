@@ -45,7 +45,7 @@ ISO K-line (ISO 9141 and ISO 14230)
 .. image:: ../image/example/kline_example.png
     :scale: 60%
 
-The :mod:`iso_k_line <.protocol.iso_k_line>` module decodes the ISO 9141 and ISO 14230 automotive protocols.
+The :mod:`iso_k_line <.protocol.iso_k_line>` module decodes the ISO 9141 and ISO 14230 (KWP2000) automotive protocols. It supports slow and fast init sequences and 3 or 4-byte headers.
 
 .. _lm73:
 
@@ -61,14 +61,14 @@ NEC Infrared
 
 +----------------------------------------------+----------------------------------------------------+
 | .. figure:: ../image/example/nec_example.png | .. figure:: ../image/example/nec_nomod_example.png |
-|     :scale: 60%                              |     :scale: 60%                                    |
+|     :scale: 50%                              |     :scale: 50%                                    |
 |                                              |                                                    |
-|     Modulated NEC protocol                   |     Demodulated NEC protocol                       |
+|     Modulated NEC protocol                   |     Unmodulated NEC protocol                       |
 +----------------------------------------------+----------------------------------------------------+
 
 
 
-The :mod:`nec <.protocol.infrared.nec>` module decodes the NEC infrared protocol. It supports modulated (38kHz) and unmodulated input signals.
+The :mod:`nec <.protocol.infrared.nec>` module decodes the NEC infrared protocol. It supports modulated (38kHz) and unmodulated input signals. It can decode the original protocol with an 8-bit address and the extended variant with a 16-bit address.
 
 .. _obd2:
 
@@ -97,7 +97,7 @@ Philips RC-5 Infrared
 .. image:: ../image/example/rc5_example.png
     :scale: 60%
 
-The :mod:`rc5 <.protocol.infrared.rc5>` module deecodes the Philips RC-5 infrared protocol.
+The :mod:`rc5 <.protocol.infrared.rc5>` module decodes the Philips RC-5 infrared protocol. It supports modulated (36kHz) and unmodulated input signals. This decoder supports the original RC-5 protocol (6 command bits) and the RC5X extension (7 command bits).
 
 .. _rc6:
 
@@ -107,7 +107,7 @@ Philips RC-6 Infrared
 .. image:: ../image/example/rc6_example.png
     :scale: 60%
 
-The :mod:`rc6 <.protocol.infrared.rc6>` module deecodes the Philips RC-6 infrared protocol.
+The :mod:`rc6 <.protocol.infrared.rc6>` module decodes the Philips RC-6 infrared protocol. It supports modulated (36kHz) and unmodulated input signals. The full RC-6 protocol is not publicly documented. This decoder only supports mode-0 and partially supports mode-6 (RC6A).
 
 .. _sirc:
 
@@ -117,7 +117,7 @@ Sony SIRC Infrared
 .. image:: ../image/example/sirc_example.png
     :scale: 60%
 
-The :mod:`sirc <.protocol.infrared.sirc>` module decodes the Sony SIRC infrared protocol.
+The :mod:`sirc <.protocol.infrared.sirc>` module decodes the Sony SIRC infrared protocol. It supports modulated (40kHz) and unmodulated input signals. All three command formats are supported: 12-bit, 15-bit, and 20-bit.
 
 .. _spi:
 
@@ -127,7 +127,7 @@ SPI
 .. image:: ../image/example/spi_example.png
     :scale: 60%
 
-The :mod:`spi <.protocol.spi>` module decodes the SPI protocol.
+The :mod:`spi <.protocol.spi>` module decodes the SPI and Microwire protocols. The chip select signal is optional. It only decodes a single data line (MISO or MOSI) at a time. To handle both you must run the decoder twice and merge the decoded StreamRecord objects together.
 
 
 .. _uart:
@@ -138,27 +138,42 @@ UART
 .. image:: ../image/example/uart_example.png
     :scale: 60%
 
-The :mod:`uart <.protocol.uart>` module decodes asynchronous serial protocols.
+The :mod:`uart <.protocol.uart>` module decodes asynchronous serial protocols. It provides automatic baud rate detection and flexible configuration for varying protocol parameters. It only decodes a single data line (txd or rxd) at a time. To handle both you must run the decoder twice and merge the decoded StreamRecord objects together.
 
 .. _usb:
 
 USB 2.0
 -------
 
-.. image:: ../image/example/usb_fs_example.png
++---------------------------------------------------+----------------------------------------------------+
+| .. figure:: ../image/example/usb_fs_example.png   | .. figure:: ../image/example/usb_hs_example.png    |
+|     :scale: 50%                                   |     :scale: 50%                                    |
+|                                                   |                                                    |
+|     Full-speed USB (12Mb/s, differential probing) |     High-speed USB (480Mb/s, differential probing) |
++---------------------------------------------------+----------------------------------------------------+
+
+The :mod:`usb <.protocol.usb>` module decodes USB 2.0 and HSIC protocols. This module provides full support for USB 2.0 including all three bus speeds (1.5, 12, and 480 Mb/s), extended packets, and mixed Full-speed and Low-speed packets. The decoder works with data collected from separate single-ended probes on the D+ and D- channels as well as that collected with a differential probe across D+ and D-. Bus speed is automatically detected.
+
+.. figure:: ../image/example/usb_mix_example.png
+    :scale: 50%
+
+    Mixed Full (12Mb/s) and Low (1.5Mb/s) speed packets as in USB 1.1
+
+.. figure:: ../image/example/usb_data_hs_example.png
     :scale: 60%
 
-.. image:: ../image/example/usb_hs_example.png
+    High-speed USB (single-ended probing)
+
+
+.. _hsic:
+
+HSIC
+~~~~
+
+.. figure:: ../image/example/hsic_example.png
     :scale: 60%
 
-.. image:: ../image/example/usb_mix_example.png
-    :scale: 60%
+The USB decoder also provides support for the HSIC variant with single-ended strobe and data signals in place of the normal D+ and D- signals.
 
-.. image:: ../image/example/usb_data_hs_example.png
-    :scale: 60%
 
-.. image:: ../image/example/hsic_example.png
-    :scale: 60%
-
-The :mod:`usb <.protocol.usb>` module decodes USB 2.0 and HSIC protocols.
 
