@@ -9,10 +9,4 @@ cython Package
     :undoc-members:
     :show-inheritance:
 
-Subpackages
------------
-
-.. toctree::
-
-    ripyl.cython.util
 

@@ -49,11 +49,4 @@ util Package
     :undoc-members:
     :show-inheritance:
 
-:mod:`xstats` Module
---------------------
-
-.. automodule:: ripyl.util.xstats
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
