@@ -43,16 +43,15 @@ class TestPS2Funcs(tsup.RandomSeededTestCase):
             
             clock_freq = random.uniform(10.0e3, 13.0e3)
             
-            msg = []
+            frames = []
             for _ in xrange(random.randint(4, 20)):
-                msg.append(random.randint(0, 2**8-1))
-
-            direction = [random.choice((ps2.PS2Dir.DeviceToHost, ps2.PS2Dir.HostToDevice)) \
-                for x in msg]
+                frames.append(ps2.PS2Frame(random.randint(0, 2**8-1), \
+                    random.choice((ps2.PS2Dir.DeviceToHost, ps2.PS2Dir.HostToDevice))) \
+                )
                 
             use_edges = random.choice((True, False))
                             
-            clk, data = ps2.ps2_synth(msg, direction, clock_freq, 4.0 / clock_freq, 5.0 / clock_freq)
+            clk, data = ps2.ps2_synth(frames, clock_freq, 4.0 / clock_freq, 5.0 / clock_freq)
 
             if use_edges:
                 records_it = ps2.ps2_decode(clk, data, stream_type=streaming.StreamType.Edges)
@@ -77,11 +76,11 @@ class TestPS2Funcs(tsup.RandomSeededTestCase):
                 if r.kind == 'PS/2 frame':
                     frame_cnt += 1
                     #print('Data:', r.data, msg[msg_ix])
-                    if r.data != msg[msg_ix]:
+                    if r.data != frames[msg_ix]:
                         match = False
                         break
                     msg_ix += 1
                     
             self.assertTrue(match, msg='Message not decoded successfully')
-            self.assertEqual(frame_cnt, len(msg), 'Missing or extra decoded messages')
+            self.assertEqual(frame_cnt, len(frames), 'Missing or extra decoded messages')
                 

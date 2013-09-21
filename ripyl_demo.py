@@ -551,11 +551,12 @@ def demo_ps2(options):
 
     #byte_msg = bytearray('2hst 2dev')
     #direction = [ps2.PS2Dir.DeviceToHost]*4 + [ps2.PS2Dir.HostToDevice]*5
+    frames = [ps2.PS2Frame(b, d) for b, d in zip(byte_msg, direction)]
 
 
     # Synthesize the waveform edge stream
     # This can be fed directly into spi_decode() if an analog waveform is not needed
-    clk, data = ps2.ps2_synth(byte_msg, direction, clock_freq, 4 / clock_freq, 5 / clock_freq)
+    clk, data = ps2.ps2_synth(frames, clock_freq, 4 / clock_freq, 5 / clock_freq)
     
     # Convert to a sample stream with band-limited edges and noise
     cln_clk_it = sigp.synth_wave(clk, sample_rate, rise_time)
@@ -598,7 +599,7 @@ def demo_ps2(options):
     }
 
 
-    report_results(records, byte_msg, protocol_params, wave_params, decode_success, lambda d, o: (d.data, o))
+    report_results(records, frames, protocol_params, wave_params, decode_success, lambda d, o: (d.data, o))
     channels = OrderedDict([('CLK (V)', nsy_clk), ('DATA (V)', nsy_data)])
     plot_channels(channels, records, options, plot_params)
 

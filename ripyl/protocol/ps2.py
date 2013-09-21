@@ -45,12 +45,27 @@ class PS2Dir(Enum):
     HostToDevice = 1
 
 
-class PS2Frame(stream.StreamSegment):
+class PS2Frame(object):
     '''Frame object for PS/2 data'''
-    def __init__(self, bounds, direction=PS2Dir.DeviceToHost, data=None, status=stream.StreamStatus.Ok):
-        stream.StreamSegment.__init__(self, bounds, data, status=status)
-        self.kind = 'PS/2 frame'
+    def __init__(self, data, direction=PS2Dir.DeviceToHost):
+        self.data = data
         self.direction = direction
+
+    def __str__(self):
+        return chr(self.data & 0xFF)
+
+    def __eq__(self, other):
+        return vars(self) == vars(other)
+
+    def __ne__(self, other):
+        return not (self == other)
+
+
+class PS2StreamFrame(stream.StreamSegment):
+    '''Streaming frame object for PS/2 data'''
+    def __init__(self, bounds, frame, status=stream.StreamStatus.Ok):
+        stream.StreamSegment.__init__(self, bounds, frame, status=status)
+        self.kind = 'PS/2 frame'
 
     @classmethod
     def status_text(cls, status):
@@ -62,7 +77,7 @@ class PS2Frame(stream.StreamSegment):
             return stream.StreamSegment.status_text(status)
 
     def __str__(self):
-        return chr(self.data & 0xFF)
+        return str(self.data)
 
 
 
@@ -95,7 +110,7 @@ def ps2_decode(clk, data, logic_levels=None, stream_type=stream.StreamType.Sampl
         A StreamType value indicating that the clk and data parameters represent either Samples
         or Edges
 
-    Yields a series of PS2Frame objects.
+    Yields a series of PS2StreamFrame objects.
       
     Raises AutoLevelError if stream_type = Samples and the logic levels cannot
       be determined.
@@ -234,7 +249,7 @@ def ps2_decode(clk, data, logic_levels=None, stream_type=stream.StreamType.Sampl
                 status = PS2StreamStatus.FramingError if framing_error else \
                     PS2StreamStatus.TimingError if timing_error else stream.StreamStatus.Ok
 
-                nf = PS2Frame((start_time, end_time), direction, data, status=status)
+                nf = PS2StreamFrame((start_time, end_time), PS2Frame(data, direction), status=status)
                 nf.annotate('frame', {}, stream.AnnotationFormat.Hidden)
 
                 nf.subrecords.append(stream.StreamSegment((start_time, data_time), kind='start bit'))
@@ -264,22 +279,17 @@ def ps2_decode(clk, data, logic_levels=None, stream_type=stream.StreamType.Sampl
                         
 
 
-def ps2_synth(byte_data, direction, clock_freq, idle_start=0.0, word_interval=0.0):
+def ps2_synth(frames, clock_freq, idle_start=0.0, word_interval=0.0):
     '''Generate synthesized PS/2 waveform
     
     This function simulates a transmission of data over PS/2.
     
     This is a generator function that can be used in a pipeline of waveform
     procesing operations.
-    
-    byte_data (sequence of int)
-        A sequence of bytes that will be transmitted serially
 
-    direction (PS2Dir or a sequence of PS2Dir)
-        If a scalar, the direction for all bytes transmitted.
-        If a sequence of PS2Dir values, the direction of each corresponding
-        byte in the bytes sequence.
-    
+    frames (sequence of PS2Frame)
+        A sequence of PS2Frame objects that will be transmitted serially
+
     clock_freq (float)
         The PS/2 clock frequency. 10kHz - 13KHz typ.
     
@@ -297,12 +307,12 @@ def ps2_synth(byte_data, direction, clock_freq, idle_start=0.0, word_interval=0.
 
     # This is a wrapper around the actual synthesis code in _ps2_synth()
     # It unzips the yielded tuple and removes unwanted artifact edges
-    clk, data = itertools.izip(*_ps2_synth(byte_data, direction, clock_freq, idle_start, word_interval))
+    clk, data = itertools.izip(*_ps2_synth(frames, clock_freq, idle_start, word_interval))
     clk = remove_excess_edges(clk)
     data = remove_excess_edges(data)
     return clk, data
 
-def _ps2_synth(byte_data, direction, clock_freq, idle_start=0.0, word_interval=0.0):
+def _ps2_synth(frames, clock_freq, idle_start=0.0, word_interval=0.0):
     '''Core PS/2 synthesizer
     
     This is a generator function.
@@ -316,18 +326,14 @@ def _ps2_synth(byte_data, direction, clock_freq, idle_start=0.0, word_interval=0
     
     half_bit_period = 1.0 / (2.0 * clock_freq)
 
-    # build a direction array if it is a scalar
-    try:
-        if len(direction) > 0:
-            pass
-    except TypeError:
-        direction = [direction] * len(byte_data)
-    
     
     yield ((t, clk),(t, data)) # initial conditions
     t += idle_start
      
-    for d, direct in zip(byte_data, direction):
+    #for d, direct in zip(frames, direction):
+    for frame in frames:
+        d = frame.data
+        direct = frame.direction
         bits_remaining = word_size
 
         # first bit transmitted will be at the end of the list
