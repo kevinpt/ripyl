@@ -23,15 +23,13 @@
 
 from __future__ import print_function, division
 
-#import pyximport; pyximport.install()
-
 import numpy as np
 import scipy as sp
 import math
 import collections
 import itertools
 
-from ripyl.util.stats import OnlineStats
+import ripyl.util.stats as stats
 from ripyl.streaming import ChunkExtractor, StreamError, AutoLevelError
 
 #import matplotlib.pyplot as plt
@@ -190,10 +188,9 @@ def find_hist_peaks(hist, thresh_scale=1.0):
     
     
     # get mean of all populated bins
-    os = OnlineStats()
-    for b in hist:
-        if b > 0:
-            os.accumulate(b)
+    os = stats.OnlineStats()
+    pop_bins = [b for b in hist if b > 0]
+    os.accumulate_array(pop_bins)
             
     pop_mean = os.mean()
     
@@ -201,24 +198,20 @@ def find_hist_peaks(hist, thresh_scale=1.0):
     
     #print('@@@@@ t1', t1, pop_mean)
     
-    # find std. dev. of all bins under t1
+    # find std. dev. of all populated bins under t1
     os.reset()
-    for b in hist:
-        if b > 0 and b < t1:
-            os.accumulate(b)
+    os.accumulate_array([b for b in pop_bins if b < t1])
         
     t2 = pop_mean + thresh_scale * 2.0 * os.std(ddof=1) # Lecroy uses 2*std but that can be unreliable
     
     #print('@@@@@ t2', t2, pop_mean, os.std(ddof=1))
     
-    if False:
-        plt.plot(hist)
-        plt.axhline(t1, color='k')
-        plt.axhline(t2, color='g')
-        plt.axhline(pop_mean, color='r')
-        plt.axhline(os.mean(), color='y')
-        plt.show()
-    # plt.clf()
+    #plt.plot(hist)
+    #plt.axhline(t1, color='k')
+    #plt.axhline(t2, color='g')
+    #plt.axhline(pop_mean, color='r')
+    #plt.axhline(os.mean(), color='y')
+    #plt.show()
     
     # t2 is the threshold we will use to classify a bin as part of a peak
     # Essentially it is saying that a peak is any bin more than 2 std. devs.
@@ -659,8 +652,6 @@ def find_edges(samples, logic, hysteresis=0.4):
 
             t += sample_period
 
-#import ripyl.cython.cy_decode as cyd
-#find_edges = cyd.find_chunked_edges
 
 
 def find_differential_edges(samples, logic, hysteresis=0.1):

@@ -27,11 +27,9 @@ import functools
 
 import ripyl.decode as decode
 import ripyl.streaming as stream
-from ripyl.util.enum import Enum
 from ripyl.util.bitops import split_bits, join_bits
 
 import ripyl.protocol.infrared as ir
-from ripyl.protocol.infrared import time_is_nearly, time_is_at_least
 
 class NECMessage(object):
     '''NEC infrared message'''
@@ -43,6 +41,7 @@ class NECMessage(object):
         self.cmd_inv = (~cmd) & 0xFF if cmd_inv is None else cmd_inv
 
     def is_valid(self):
+        '''Return True if the command check byte is correct'''
         valid = True
         if self.cmd != ((~self.cmd_inv) & 0xFF): valid = False
         return valid
@@ -243,18 +242,18 @@ def nec_synth(messages, idle_start=0.0, message_interval=42.5e-3, idle_end=1.0e-
     '''
 
     t = 0.0
-    ir = 0 # idle-low
+    irtx = 0 # idle-low
     
-    yield (t, ir) # set initial conditions
+    yield (t, irtx) # set initial conditions; idle-low
     t += idle_start
 
     for msg in messages:
-        ir = 1 # start AGC burst
-        yield (t, ir)
+        irtx = 1 # start AGC burst
+        yield (t, irtx)
 
         t += 9.0e-3 # 9ms
-        ir = 0
-        yield (t, ir)
+        irtx = 0
+        yield (t, irtx)
 
         if msg.cmd == -1 and msg.addr_low == -1: # this is a repeat message
             t += 2.25e-3 # 2.25ms
@@ -269,12 +268,12 @@ def nec_synth(messages, idle_start=0.0, message_interval=42.5e-3, idle_end=1.0e-
             
             for bit in msg_bits:
                 # output initial 560us pulse
-                ir = 1
-                yield (t, ir)
+                irtx = 1
+                yield (t, irtx)
 
                 t += 560.0e-6
-                ir = 0
-                yield (t, ir)
+                irtx = 0
+                yield (t, irtx)
 
                 if bit == 1:
                     t += 2.25e-3 - 560.0e-6
@@ -282,17 +281,17 @@ def nec_synth(messages, idle_start=0.0, message_interval=42.5e-3, idle_end=1.0e-
                     t += 1.12e-3 - 560.0e-6
 
         # output stop pulse
-        ir = 1
-        yield (t, ir)
+        irtx = 1
+        yield (t, irtx)
 
         t += 560.0e-6
-        ir = 0
-        yield (t, ir)
+        irtx = 0
+        yield (t, irtx)
 
         t += message_interval
 
     t += idle_end - message_interval
         
-    yield (t, ir)
+    yield (t, irtx)
 
 

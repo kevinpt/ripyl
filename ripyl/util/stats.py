@@ -23,7 +23,6 @@
 
 from __future__ import print_function, division
 
-import pyximport; pyximport.install()
 import math
 
         
@@ -95,6 +94,3 @@ class OnlineStats(object):
         '''Reset accumulated statistics to initial conditions'''
         self.__init__()
 
-import ripyl.cython.stats as cy_stats
-#OnlineStats.accumulate = cy_stats.accumulate
-#OnlineStats = cy_stats.OnlineStats

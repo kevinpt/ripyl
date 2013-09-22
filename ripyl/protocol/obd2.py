@@ -53,8 +53,11 @@ class OBD2Message(object):
         '''
         raise NotImplementedError
 
-    def raw_data(self):
-        '''Get the raw data (minus header and checksum) for the message
+    def raw_data(self, full_message=False):
+        '''Get the raw data for the message
+
+        full_message (bool)
+            Returns complete message including header and checksum when true
 
         Returns a list of bytes.
         '''
@@ -89,13 +92,17 @@ class OBD2StreamMessage(StreamSegment):
 
         '''
         StreamSegment.__init__(self, (None, None), status=status)
-        self.msg = msg
+        self.data = msg
 
         self.kind = 'OBD-2 message'
 
     @classmethod
     def status_text(cls, status):
         return StreamSegment.status_text(status)
+
+    @property
+    def msg(self):
+        return self.data
 
     @property
     def start_time(self):

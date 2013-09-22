@@ -11,7 +11,9 @@ Ripyl requires the following:
     * `python <http://www.python.org/>`_ 2.7 or 3.x
     * `scipy <http://www.scipy.org/>`_ >= 0.11.0 (also requires `numpy <http://www.numpy.org/>`_)
 
-For plotting support you can optionally install `matplotlib <http://matplotlib.org/>`_.
+Optional libraries are:
+    * `matplotlib <http://matplotlib.org/>`_ for plotting support
+    * `cython <http://cython.org/>`_ >= 0.19 for improved performance
 
 You should ensure the dependencies are installed and functioning properly on your platform before attempting to install Ripyl.
 
@@ -40,6 +42,11 @@ On some Unix platforms you may need to install to your home directory or use roo
 
 
 On Windows you can optionally run the executable installer to setup Ripyl.
+
+Cython
+------
+
+The Ripyl library has been designed with optional Cython support. By default the installation script will detect and enable Cython if it is present. You can force Cython support off by passing the ``--without-cython`` argument to setup.py.
 
 Testing
 -------

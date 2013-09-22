@@ -25,12 +25,12 @@ from __future__ import print_function, division
 
 import itertools
 
-from ripyl.streaming import *
+import ripyl.streaming as stream
 from ripyl.decode import *
 from ripyl.util.bitops import *
 from ripyl.sigproc import remove_excess_edges
 
-class SPIFrame(StreamSegment):
+class SPIFrame(stream.StreamSegment):
     '''Frame object for SPI data'''
     def __init__(self, bounds, data=None):
         '''
@@ -40,7 +40,7 @@ class SPIFrame(StreamSegment):
         data (sequence of int or None)
             Optional data representing the contents of the frame
         '''
-        StreamSegment.__init__(self, bounds, data)
+        stream.StreamSegment.__init__(self, bounds, data)
         self.kind = 'SPI frame'
         self.word_size = None
         
@@ -48,28 +48,28 @@ class SPIFrame(StreamSegment):
         return str(self.data)
 
 def spi_decode(clk, data_io, cs=None, cpol=0, cpha=0, lsb_first=True, logic_levels=None, \
-    stream_type=StreamType.Samples):
+    stream_type=stream.StreamType.Samples):
     '''Decode an SPI data stream
     
     This is a generator function that can be used in a pipeline of waveform
     processing operations.
     
     The clk, data_io, and cs parameters are edge or sample streams.
-    Each is a stream of 2-tuples of (time, value) pairs. The type of stream is identified
-    by the stream_type parameter. Either a series of real valued samples that will be
-    analyzed to find edge transitions or a set of pre-processed edge transitions
-    representing the 0 and 1 logic states of the waveforms. When this is a sample
-    stream, an initial block of data on the clk stream is consumed to determine the most
-    likely logic levels in the signal.
+    Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
+    of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
+    parameter. Sample streams will be analyzed to find edge transitions representing
+    0 and 1 logic states of the waveforms. With sample streams, an initial block of data
+    on the clk stream is consumed to determine the most likely logic levels in the signal.
+
+    clk (iterable of SampleChunk objects or (float, int) pairs)
+        A sample stream or edge stream representing an SPI clk signal
     
-    clk (sequence of (float, number) pairs)
-        SPI clk stream
+    data_io (iterable of SampleChunk objects or (float, int) pairs)
+        A sample stream or edge stream representing an SPI MOSI or MISO signal.
     
-    data_io (sequence of (float, number) pairs)
-        SPI MOSI or MISO stream.
-    
-    cs (sequence of (float, float) pairs)
-        SPI chip select stream. Can be None if cs is not available.
+    cs (iterable of SampleChunk objects or (float, int) pairs or None)
+        A sample stream or edge stream representing an SPI chip select signal.
+        Can be None if cs is not available.
     
     cpol (int)
         Clock polarity: 0 or 1 (the idle state of the clock signal)
@@ -94,7 +94,7 @@ def spi_decode(clk, data_io, cs=None, cpol=0, cpha=0, lsb_first=True, logic_leve
     Raises AutoLevelError if stream_type = Samples and the logic levels cannot
       be determined.
     '''
-    if stream_type == StreamType.Samples:
+    if stream_type == stream.StreamType.Samples:
         if logic_levels is None:
             s_clk_it, logic_levels = check_logic_levels(clk)
         else:
@@ -141,7 +141,7 @@ def spi_decode(clk, data_io, cs=None, cpol=0, cpha=0, lsb_first=True, logic_leve
 
         
         if cname == 'cs' and not es.at_end('cs'):
-            se = StreamEvent(es.cur_time(), data=es.cur_state('cs'), kind='SPI CS')
+            se = stream.StreamEvent(es.cur_time(), data=es.cur_state('cs'), kind='SPI CS')
             yield se
 
         elif cname == 'clk' and not es.at_end('clk'):
@@ -158,6 +158,7 @@ def spi_decode(clk, data_io, cs=None, cpol=0, cpha=0, lsb_first=True, logic_leve
                     
                     nf = SPIFrame((start_time, end_time), word)
                     nf.word_size = len(bits)
+                    nf.annotate('frame', {'_bits':len(bits)}, stream.AnnotationFormat.General)
                     
                     bits = []
                     start_time = None
@@ -185,6 +186,7 @@ def spi_decode(clk, data_io, cs=None, cpol=0, cpha=0, lsb_first=True, logic_leve
             
         nf = SPIFrame((start_time, end_time), word)
         nf.word_size = len(bits)
+        nf.annotate('frame', {'_bits':len(bits)}, stream.AnnotationFormat.General)
         
         yield nf
 
@@ -230,7 +232,8 @@ def spi_synth(data, word_size, clock_freq, cpol=0, cpha=0, lsb_first=True, idle_
     '''
     # This is a wrapper around the actual synthesis code in _spi_synth()
     # It unzips the yielded tuple and removes unwanted artifact edges
-    clk, data_io, cs = itertools.izip(*_spi_synth(data, word_size, clock_freq, cpol, cpha, lsb_first, idle_start, word_interval))
+    clk, data_io, cs = itertools.izip(*_spi_synth(data, word_size, clock_freq, cpol, cpha, \
+        lsb_first, idle_start, word_interval))
     clk = remove_excess_edges(clk)
     data_io = remove_excess_edges(data_io)
     cs = remove_excess_edges(cs)

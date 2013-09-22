@@ -34,8 +34,6 @@ import ripyl.sigproc as sigp
 import ripyl.streaming as stream
 import test.test_support as tsup
 
-import ripyl.annotate as ann
-
 #import matplotlib.pyplot as plt
 
 class TestRC5Funcs(tsup.RandomSeededTestCase):
@@ -78,10 +76,10 @@ class TestRC5Funcs(tsup.RandomSeededTestCase):
             #plt.show()
 
             records = list(rc5.rc5_decode(iter(waveform)))
-            print('\nDecoded {} records'.format(len(records)))
+            #print('\nDecoded {} records'.format(len(records)))
 
-            a = ann.Annotation(rc5.rc5_annotate(records))
-            a.print()
+            #a = ann.Annotation(rc5.rc5_annotate(records))
+            #a.print()
 
             self.assertEqual(len(msgs), len(records), 'Mismatch in decoded record count')
 

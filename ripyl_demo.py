@@ -67,6 +67,8 @@ Supported protocols:
     parser.add_option('-d', '--dropout', dest='dropout', help='Dropout signal from "start,end[,level]"')
     parser.add_option('-t', '--title', dest='title', help='Title for plot')
     parser.add_option('-f', '--figsize', dest='figsize', help='Figure size (w,h) in inches')
+    parser.add_option('-l', '--label-names', dest='show_names', action='store_true', default=False, help='Show field names for text labels')
+    parser.add_option('-a', '--no-annotation', dest='no_annotation', action='store_true', default=False, help='Disable plot annotation')
     
     options, args = parser.parse_args()
     
@@ -128,13 +130,21 @@ def demo_usb(options):
     #packets.append(usb.USBTokenPacket(usb.USBPID.TokenOut, 0x6c, 0x2, bus_speed))
     #packets.append(usb.USBSOFPacket(usb.USBPID.SOF, 0x12, bus_speed))
     #packets = [usb.USBTokenPacket(usb.USBPID.TokenOut, 0x07, 0x01, bus_speed)]
-    # m1 = bytearray('Ripyl supports')
-    # packets.append(usb.USBDataPacket(usb.USBPID.Data0, m1, bus_speed))
-    # packets.append(usb.USBHandshakePacket(usb.USBPID.ACK, bus_speed))
-    # packets.append(usb.USBTokenPacket(usb.USBPID.TokenOut, 0x07, 0x01, bus_speed, delay=0.8e-7))
-    # m2 = bytearray('USB 2.0 HS')
-    # packets.append(usb.USBDataPacket(usb.USBPID.Data1, m2, bus_speed))
-    # packets.append(usb.USBHandshakePacket(usb.USBPID.ACK, bus_speed))
+
+    #bus_speed = usb.USBSpeed.HighSpeed
+    #packets = [usb.USBSOFPacket(usb.USBPID.SOF, 0x12, bus_speed), \
+    #    usb.USBTokenPacket(usb.USBPID.TokenOut, 0x6c, 0x2, bus_speed), \
+    #    usb.USBHandshakePacket(usb.USBPID.ACK, bus_speed)]
+
+    #packets = [usb.USBTokenPacket(usb.USBPID.TokenOut, 0x07, 0x01, bus_speed, delay=0.8e-7),
+    #    usb.USBDataPacket(usb.USBPID.Data1, bytearray('Ripyl supports HSIC'), bus_speed),
+    #    usb.USBHandshakePacket(usb.USBPID.ACK, bus_speed)]
+
+    #packets = [usb.USBDataPacket(usb.USBPID.Data0, bytearray('Full'), usb.USBSpeed.FullSpeed),
+    #    usb.USBHandshakePacket(usb.USBPID.PRE, usb.USBSpeed.FullSpeed),
+    #    usb.USBDataPacket(usb.USBPID.Data1, bytearray('Low'), usb.USBSpeed.LowSpeed)]
+    #packets[-1].swap_jk = True
+
 
     if options.protocol == 'usb':
         # Synthesize the waveform edge stream
@@ -242,51 +252,33 @@ def demo_usb(options):
             decode_success = False
 
 
-    # Report results
-    print('\nProtocol parameters:')
-    print('  bus speed:', usb.USBSpeed(bus_speed))
-    print('  clock frequency:', eng.eng_si(clock_freq, 'Hz'))
-    print('  message:', message)
+    protocol_params = {
+        'bus speed': usb.USBSpeed(bus_speed),
+        'clock frequency': eng.eng_si(clock_freq, 'Hz')
+    }
 
-    print('Waveform parameters:')
-    print('  sample rate:', eng.eng_si(sample_rate, 'Hz'))
-    print('  rise time:', eng.eng_si(rise_time, 's', 1))
-    print('  SNR:', noise_snr, 'dB')
+    wave_params = {
+        'sample rate': eng.eng_si(sample_rate, 'Hz'),
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
+    }
 
-    if decode_success:
-        decoded_msg = ''
-        for r in records:
-            if r.kind == 'USB packet' and hasattr(r.packet, 'data'):
-                decoded_msg = ''.join([chr(b) for b in r.packet.data])
-                break
-            
-        print('\nDecoded message:', decoded_msg)
-        if decoded_msg == message:
-            print('  (matches input message)')
-        else:
-            print('  (MISMATCH to input message)')
+    plot_params = {
+        'default_title': 'USB Simulation',
+        'label_format': stream.AnnotationFormat.Text
+    }
 
-            
-    if any(r.nested_status() != stream.StreamStatus.Ok for r in records):
-        print('\nDecode errors:')
-        for i, r in enumerate(records):
-            if r.nested_status() != stream.StreamStatus.Ok:
-                status_name = usb.USBStreamStatus(r.nested_status())
-                print('  record {}: status = {}'.format(i, status_name))
 
-    if not options.no_plot:
-        if options.protocol == 'usb':
-            channels = {'dp':nsy_dp, 'dm':nsy_dm}
-        elif options.protocol == 'usb-diff':
-            channels = {'dd':nsy_dd}
-        else: # HSIC
-            channels = {'strobe':nsy_stb, 'data':nsy_d}
+    report_results(records, packets, protocol_params, wave_params, decode_success, lambda d, o: (d.data, o))
 
-        if options.title is not None:
-            title = options.title
-        else:
-            title = 'USB Simulation'
-        rplot.usb_plot(channels, records, title, save_file=options.save_file, figsize=options.figsize)
+    if options.protocol == 'usb':
+        channels = OrderedDict([('D+ (V)', nsy_dp), ('D- (V)', nsy_dm)])
+    elif options.protocol == 'usb-diff':
+        channels = OrderedDict([('D+ - D- (V)', nsy_dd)])
+    else: #HSIC
+        channels = OrderedDict([('STROBE (V)', nsy_stb), ('DATA (V)', nsy_d)])
+    plot_channels(channels, records, options, plot_params)
+
 
         
 def demo_spi(options):
@@ -306,11 +298,21 @@ def demo_spi(options):
     
     message = options.msg
     byte_msg = bytearray(message.encode('latin1')) # Get raw bytes as integers
+    idle_start = 0.0
 
+    #byte_msg = bytearray('SPI 1')
+    #idle_start = 1.0e-6
 
     # Synthesize the waveform edge stream
     # This can be fed directly into spi_decode() if an analog waveform is not needed
-    clk, data_io, cs = spi.spi_synth(byte_msg, word_size, clock_freq, cpol, cpha)
+    clk, data_io, cs = spi.spi_synth(byte_msg, word_size, clock_freq, cpol, cpha, idle_start=idle_start)
+
+    #byte_msg = bytearray('SPI 2')
+    #idle_start = 2.0e-6
+    #clk2, data_io2, cs2 = spi.spi_synth(byte_msg, word_size, clock_freq, cpol, cpha, idle_start=idle_start)
+    #clk = sigp.chain_edges(0.0, clk, clk2)
+    #data_io = sigp.chain_edges(0.0, data_io, data_io2)
+    #cs = sigp.chain_edges(0.0, cs, cs2)
     
     # Convert to a sample stream with band-limited edges and noise
     cln_clk_it = sigp.synth_wave(clk, sample_rate, rise_time)
@@ -341,46 +343,32 @@ def demo_spi(options):
         decode_success = False
 
 
-    # Report results
-    print('\nProtocol parameters:')
-    print('  clock frequency:', eng.eng_si(clock_freq, 'Hz'))
-    print('  word size:', word_size)
-    print('  cpol:', cpol)
-    print('  cpha:', cpha)
-    print('  message:', message)
+    protocol_params = {
+        'clock frequency': eng.eng_si(clock_freq, 'Hz'),
+        'word size': word_size,
+        'cpol': cpol,
+        'cpha': cpha
+    }
 
-    print('Waveform parameters:')
-    print('  sample rate:', eng.eng_si(sample_rate, 'Hz'))
-    print('  rise time:', eng.eng_si(rise_time, 's', 1))
-    print('  SNR:', noise_snr, 'dB')
+    wave_params = {
+        'sample rate': eng.eng_si(sample_rate, 'Hz'),
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
+    }
 
-    if decode_success:
-        decoded_msg = ''
-        for r in records:
-            if r.kind == 'SPI frame':
-                decoded_msg += chr(r.data)
-            
-        print('\nDecoded message:', decoded_msg)
-        if decoded_msg == message:
-            print('  (matches input message)')
-        else:
-            print('  (MISMATCH to input message)')
+    plot_params = {
+        'default_title': 'SPI Simulation',
+        'label_format': stream.AnnotationFormat.Text
+    }
 
-            
-    if any(r.nested_status() != stream.StreamStatus.Ok for r in records):
-        print('\nDecode errors:')
-        for i, r in enumerate(records):
-            if r.nested_status() != stream.StreamStatus.Ok:
-                status_name = StreamRecord.status_text(r.nested_status())
-                print('  record {}: status = {}'.format(i, status_name))
+    
+    # Filter out StreamEvent objects
+    data_records = [r for r in records if isinstance(r, stream.StreamSegment)]
 
-    if not options.no_plot:
-        if options.title is not None:
-            title = options.title
-        else:
-            title = 'SPI Simulation'
-        rplot.spi_plot({'clk':nsy_clk, 'data_io':nsy_data_io, 'cs':nsy_cs}, records, title, save_file=options.save_file, \
-            figsize=options.figsize)
+    report_results(data_records, byte_msg, protocol_params, wave_params, decode_success, lambda d, o: (d.data, o))
+    channels = OrderedDict([('CS (V)', nsy_cs), ('CLK (V)', nsy_clk), ('MOSI / MISO (V)', nsy_data_io)])
+    plot_channels(channels, records, options, plot_params)
+
 
 
 def demo_i2c(options):
@@ -401,6 +389,9 @@ def demo_i2c(options):
     
     transfers = []
     transfers.append(i2c.I2CTransfer(i2c.I2C.Read, 0x42, byte_msg))
+
+    #transfers = [i2c.I2CTransfer(i2c.I2C.Write, 0x42, bytearray('I2C 1')), \
+    #    i2c.I2CTransfer(i2c.I2C.Read, 0x42, bytearray('I2C 2'))]
     
     
     # Synthesize the waveform edge stream
@@ -438,59 +429,21 @@ def demo_i2c(options):
 
     wave_params = {
         'sample rate': eng.eng_si(sample_rate, 'Hz'),
-        'rise time': eng.eng_si(rise_time, 's', 1)
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
     }
 
     plot_params = {
         'default_title': 'I2C Simulation',
-        'decode_success': decode_success,
         'label_format': stream.AnnotationFormat.Text
     }
 
+    data_records = list(i2c.reconstruct_i2c_transfers(records))
+    
+    report_results(data_records, transfers, protocol_params, wave_params, decode_success, lambda d, o: (d, o))
     channels = OrderedDict([('SCL (V)', nsy_scl), ('SDA (V)', nsy_sda)])
-    finish_demo(records, transfers, protocol_params, wave_params, plot_params, channels, options)
+    plot_channels(channels, records, options, plot_params)
 
-# FIX: restore reporting to work the same as previous I2C demo below
-
-###################3
-if False:
-    # Report results
-    print('\nProtocol parameters:')
-    print('  clock frequency:', eng.eng_si(clock_freq, 'Hz'))
-    print('  message:', message)
-
-    print('Waveform parameters:')
-    print('  sample rate:', eng.eng_si(sample_rate, 'Hz'))
-    print('  rise time:', eng.eng_si(rise_time, 's', 1))
-    print('  SNR:', noise_snr, 'dB')
-
-    if decode_success:
-        decoded_msg = ''
-        for r in records:
-            if r.kind == 'I2C byte':
-                decoded_msg += chr(r.data)
-            
-        print('\nDecoded message:', decoded_msg)
-        if decoded_msg == message:
-            print('  (matches input message)')
-        else:
-            print('  (MISMATCH to input message)')
-
-            
-    if any(r.nested_status() != stream.StreamStatus.Ok for r in records):
-        print('\nDecode errors:')
-        for i, r in enumerate(records):
-            if r.nested_status() != stream.StreamStatus.Ok:
-                status_name = StreamRecord.status_text(r.nested_status())
-                print('  record {}: status = {}'.format(i, status_name))
-
-    if not options.no_plot:
-        if options.title is not None:
-            title = options.title
-        else:
-            title = 'I2C Simulation'
-        rplot.i2c_plot({'scl':nsy_scl, 'sda':nsy_sda}, records, title, save_file=options.save_file, figsize=options.figsize)
-        
 
 
 def demo_uart(options):
@@ -513,10 +466,17 @@ def demo_uart(options):
     message = options.msg
 
     byte_msg = bytearray(message.encode('latin1')) # Get raw bytes as integers
+
+    #byte_msg = bytearray('UART 1')
     
     # Synthesize the waveform edge stream
     # This can be fed directly into uart_decode() if an analog waveform is not needed
     edges_it = uart.uart_synth(byte_msg, bits, baud, parity, stop_bits, idle_start=8.0 / baud, idle_end=8.0 / baud)
+
+    #byte_msg = bytearray('UART 2')
+    #edges2_it = uart.uart_synth(byte_msg, bits, baud, parity, stop_bits, idle_start=8.0 / baud, idle_end=8.0 / baud)
+    #edges_it = sigp.chain_edges(0.0, edges_it, edges2_it)
+
     
     # Convert to a sample stream with band-limited edges and noise
     clean_samples_it = sigp.synth_wave(edges_it, sample_rate, rise_time)
@@ -547,43 +507,29 @@ def demo_uart(options):
         decode_success = False
 
 
-    # Report results
-    print('\nProtocol parameters:')
-    print('  baud:', baud)
-    print('  decode baud:', options.baud)
-    print('  bits:', bits)
-    print('  parity:', parity)
-    print('  stop bits:', stop_bits)
-    print('  polarity:', uart.UARTConfig(polarity))
-    print('  message:', message)
+    protocol_params = {
+        'baud': baud,
+        'decode baud': options.baud,
+        'bits': bits,
+        'parity': parity,
+        'stop bits': stop_bits,
+        'polarity': polarity
+    }
 
-    print('Waveform parameters:')
-    print('  sample rate:', eng.eng_si(sample_rate, 'Hz'))
-    print('  rise time:', eng.eng_si(rise_time, 's', 1))
-    print('  SNR:', noise_snr, 'dB')
+    wave_params = {
+        'sample rate': eng.eng_si(sample_rate, 'Hz'),
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
+    }
 
-    if decode_success:
-        decoded_msg = ''.join(str(r) for r in records)
-        print('\nDecoded message:', decoded_msg)
-        if decoded_msg == message:
-            print('  (matches input message)')
-        else:
-            print('  (MISMATCH to input message)')
+    plot_params = {
+        'default_title': 'UART Simulation',
+        'label_format': stream.AnnotationFormat.Text
+    }
 
-    if any(r.nested_status() != stream.StreamStatus.Ok for r in records):
-        print('\nDecode errors:')
-        for i, r in enumerate(records):
-            if r.nested_status() != stream.StreamStatus.Ok:
-                status_name = uart.UARTStreamStatus(r.nested_status())
-                print('  record {}: status = {}'.format(i, status_name))
-
-    if not options.no_plot:
-        if options.title is not None:
-            title = options.title
-        else:
-            title = 'UART Simulation'
-        #records = []
-        rplot.uart_plot(noisy_samples, records, title, save_file=options.save_file, figsize=options.figsize)
+    report_results(records, byte_msg, protocol_params, wave_params, decode_success, lambda d, o: (d.data, o))
+    channels = OrderedDict([('Volts', noisy_samples)])
+    plot_channels(channels, records, options, plot_params)
 
 
 
@@ -603,10 +549,14 @@ def demo_ps2(options):
     byte_msg = bytearray(message.encode('latin1')) # Get raw bytes as integers
     direction = [random.choice([ps2.PS2Dir.DeviceToHost, ps2.PS2Dir.HostToDevice]) for b in byte_msg]
 
+    #byte_msg = bytearray('2hst 2dev')
+    #direction = [ps2.PS2Dir.DeviceToHost]*4 + [ps2.PS2Dir.HostToDevice]*5
+    frames = [ps2.PS2Frame(b, d) for b, d in zip(byte_msg, direction)]
+
 
     # Synthesize the waveform edge stream
     # This can be fed directly into spi_decode() if an analog waveform is not needed
-    clk, data = ps2.ps2_synth(byte_msg, direction, clock_freq, 4 / clock_freq, 5 / clock_freq)
+    clk, data = ps2.ps2_synth(frames, clock_freq, 4 / clock_freq, 5 / clock_freq)
     
     # Convert to a sample stream with band-limited edges and noise
     cln_clk_it = sigp.synth_wave(clk, sample_rate, rise_time)
@@ -633,46 +583,28 @@ def demo_ps2(options):
         print('Decode failed:\n  {}'.format(e))
         decode_success = False
 
+    protocol_params = {
+        'clock frequency': eng.eng_si(clock_freq, 'Hz')
+    }
 
-    # Report results
-    print('\nProtocol parameters:')
-    print('  clock frequency:', eng.eng_si(clock_freq, 'Hz'))
-    print('  message:', message)
+    wave_params = {
+        'sample rate': eng.eng_si(sample_rate, 'Hz'),
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
+    }
 
-    print('Waveform parameters:')
-    print('  sample rate:', eng.eng_si(sample_rate, 'Hz'))
-    print('  rise time:', eng.eng_si(rise_time, 's', 1))
-    print('  SNR:', noise_snr, 'dB')
-
-    if decode_success:
-        decoded_msg = ''
-        for r in records:
-            if r.kind == 'PS/2 frame':
-                decoded_msg += chr(r.data)
-            
-        print('\nDecoded message:', decoded_msg)
-        if decoded_msg == message:
-            print('  (matches input message)')
-        else:
-            print('  (MISMATCH to input message)')
-
-            
-    if any(r.nested_status() != stream.StreamStatus.Ok for r in records):
-        print('\nDecode errors:')
-        for i, r in enumerate(records):
-            if r.nested_status() != stream.StreamStatus.Ok:
-                status_name = ps2.PS2StreamStatus(r.nested_status()) #StreamRecord.status_text(r.nested_status())
-                print('  record {}: status = {}'.format(i, status_name))
-
-    if not options.no_plot:
-        if options.title is not None:
-            title = options.title
-        else:
-            title = 'PS/2 Simulation'
-        rplot.ps2_plot({'clk':nsy_clk, 'data':nsy_data}, records, title, save_file=options.save_file, figsize=options.figsize)
+    plot_params = {
+        'default_title': 'PS/2 Simulation',
+        'label_format': stream.AnnotationFormat.Text
+    }
 
 
-def demo_iso_k_line(options):
+    report_results(records, frames, protocol_params, wave_params, decode_success, lambda d, o: (d.data, o))
+    channels = OrderedDict([('CLK (V)', nsy_clk), ('DATA (V)', nsy_data)])
+    plot_channels(channels, records, options, plot_params)
+
+
+def demo_kline(options):
     import ripyl.protocol.iso_k_line as kline
     print('ISO K-Line protocol\n')
     
@@ -700,7 +632,9 @@ def demo_iso_k_line(options):
         # Sagem proprietary SID
         [0x68, 0x6A, 0xF1, 0x22, 0x00, 0x1A, 0xFF],
         [0x48, 0x6B, 0xD1, 0x62, 0x00, 0x1A, 0x00, 0x35, 0x35]
-    ]    
+    ]
+
+    #messages = messages[0:2]
 
 
     
@@ -730,56 +664,23 @@ def demo_iso_k_line(options):
         print('Decode failed:\n  {}'.format(e))
         decode_success = False
 
+    protocol_params = {
+    }
 
-    # Report results
-    print('\nProtocol parameters:')
-    print('  messages:')
-    for msg in messages:
-        print('  {}'.format(' '.join(['{:02x}'.format(b) for b in msg])))
+    wave_params = {
+        'sample rate': eng.eng_si(sample_rate, 'Hz'),
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
+    }
 
+    plot_params = {
+        'default_title': 'ISO K-Line Simulation',
+        'label_format': stream.AnnotationFormat.Hex
+    }
 
-    print('Waveform parameters:')
-    print('  sample rate:', eng.eng_si(sample_rate, 'Hz'))
-    print('  rise time:', eng.eng_si(rise_time, 's', 1))
-    print('  SNR:', noise_snr, 'dB')
-
-    if decode_success:
-        raw_decode = []
-        for r in records:
-            msg = r.msg.header.bytes() + r.msg.data + [r.msg.checksum]
-            raw_decode.append([b.data for b in msg])
-
-        print('\nDecoded messages:')
-        msg_match = True
-        for msg, omsg in zip(raw_decode, messages):
-            if msg != omsg:
-                msg_match = False
-                m_flag = '< MISMATCH'
-            else:
-                m_flag = ''
-            print('  {} {}'.format(' '.join(['{:02x}'.format(b) for b in msg]), m_flag))
-
-
-        if msg_match:
-            print('  (matches input message)')
-        else:
-            print('  (MISMATCH to input message)')
-                
-    if any(r.nested_status() != stream.StreamStatus.Ok for r in records):
-        print('\nDecode errors:')
-        for i, r in enumerate(records):
-            if r.nested_status() != stream.StreamStatus.Ok:
-                status_name = kline.KLineStreamMessage(r.nested_status())
-                print('  record {}: status = {}'.format(i, status_name))
-
-    if not options.no_plot:
-        if options.title is not None:
-            title = options.title
-        else:
-            title = 'ISO K-Line Simulation'
-        rplot.iso_k_line_plot(noisy_samples, records, title, save_file=options.save_file, \
-            label_format='hex', figsize=options.figsize)
-
+    report_results(records, messages, protocol_params, wave_params, decode_success, lambda d, o: (d.msg.raw_data(full_message=True), o) )
+    channels = OrderedDict([('Volts', noisy_samples)])
+    plot_channels(channels, records, options, plot_params)
 
 
 
@@ -796,6 +697,8 @@ def demo_rc5(options):
         rc5.RC5Message(cmd=0x42, addr=0x14, toggle=0), \
         rc5.RC5Message(cmd=0x32, addr=0x1A, toggle=1)  \
     ]
+
+    #messages = [messages[0]]
 
     # Synthesize the waveform edge stream
     edges = rc5.rc5_synth(messages, message_interval=5.0e-3, idle_start=1.0e-3, idle_end=1.0e-3)
@@ -815,17 +718,18 @@ def demo_rc5(options):
 
     wave_params = {
         'sample rate': eng.eng_si(sample_rate, 'Hz'),
-        'rise time': eng.eng_si(rise_time, 's', 1)
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
     }
 
     plot_params = {
         'default_title': 'RC5 Simulation',
-        'decode_success': decode_success,
         'label_format': stream.AnnotationFormat.Hex
     }
 
+    report_results(records, messages, {}, wave_params, decode_success, lambda d, o: (d.data, o))
     channels = OrderedDict([('Volts', noisy_samples)])
-    finish_demo(records, messages, {}, wave_params, plot_params, channels, options)
+    plot_channels(channels, records, options, plot_params)
 
 
 def demo_rc6(options):
@@ -841,6 +745,8 @@ def demo_rc6(options):
         rc6.RC6Message(cmd=0x42, addr=0x14, toggle=0, mode=0), \
         rc6.RC6Message(cmd=0x32, addr=0x1A, toggle=1, mode=1)  \
     ]
+
+    #messages = [messages[0]]
 
     # Synthesize the waveform edge stream
     edges = rc6.rc6_synth(messages, message_interval=5.0e-3, idle_start=1.0e-3, idle_end=1.0e-3)
@@ -860,17 +766,18 @@ def demo_rc6(options):
 
     wave_params = {
         'sample rate': eng.eng_si(sample_rate, 'Hz'),
-        'rise time': eng.eng_si(rise_time, 's', 1)
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
     }
 
     plot_params = {
         'default_title': 'RC6 Simulation',
-        'decode_success': decode_success,
         'label_format': stream.AnnotationFormat.Hex
     }
 
+    report_results(records, messages, {}, wave_params, decode_success, lambda d, o: (d.data, o))
     channels = OrderedDict([('Volts', noisy_samples)])
-    finish_demo(records, messages, {}, wave_params, plot_params, channels, options)
+    plot_channels(channels, records, options, plot_params)
 
 
 def demo_nec(options):
@@ -887,6 +794,8 @@ def demo_nec(options):
         nec.NECRepeat(), \
         nec.NECMessage(cmd=0x32, addr_low=0x1A)  \
     ]
+
+    #messages = messages[0:2]
 
     # Synthesize the waveform edge stream
     edges = nec.nec_synth(messages, message_interval=5.0e-3, idle_start=1.0e-3, idle_end=1.0e-3)
@@ -906,17 +815,19 @@ def demo_nec(options):
 
     wave_params = {
         'sample rate': eng.eng_si(sample_rate, 'Hz'),
-        'rise time': eng.eng_si(rise_time, 's', 1)
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
     }
 
     plot_params = {
         'default_title': 'NEC Simulation',
-        'decode_success': decode_success,
         'label_format': stream.AnnotationFormat.Hex
     }
 
+    report_results(records, messages, {}, wave_params, decode_success, lambda d, o: (d.data, o))
     channels = OrderedDict([('Volts', noisy_samples)])
-    finish_demo(records, messages, {}, wave_params, plot_params, channels, options)
+    plot_channels(channels, records, options, plot_params)
+
 
 
 
@@ -933,6 +844,8 @@ def demo_sirc(options):
         sirc.SIRCMessage(cmd=0x42, device=0x14), \
         sirc.SIRCMessage(cmd=0x32, device=0x0A, extended=0x15)  \
     ]
+
+    #messages = [messages[1]]
 
     # Synthesize the waveform edge stream
     edges = sirc.sirc_synth(messages, message_interval=5.0e-3, idle_start=1.0e-3, idle_end=1.0e-3)
@@ -952,17 +865,18 @@ def demo_sirc(options):
 
     wave_params = {
         'sample rate': eng.eng_si(sample_rate, 'Hz'),
-        'rise time': eng.eng_si(rise_time, 's', 1)
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
     }
 
     plot_params = {
         'default_title': 'SIRC Simulation',
-        'decode_success': decode_success,
         'label_format': stream.AnnotationFormat.Hex
     }
 
+    report_results(records, messages, {}, wave_params, decode_success, lambda d, o: (d.data, o))
     channels = OrderedDict([('Volts', noisy_samples)])
-    finish_demo(records, messages, {}, wave_params, plot_params, channels, options)
+    plot_channels(channels, records, options, plot_params)
 
 
 
@@ -987,46 +901,44 @@ def plot_channels(channels, annotations, options, plot_params):
 
 
         plotter = rplot.Plotter()
-        plotter.plot(channels, annotations, title, label_format=plot_params['label_format'])
+        annotations = None if options.no_annotation else annotations
+        plotter.plot(channels, annotations, title, label_format=plot_params['label_format'], show_names=options.show_names)
         if options.save_file is None:
             plotter.show()
         else:
-            plotter.save_plot(options.save_file)
+            plotter.save_plot(options.save_file, options.figsize)
 
-def finish_demo(decoded_recs, orig_messages, protocol_params, wave_params, plot_params, channels, options):
+def report_results(decoded_recs, orig_messages, protocol_params, wave_params, decode_success, extract_func=None):
 
     # Report results
     print('\nProtocol parameters:')
     print('  Messages:')
     for msg in orig_messages:
         print('   ', msg)
+    for k, v in protocol_params.iteritems():
+        print( '  {}: {}'.format(k, v))
 
     print('Waveform parameters:')
     for k, v in wave_params.iteritems():
         print( '  {}: {}'.format(k, v))
-    #print('  sample rate:', eng.eng_si(sample_rate, 'Hz'))
-    #print('  rise time:', eng.eng_si(rise_time, 's', 1))
-    print('  SNR:', options.snr_db, 'dB')
 
 
-    if plot_params['decode_success']:
+    if decode_success and extract_func is not None:
         print('\nDecoded messages:')
         msg_match = True
-        for dmsg, omsg in zip(decoded_recs, orig_messages):
-            #if dmsg.data != omsg: #FIX: restore this in a more general way
-            #    msg_match = False
-            #    m_flag = ' < MISMATCH'
-            #else:
-            #    m_flag = ''
-            #print('  {}{}'.format(dmsg.data, m_flag))
-            pass
+
+        for dmsg, omsg in [extract_func(d, o) for d, o in zip(decoded_recs, orig_messages)]:
+            if dmsg != omsg:
+                msg_match = False
+                m_flag =  ' < MISMATCH'
+            else:
+                m_flag = ''
+            print('  {}{}'.format(dmsg, m_flag))
 
         if msg_match:
             print('  (matches input message)')
         else:
             print('  (MISMATCH to input message)')
-
-    plot_channels(channels, decoded_recs, options, plot_params)
 
 
         

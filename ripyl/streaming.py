@@ -65,14 +65,15 @@ class StreamStatus(Enum):
 
 class AnnotationFormat(Enum):
     '''Enumeration of annotation data formats'''
-    Hidden = 0
-    General = 1
-    String = 2
-    Text = 3
-    Int = 4
-    Hex = 5
-    Bin = 6
-    Enum = 7
+    Hidden = 0      # Invisible text label
+    Invisible = 1   # Invisible text label and rectangle
+    General = 2     # Generic label format controlled by the default_format attribute of StreamRecord.text()
+    String = 3      # The data attribute is treated as a string
+    Text = 4        # The data attribute is a sequence of characters to be converted into a string
+    Int = 5
+    Hex = 6
+    Bin = 7
+    Enum = 8        # The data attribute is an enumeration value
 
 
     
@@ -106,13 +107,81 @@ class StreamRecord(object):
             
         return cur_status
 
-    def annotate(self, style=None, fields={}, data_format=AnnotationFormat.General):
-        ''''Set annotation attributes'''
+    def annotate(self, style=None, fields=None, data_format=AnnotationFormat.General):
+        ''''Set annotation attributes
+
+        style (string or None)
+            The name of a style to use for drawing a rectangle representing this record
+            (as defined in ripyl.util.plot.annotation_styles)
+
+        fields (dict of string:value)
+            A set of arbitrary info fields that may be displayed as attributes of this record.
+            The special field '_bits' identifies the number of data bits in this record
+            The special field '_enum' identifies an enumeration type for this record's data attribute
+            The special field 'value' is a string that will override any other source of label text
+
+        data_format (AnnotationFormat)
+            The format for the text label
+        '''
         self.style = style
         self.data_format = data_format
+        if fields is None: fields = {}
         self.fields = fields
 
         return self
+
+    def text(self, default_format=AnnotationFormat.String):
+        '''Generate a string representation of this segment's data
+
+        default_format (AnnotationFormat)
+            Set the format to use when the data_format attribute is General
+        '''
+        if self.data is None or self.data_format == AnnotationFormat.Hidden \
+            or self.data_format == AnnotationFormat.Invisible:
+            return ''
+
+        if self.data_format == AnnotationFormat.General:
+            data_format = default_format
+        else:
+            data_format = self.data_format
+
+        if '_value' in self.fields and (data_format == AnnotationFormat.String or data_format == AnnotationFormat.Enum):
+            return str(self.fields['_value'])
+
+        if data_format == AnnotationFormat.String:
+            return str(self.data)
+        elif data_format == AnnotationFormat.Enum and '_enum' in self.fields:
+            return self.fields['_enum'](self.data)
+    
+
+        if hasattr(self.data, '__len__'):
+            data = self.data
+        else:
+            data = (self.data,)
+
+        words = []
+        for d in data:
+            if data_format == AnnotationFormat.Int:
+                words.append(str(d))
+            elif data_format == AnnotationFormat.Hex:
+                words.append('16#{:02X}#'.format(d))
+            elif data_format == AnnotationFormat.Text:
+                try:
+                    char = chr(d)
+                except ValueError:
+                    char = chr(0)
+
+                if char not in string.printable:
+                    char = '16#{:02X}#'.format(d)
+                words.append(char)
+            else:
+                words.append('?')
+
+        if data_format == AnnotationFormat.Text:
+            return ''.join(words)
+        else:
+            return ' '.join(words)
+
         
     @classmethod
     def status_text(cls, status):
@@ -159,50 +228,6 @@ class StreamSegment(StreamRecord):
     def __str__(self):
         return self.text()
 
-    def text(self, default_format=AnnotationFormat.String):
-        '''Generate a string representation of this segment's data
-
-        default_format (AnnotationFormat)
-            Set the format to use when the data_format attribute is General
-        '''
-        if self.data is None or self.data_format == AnnotationFormat.Hidden:
-            return ''
-
-        if self.data_format == AnnotationFormat.General:
-            data_format = default_format
-        else:
-            data_format = self.data_format
-
-        if data_format == AnnotationFormat.String:
-            return str(self.data)
-
-        if hasattr(self.data, '__len__'):
-            data = self.data
-        else:
-            data = (self.data,)
-
-        words = []
-        for d in data:
-            if data_format == AnnotationFormat.Int:
-                words.append(str(d))
-            elif data_format == AnnotationFormat.Hex:
-                words.append('{:02X}'.format(d))
-            elif data_format == AnnotationFormat.Text:
-                try:
-                    char = chr(d)
-                except ValueError:
-                    char = chr(0)
-
-                if char not in string.printable:
-                    char = '/{:02X}/'.format(d)
-                words.append(char)
-            else:
-                words.append('?')
-
-        if data_format == AnnotationFormat.Text:
-            return ''.join(words)
-        else:
-            return ' '.join(words)
         
     def __repr__(self):
         return 'StreamSegment(({0},{1}), {2}, \'{3}\')'.format(self.start_time, self.end_time, \
@@ -547,6 +572,7 @@ class ChunkExtractor(object):
             return None
 
     def buffered_chunk(self):
+        '''Get all remaining buffered samples'''
         return self.next_chunk(self.buf_count)
 
 
@@ -607,7 +633,7 @@ def extract_samples(samples, sample_count=1000):
             sample_count = next_sc
 
 
-def extract_samples(samples):
+def extract_all_samples(samples):
     '''Get all samples from a sample stream along with parameter information.
 
     samples (iterable of SampleChunk objects)
@@ -638,7 +664,7 @@ def sample_stream_to_samples(samples):
     Returns a numpy array of float.
     '''
 
-    return extract_samples(samples)[0]
+    return extract_all_samples(samples)[0]
     
     
 
@@ -671,3 +697,4 @@ def samples_to_sample_stream(raw_samples, sample_period, start_time=0.0, chunk_s
 
         yield sc
         t += sample_period * len(chunk)
+

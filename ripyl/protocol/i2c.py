@@ -82,18 +82,17 @@ def i2c_decode(scl, sda, logic_levels=None, stream_type=stream.StreamType.Sample
     processing operations.
 
     The scl, and sda parameters are edge or sample streams.
-    Each is a stream of 2-tuples of (time, value) pairs. The type of stream is identified
-    by the stream_type parameter. Either a series of real valued samples that will be
-    analyzed to find edge transitions or a set of pre-processed edge transitions
-    representing the 0 and 1 logic states of the waveforms. When this is a sample
-    stream, an initial block of data on the scl stream is consumed to determine the most
-    likely logic levels in the signal.
-    
-    scl (sequence of (float, number) pairs)
-        An iterable representing the I2C serial clock
-    
-    sda (sequence of (float, number) pairs)
-        An iterable representing the I2C serial data
+    Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
+    of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
+    parameter. Sample streams will be analyzed to find edge transitions representing
+    0 and 1 logic states of the waveforms. With sample streams, an initial block of data
+    on the scl stream is consumed to determine the most likely logic levels in the signal.
+
+    scl (iterable of SampleChunk objects or (float, int) pairs)
+        A sample stream or edge stream representing the I2C serial clock
+
+    sda (iterable of SampleChunk objects or (float, int) pairs)
+        A sample stream or edge stream representing the I2C serial data
 
     logic_levels ((float, float) or None)
         Optional pair that indicates (low, high) logic levels of the sample
@@ -304,12 +303,8 @@ def i2c_decode(scl, sda, logic_levels=None, stream_type=stream.StreamType.Sample
                     else: # S_DATA
                         nb = I2CByte(f_bound, word, ack_bit)
                         nb.annotate('frame', {}, stream.AnnotationFormat.Hidden)
-                        d_start = start_time - 0.25 * clock_period
-                        d_end = d_start + 8.5 * clock_period
                         nb.subrecords.append(stream.StreamSegment(d_bound, word, kind='data'))
                         nb.subrecords[-1].annotate('data', {'_bits':8})
-                        a_start = end_time - 0.25 * clock_period
-                        a_end = end_time + 0.25 * clock_period
                         nb.subrecords.append(stream.StreamSegment(a_bound, ack_bit, kind='ack', status=a_status))
                         nb.subrecords[-1].annotate('ack', {'_bits':1}, stream.AnnotationFormat.Hidden)
 
@@ -387,8 +382,8 @@ class I2CTransfer(stream.StreamRecord):
             
         if self.address != other.address:
             match = False
-            
-        if self.data != other.data:
+        
+        if bytearray(self.data) != bytearray(other.data):
             match = False
             
         return match

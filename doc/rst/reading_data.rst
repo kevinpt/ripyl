@@ -9,7 +9,7 @@ Here are some example functions for reading data from various oscilloscopes.
 LeCroy
 ------
 
-Most LeCroy oscilloscopes support the same binary and CSV formats. Here is an example function for reading the CSV files produced by them.
+Most LeCroy oscilloscopes support the same binary and CSV formats. Here is an example function for reading the CSV files produced by these instruments.
 
 .. code-block:: python
 

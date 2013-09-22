@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Common data structures &mdash; Ripyl 1.0.1 documentation</title>
+    <title>Common data structures &mdash; Ripyl 1.1 documentation</title>
     
     <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0.1',
+        VERSION:     '1.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="Ripyl 1.0.1 documentation" href="../index.html" />
+    <link rel="top" title="Ripyl 1.1 documentation" href="../index.html" />
     <link rel="next" title="Ripyl protocols" href="protocols.html" />
     <link rel="prev" title="Reading oscilloscope data" href="reading_data.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="reading_data.html" title="Reading oscilloscope data"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.0.1 documentation</a> &raquo;</li> 
+        <li><a href="../index.html">Ripyl 1.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -59,9 +59,16 @@
 <p>The Ripyl library makes use of a few common data structures that will be discussed below.</p>
 <div class="section" id="streams">
 <span id="id1"></span><h2>Streams<a class="headerlink" href="#streams" title="Permalink to this headline">¶</a></h2>
-<p>Throughout the Ripyl documentation there is reference to &#8220;streams&#8221; of data. This is a term used to describe an informally defined sequence of sample or edge data that is used as input and output of many library functions. A stream consists of a sequence (list, tuple, etc.) or iterable (iterator or generator function object) that contains/yields a series of tuple pairs of numbers. The first number is always a float representing the time that the second element of the pair occurs at. The second number is either a float or an int that represents a sample or logical edge state (high, low, middle, etc.) respectively. The former case is referred to as a &#8220;sample stream&#8221; the latter is an &#8220;edge stream&#8221;.</p>
-<p>The time value in each pair is an arbitrary time in seconds relative to whatever point is desired. Negative values are acceptable. The only firm requirement is that time increases monotonically. For sample streams the interval between successive time values should be fixed before applying certain signal processing operations like <a class="reference internal" href="../apidoc/ripyl.html#ripyl.sigproc.filter_waveform" title="ripyl.sigproc.filter_waveform"><tt class="xref py py-func docutils literal"><span class="pre">filter_waveform()</span></tt></a> and <a class="reference internal" href="../apidoc/ripyl.html#ripyl.sigproc.noisify" title="ripyl.sigproc.noisify"><tt class="xref py py-func docutils literal"><span class="pre">noisify()</span></tt></a>. Otherwise, a variable sample rate will be handled appropriately.</p>
-<p>Sample streams are farily self explanatory. They are a time series of sampled data points. Edge streams are different in that they represent the logical levels of edge transitions. The time intervals between edges are not fixed. The logical state of each edge represents a transition at the current time that is maintained until the next edge in the sequence. Logical states are encoded as an integer value. For waveforms with binary states these will be 0 for low and 1 for high. For differential signals the states are -1 for low, 0 for differential-0, and 1 for high. The first element of an edge stream establishes the initial state of the stream and does not represent an edge. Internally all of the decode functions convert their input streams to edge streams before proceding to decode their content.</p>
+<p>Throughout the Ripyl documentation there is reference to &#8220;streams&#8221; of data. This is a term used to describe an informally defined sequence of sample or edge data that is used as input and output of many library functions. A stream is a sequence of data that may be produced on demand by an iterator or generator function. Sample streams and edge streams are the two types of stream data structures used in Ripyl. Internally, all of the decode functions convert their input streams to edge streams before proceding to decode their content.</p>
+<div class="section" id="sample-streams">
+<h3>Sample streams<a class="headerlink" href="#sample-streams" title="Permalink to this headline">¶</a></h3>
+<p>Sample streams are farily self explanatory. They are a time series of sampled data points. For efficiency purposes, a group of samples is aggregated into a <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.SampleChunk" title="ripyl.streaming.SampleChunk"><tt class="xref py py-class docutils literal"><span class="pre">SampleChunk</span></tt></a> object containing a NumPy array of samples and attributes identifying the start time and sample period of each chunk. The number of samples in a chunk may vary but it defaults to 1000. Raw sample data can be converted to a sample stream with the <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.samples_to_sample_stream" title="ripyl.streaming.samples_to_sample_stream"><tt class="xref py py-func docutils literal"><span class="pre">samples_to_sample_stream()</span></tt></a> function.</p>
+</div>
+<div class="section" id="edge-streams">
+<h3>Edge streams<a class="headerlink" href="#edge-streams" title="Permalink to this headline">¶</a></h3>
+<p>Edge streams are different from sample streams in that they represent the logical levels of edge transitions. An edge stream consists of a sequence (list, tuple, etc.) or iterable (iterator or generator function object) that contains/yields a series of tuple pairs of numbers. The first number is a float representing the time that the second element of the pair occurs at. The second number is an int that represents the logical edge state (high, low, middle, etc.).</p>
+<p>The time value in each pair is an arbitrary time in seconds relative to whatever point is desired. Negative values are acceptable. The only firm requirement is that time increases monotonically. The time intervals between edges are not fixed. The logical state of each edge represents a transition at the current time that is maintained until the next edge in the sequence. Logical states are encoded as an integer value. For waveforms with binary states these will be 0 for low and 1 for high. For differential signals the states are -1 for low, 0 for differential-0, and 1 for high. The first element of an edge stream establishes the initial state of the stream and does not represent an edge.</p>
+</div>
 </div>
 <div class="section" id="streamrecords">
 <h2>StreamRecords<a class="headerlink" href="#streamrecords" title="Permalink to this headline">¶</a></h2>
@@ -73,6 +80,10 @@
 <p>The <tt class="docutils literal"><span class="pre">subrecords</span></tt> attribute is a list of additional StreamRecord objects that are the children of the current object. They are used by various decoders to create a heirarchy of decoded data at varying levels of detail. An example case is the <a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.uart" title="ripyl.protocol.uart"><tt class="xref py py-mod docutils literal"><span class="pre">UART</span></tt></a> decoder that yields StreamRecords for each decoded byte each of which has subrecords with details on the start bit, parity bit, and stop bit locations.</p>
 <p>The <tt class="docutils literal"><span class="pre">stream_id</span></tt> attribute is largely unused in the current implementation of Ripyl. It is intended to allow separate streams of decoded data to be present in a single iterator. Each stream is assigned a different ID number that can be checked later to isolate data from different streams. The <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.merge_streams" title="ripyl.streaming.merge_streams"><tt class="xref py py-func docutils literal"><span class="pre">merge_streams()</span></tt></a> function combines two separate StreamRecord streams and assigns new IDs to each one. There is no practical use for this behavior as yet, though.</p>
 <p>StreamRecord objects have a <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.StreamRecord.nested_status" title="ripyl.streaming.StreamRecord.nested_status"><tt class="xref py py-meth docutils literal"><span class="pre">nested_status()</span></tt></a> method that returns the largest status code for the current StreamRecord and all of its children. This can be useful when an error code is present in a subrecord but not in the containing StreamRecord.</p>
+<div class="section" id="annotation">
+<h3>Annotation<a class="headerlink" href="#annotation" title="Permalink to this headline">¶</a></h3>
+<p>StreamRecord objects have additional attributes used to support plot annotation. These are <tt class="docutils literal"><span class="pre">style</span></tt>, <tt class="docutils literal"><span class="pre">data_format</span></tt>, and <tt class="docutils literal"><span class="pre">fields</span></tt>. The <tt class="docutils literal"><span class="pre">style</span></tt> attribute is a string identifying the name of a style defined in ripyl.util.plot.annotation_styles. <tt class="docutils literal"><span class="pre">data_format</span></tt> is an <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.AnnotationFormat" title="ripyl.streaming.AnnotationFormat"><tt class="xref py py-class docutils literal"><span class="pre">AnnotationFormat</span></tt></a> value identifying the format of a text label for the record. <tt class="docutils literal"><span class="pre">fields</span></tt> is a dict containing additional kay, value pairs of useful display information. These attributes can be set together with the <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.StreamRecord.annotate" title="ripyl.streaming.StreamRecord.annotate"><tt class="xref py py-meth docutils literal"><span class="pre">annotate()</span></tt></a> method.</p>
+</div>
 <div class="section" id="streamrecord-subclasses">
 <h3>StreamRecord subclasses<a class="headerlink" href="#streamrecord-subclasses" title="Permalink to this headline">¶</a></h3>
 <p>There are two main sub-classes of StreamRecord: <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.StreamSegment" title="ripyl.streaming.StreamSegment"><tt class="xref py py-class docutils literal"><span class="pre">StreamSegment</span></tt></a> and <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.StreamEvent" title="ripyl.streaming.StreamEvent"><tt class="xref py py-class docutils literal"><span class="pre">StreamEvent</span></tt></a>. The former represents information extracted from a span of time in the input stream. The latter represents events that happen at a specific point in time. StreamSegments can overlap in time. The children of a StreamSegment will typically be other StreamSegment objects that have a time span contained within the bounds of their parent but this is not rigidly enforced by the Ripyl library.</p>
@@ -84,7 +95,7 @@
 <div class="section" id="iterators">
 <h2>Iterators<a class="headerlink" href="#iterators" title="Permalink to this headline">¶</a></h2>
 <p>Many of the functions in Ripyl are <a class="reference external" href="http://docs.python.org/2/howto/functional.html#generators">generator functions</a> that yield results through an iterable generator object rather than returning a result all at once. Some functions require an iterator as input and will not work properly if a list is passed instead. The following examples show how to convert between lists and iterators as needed.</p>
-<p>It is important to realize that generator objects result in lazy evaluation and that the function call to them does not terminate until they have no more data to produce. You can force evaluation with the list() built-in.</p>
+<p>It is important to realize that generator objects result in lazy evaluation and that the function call to them does not terminate until they have no more data to produce. You can force complete evaluation of a generator with the list() built-in.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># Decode function produces an iterable generator object</span>
 <span class="n">records_it</span> <span class="o">=</span> <span class="n">XXX</span><span class="o">.</span><span class="n">XXX_decode</span><span class="p">()</span>
 
@@ -112,7 +123,7 @@
 <span class="n">records_it</span> <span class="o">=</span> <span class="n">spi</span><span class="o">.</span><span class="n">spi_decode</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">clk_samples</span><span class="p">),</span> <span class="o">...</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>You can also use the built-in <a class="reference external" href="http://docs.python.org/2/library/itertools.html#itertools.tee">itertools.tee()</a> function to split an iterator into two or more iterators if you need to process a stream data set more than once.</p>
+<p>You can also use the built-in <a class="reference external" href="http://docs.python.org/2/library/itertools.html#itertools.tee">itertools.tee()</a> function to split an iterator into two or more iterators if you need to process a stream data set more than once. In this example the clk_ss_it variable is repeatedly rebound to new iterator objects but the previous iterators continue to exist until the entire data set is consumed.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">itertools</span>
 <span class="o">...</span>
 
@@ -169,8 +180,13 @@
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Common data structures</a><ul>
-<li><a class="reference internal" href="#streams">Streams</a></li>
+<li><a class="reference internal" href="#streams">Streams</a><ul>
+<li><a class="reference internal" href="#sample-streams">Sample streams</a></li>
+<li><a class="reference internal" href="#edge-streams">Edge streams</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#streamrecords">StreamRecords</a><ul>
+<li><a class="reference internal" href="#annotation">Annotation</a></li>
 <li><a class="reference internal" href="#streamrecord-subclasses">StreamRecord subclasses</a></li>
 </ul>
 </li>
@@ -222,7 +238,7 @@
         <li class="right" >
           <a href="reading_data.html" title="Reading oscilloscope data"
              >previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.0.1 documentation</a> &raquo;</li> 
+        <li><a href="../index.html">Ripyl 1.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

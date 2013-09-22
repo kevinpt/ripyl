@@ -240,17 +240,16 @@ def rc6_synth(messages, idle_start=0.0, message_interval=89.0e-3, idle_end=1.0e-
     '''
 
     t = 0.0
-    ir = 0 # idle-low
 
     pulse_width = 444.0e-6 # 444us pulse width
     
-    yield (t, ir) # set initial conditions
+    yield (t, 0) # set initial conditions; idle-low
     t += idle_start
 
     for msg in messages:
         msg_bits = [1] # Start bit
         msg_bits.extend(split_bits(msg.mode, 3))
-        msg_bits.extend([2,2]) # Place-holders for the toggle bit
+        msg_bits.extend([2, 2]) # Place-holders for the toggle bit
         if msg.customer is not None and msg.mode == 6:
             if msg.customer > 127:
                 msg_bits.append(1) # 15-bit customer
@@ -264,12 +263,12 @@ def rc6_synth(messages, idle_start=0.0, message_interval=89.0e-3, idle_end=1.0e-
 
         #print('\n### synth msg_bits:', msg_bits)
 
-        coded_bits = ((1,0) if b else (0,1) for b in msg_bits) # Expand each bit into a pair of half bits
+        coded_bits = ((1, 0) if b else (0, 1) for b in msg_bits) # Expand each bit into a pair of half bits
         coded_bits = [b for sl in coded_bits for b in sl] # Flatten the tuples
-        coded_bits[8:12] = (1,1,0,0) if msg.toggle else (0,0,1,1) # Add toggle bit
+        coded_bits[8:12] = (1, 1, 0, 0) if msg.toggle else (0, 0, 1, 1) # Add toggle bit
 
         #print('### synth coded_bits:', coded_bits)
-        coded_bits = [1,1,1,1,1,1,0,0] + coded_bits # Add AGC leader
+        coded_bits = [1, 1, 1, 1, 1, 1, 0, 0] + coded_bits # Add AGC leader
 
         prev_state = 0
         for b in coded_bits:

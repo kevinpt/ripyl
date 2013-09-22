@@ -25,10 +25,8 @@
 
 from __future__ import print_function, division
 
-import itertools
-
 from ripyl.decode import *
-from ripyl.streaming import *
+import ripyl.streaming as stream
 import ripyl.sigproc as sigp
 from ripyl.util.enum import Enum
 import ripyl.protocol.uart as uart
@@ -75,9 +73,9 @@ class KLineProtocol(Enum):
 
 class KLineStreamStatus(Enum):
     '''Enumeration for KLineStreamMessage status codes'''
-    ChecksumError = StreamStatus.Error + 1
-    BadInitError = StreamStatus.Error + 2
-    InvalidMessageError = StreamStatus.Error + 3
+    ChecksumError = stream.StreamStatus.Error + 1
+    BadInitError = stream.StreamStatus.Error + 2
+    InvalidMessageError = stream.StreamStatus.Error + 3
 
 class ISO9141Header(object):
     '''ISO9141 header object
@@ -161,7 +159,8 @@ class ISO14230Header(object):
             rep = 'ISO14230Header({:02x}, {:02x}, {:02x})'.format(self.option.data, self.target.data, \
             self.source.data)
         else:
-            rep = 'ISO14230Header({:02x}, {:02x}, {:02x}, {:02x})'.format(self.option.data, self.target.data, self.source.data, self.length.data)
+            rep = 'ISO14230Header({:02x}, {:02x}, {:02x}, {:02x})'.format(self.option.data, \
+            self.target.data, self.source.data, self.length.data)
 
         return rep
 
@@ -169,7 +168,8 @@ class ISO14230Header(object):
         if self.length is None:
             s = '[{:02x} {:02x} {:02x}]'.format(self.option.data, self.target.data, self.source.data)
         else:
-            s = '[{:02x} ({:02x}) {:02x} {:02x}]'.format(self.option.data, self.length.data, self.target.data, self.source.data)
+            s = '[{:02x} ({:02x}) {:02x} {:02x}]'.format(self.option.data, self.length.data, \
+            self.target.data, self.source.data)
         return s
 
 
@@ -193,12 +193,19 @@ class KLineMessage(obd.OBD2Message):
 
         return True if cs == self.checksum.data else False
 
-    def raw_data(self):
-        '''Get the raw data (minus header and checksum) for the message
+    def raw_data(self, full_message=False):
+        '''Get the raw data for the message
+
+        full_message (bool)
+            Returns complete message including header and checksum when true
 
         Returns a list of bytes.
         '''
-        return [b.data for b in self.data]
+        if full_message:
+            return [b for a in [[b.data for b in self.header.bytes()], \
+                [b.data for b in self.data], [self.checksum.data]] for b in a]
+        else:
+            return [b.data for b in self.data]
 
 
     @property
@@ -224,7 +231,7 @@ class KLineMessage(obd.OBD2Message):
 
 class KLineStreamMessage(obd.OBD2StreamMessage):
     '''StreamMessage object for the K-line protocols ISO9141 and ISO14230'''
-    def __init__(self, msg, status=StreamStatus.Ok):
+    def __init__(self, msg, status=stream.StreamStatus.Ok):
         obd.OBD2StreamMessage.__init__(self, msg, status)
 
     @classmethod
@@ -244,50 +251,56 @@ class KLineStreamMessage(obd.OBD2StreamMessage):
 
 
 
-class KLineWakeup(StreamSegment):
+class KLineWakeup(stream.StreamSegment):
     '''Encapsulates BRK data values representing the wakeup pattern
     
     This is used for the slow init (0x33 at 5-baud) and the fast init (25ms low, 25ms high)
     ''' 
-    def __init__(self, bounds, edges, status=StreamStatus.Ok):
-        StreamSegment.__init__(self, bounds, None, status)
+    def __init__(self, bounds, edges, status=stream.StreamStatus.Ok):
+        stream.StreamSegment.__init__(self, bounds, None, status)
         self.data = edges
 
         self.kind = 'K-line wakeup'
 
     def __repr__(self):
-        status_text = StreamSegment.status_text(self.status)
+        status_text = stream.StreamSegment.status_text(self.status)
         return 'KLineWakeup({})'.format(status_text)
 
 
-class ISO9141Init(StreamSegment):
+class ISO9141Init(stream.StreamSegment):
     '''Encapsulates initialization exchange before messaging begins on ISO9141
     These are the bytes in the 0x55, key1, key2, ~key2 ~wakeup init sequence.
     ''' 
-    def __init__(self, recs, status=StreamStatus.Ok):
+    def __init__(self, recs, status=stream.StreamStatus.Ok):
         bounds = (recs[0].start_time, recs[-1].end_time)
-        StreamSegment.__init__(self, bounds, status)
+        stream.StreamSegment.__init__(self, bounds, status)
+        self.annotate('frame', {}, stream.AnnotationFormat.Hidden)
         for r in recs:
-            self.subrecords.append(r)
+            self.subrecords.append(r.subrecords[1])
+            self.subrecords[-1].annotate('ctrl', {}, stream.AnnotationFormat.General)
 
         self.kind = 'ISO9141 init'
 
     def __repr__(self):
-        status_text = StreamSegment.status_text(self.status)
+        status_text = stream.StreamSegment.status_text(self.status)
         return 'ISO9141Init({})'.format(status_text)
 
 
 
-def iso_k_line_decode(stream, min_message_interval=7.0e-3, logic_levels=None, stream_type=StreamType.Samples):
+def iso_k_line_decode(stream_data, min_message_interval=7.0e-3, logic_levels=None, stream_type=stream.StreamType.Samples):
     '''Decode ISO9141 and ISO14230 data streams
 
     This is a generator function that can be used in a pipeline of waveform
     procesing operations.
 
-    stream (iterable of SampleChunk objects or (float, int) pairs)
-        A sample stream or edge stream of K-line messages. The type of stream is identified
-        by the stream_type parameter. When this is a sample stream, an initial block
-        of data is consumed to determine the most likely logic levels in the signal.
+    Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
+    of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
+    parameter. Sample streams will be analyzed to find edge transitions representing
+    0 and 1 logic states of the waveforms. With sample streams, an initial block of data
+    is consumed to determine the most likely logic levels in the signal.
+
+    stream_data (iterable of SampleChunk objects or (float, int) pairs)
+        A sample stream or edge stream of K-line messages.
 
     min_message_interval (float)
         The minimum time between bytes for identifying the end and start
@@ -310,15 +323,15 @@ def iso_k_line_decode(stream, min_message_interval=7.0e-3, logic_levels=None, st
       be determined.
     '''
 
-    if stream_type == StreamType.Samples:
+    if stream_type == stream.StreamType.Samples:
         if logic_levels is None:
-            samp_it, logic_levels = check_logic_levels(stream)
+            samp_it, logic_levels = check_logic_levels(stream_data)
         else:
-            samp_it = stream
+            samp_it = stream_data
         
         edges = find_edges(samp_it, logic_levels, hysteresis=0.4)
     else: # the stream is already a list of edges
-        edges = stream
+        edges = stream_data
 
     bits = 8
     parity = None
@@ -327,7 +340,7 @@ def iso_k_line_decode(stream, min_message_interval=7.0e-3, logic_levels=None, st
     baud_rate = 10400
 
     records_it = uart.uart_decode(edges, bits, parity, stop_bits, lsb_first=True, \
-        polarity=polarity, baud_rate=baud_rate, logic_levels=logic_levels, stream_type=StreamType.Edges)
+        polarity=polarity, baud_rate=baud_rate, logic_levels=logic_levels, stream_type=stream.StreamType.Edges)
 
     S_WAKEUP  = 0
     S_INIT    = 1
@@ -394,13 +407,30 @@ def iso_k_line_decode(stream, min_message_interval=7.0e-3, logic_levels=None, st
 
             msg = KLineMessage(msg_type, header, msg_bytes[header_length:-1], msg_bytes[-1])
 
-            status = KLineStreamStatus.ChecksumError if not msg.checksum_good() else StreamStatus.Ok
+            status = KLineStreamStatus.ChecksumError if not msg.checksum_good() else stream.StreamStatus.Ok
             obd_msg = KLineStreamMessage(msg, status)
+            obd_msg.annotate('frame', {}, stream.AnnotationFormat.Hidden)
+            for b in msg_bytes:
+                obd_msg.subrecords.append(b.subrecords[1])
+                obd_msg.subrecords[-1].annotate('data', {'_bits':8}, stream.AnnotationFormat.General)
+                obd_msg.subrecords[-1].kind = 'data'
+
+            for sr in obd_msg.subrecords[0:header_length]:
+                sr.style = 'addr'
+                sr.kind = 'header'
+
+            obd_msg.subrecords[-1].style = 'check'
+            obd_msg.subrecords[-1].status = status
+            obd_msg.subrecords[-1].kind = 'checksum'
 
         else:
             # Not enough bytes for proper K-line message
             msg = KLineMessage(obd.OBD2MsgType.Unknown, None, msg_bytes, None)
             obd_msg = KLineStreamMessage(msg, KLineStreamStatus.InvalidMessageError)
+            for b in msg_bytes:
+                obd_msg.subrecords.append(b.subrecords[1])
+                obd_msg.subrecords[-1].annotate('misc', {'_bits':8}, stream.AnnotationFormat.General)
+
 
 
         return obd_msg
@@ -418,7 +448,9 @@ def iso_k_line_decode(stream, min_message_interval=7.0e-3, logic_levels=None, st
             if not (r.data == 0x00 and r.status == uart.UARTStreamStatus.FramingError):
                 # not a BRK byte; wakeup has ended
                 bounds = (wakeup_edges[0], r.start_time)
-                yield KLineWakeup(bounds, wakeup_edges)
+                wu = KLineWakeup(bounds, wakeup_edges)
+                wu.annotate('frame', {}, stream.AnnotationFormat.Hidden)
+                yield wu
                 wakeup_edges = []
 
                 if r.data == 0x55: # ISO9141 sync byte
@@ -433,7 +465,7 @@ def iso_k_line_decode(stream, min_message_interval=7.0e-3, logic_levels=None, st
                     state = S_GET_MSG
                     prev_byte_end = r.end_time
                 else: # Unexpected data
-                    se = StreamEvent(r.start_time, kind='Bad init', \
+                    se = stream.StreamEvent(r.start_time, kind='Bad init', \
                         status=KLineStreamStatus.BadInitError)
                     yield se
 
@@ -466,7 +498,8 @@ def iso_k_line_decode(stream, min_message_interval=7.0e-3, logic_levels=None, st
             if len(msg_bytes) == 2:
                 total_length = get_msg_len(msg_bytes)
 
-            #print('### byte:', eng.eng_si(r.start_time, 's'), eng.eng_si(r.start_time - prev_byte_end, 's'), hex(r.data))
+            #print('### byte:', eng.eng_si(r.start_time, 's'), \
+            #    eng.eng_si(r.start_time - prev_byte_end, 's'), hex(r.data))
             if (r.start_time - prev_byte_end > min_message_interval and len(msg_bytes) > 0) or \
                 (total_length is not None and len(msg_bytes) == total_length):
                 # Previous message ended
@@ -491,7 +524,9 @@ def iso_k_line_decode(stream, min_message_interval=7.0e-3, logic_levels=None, st
     # There may have been a partial wakeup pattern at the end of the stream
     if len(wakeup_edges) > 0:
         bounds = (wakeup_edges[0], prev_byte_end)
-        yield KLineWakeup(bounds, wakeup_edges)
+        wu = KLineWakeup(bounds, wakeup_edges)
+        wu.annotate('frame', {}, stream.AnnotationFormat.Hidden)
+        yield wu
 
 
 def iso_k_line_synth(messages, idle_start=0.0, message_interval=8.0e-3, idle_end=0.0, word_interval=1.0e-3):

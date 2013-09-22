@@ -9,6 +9,14 @@ ripyl Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`config` Module
+--------------------
+
+.. automodule:: ripyl.config
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`decode` Module
 --------------------
 
@@ -46,6 +54,7 @@ Subpackages
 
 .. toctree::
 
+    ripyl.cython
     ripyl.protocol
     ripyl.util
 

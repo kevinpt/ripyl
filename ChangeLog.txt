@@ -2,8 +2,25 @@
 Ripyl change log
 ================
 
+v1.1 / 2013-9-21
+================
+
+  Changes
+  -------
+  * Converted sample streams from individual tuples-per-sample to use larger
+    StreamChunk objects.
+  * Added Cython support. The find_logic_levels() function enjoys a speed up from
+    native code implementation.
+  * Added infrared protocols (RC5, RC6, NEC, and SIRC).
+  * Revised plotting architecture to be more general purpose.
+
+
 v1.0.1 / 2013-8-20
 ==================
+
+  Changes
+  -------
+  * Improved test suite
 
   Bug fixes
   ---------
@@ -12,6 +29,3 @@ v1.0.1 / 2013-8-20
   * Fix problem with bus speed detection for USB with certain packets lacking
     a second harmonic in their edge span spectra.
 
-  Changes
-  -------
-  * Improve test suite

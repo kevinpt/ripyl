@@ -1,5 +1,6 @@
+#!/usr/bin/python
 
-'''Ripyl protocol decode library'''
+'''Ripyl utility functions'''
 
 import ripyl.util.enum
 import ripyl.util.bitops

@@ -2,12 +2,23 @@
 
 '''Ripyl protocol decode library'''
 
-__version__ = '1.0.1'
+
+__version__ = '1.1'
 
 import ripyl.sigproc
 import ripyl.decode
 import ripyl.streaming
 import ripyl.util
 import ripyl.protocol
-import ripyl.cython
+import ripyl.config
 
+# Test if cython is available
+try:
+    import Cython
+    cython_exists = True
+except ImportError:
+    cython_exists = False
+
+
+if ripyl.config.use_cython and cython_exists:
+    import ripyl.cython

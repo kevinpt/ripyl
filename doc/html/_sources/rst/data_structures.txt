@@ -9,11 +9,20 @@ The Ripyl library makes use of a few common data structures that will be discuss
 Streams
 -------
 
-Throughout the Ripyl documentation there is reference to "streams" of data. This is a term used to describe an informally defined sequence of sample or edge data that is used as input and output of many library functions. A stream consists of a sequence (list, tuple, etc.) or iterable (iterator or generator function object) that contains/yields a series of tuple pairs of numbers. The first number is always a float representing the time that the second element of the pair occurs at. The second number is either a float or an int that represents a sample or logical edge state (high, low, middle, etc.) respectively. The former case is referred to as a "sample stream" the latter is an "edge stream".
+Throughout the Ripyl documentation there is reference to "streams" of data. This is a term used to describe an informally defined sequence of sample or edge data that is used as input and output of many library functions. A stream is a sequence of data that may be produced on demand by an iterator or generator function. Sample streams and edge streams are the two types of stream data structures used in Ripyl. Internally, all of the decode functions convert their input streams to edge streams before proceding to decode their content.
 
-The time value in each pair is an arbitrary time in seconds relative to whatever point is desired. Negative values are acceptable. The only firm requirement is that time increases monotonically. For sample streams the interval between successive time values should be fixed before applying certain signal processing operations like :func:`~.sigproc.filter_waveform` and :func:`~.sigproc.noisify`. Otherwise, a variable sample rate will be handled appropriately.
+Sample streams
+~~~~~~~~~~~~~~
 
-Sample streams are farily self explanatory. They are a time series of sampled data points. Edge streams are different in that they represent the logical levels of edge transitions. The time intervals between edges are not fixed. The logical state of each edge represents a transition at the current time that is maintained until the next edge in the sequence. Logical states are encoded as an integer value. For waveforms with binary states these will be 0 for low and 1 for high. For differential signals the states are -1 for low, 0 for differential-0, and 1 for high. The first element of an edge stream establishes the initial state of the stream and does not represent an edge. Internally all of the decode functions convert their input streams to edge streams before proceding to decode their content.
+Sample streams are farily self explanatory. They are a time series of sampled data points. For efficiency purposes, a group of samples is aggregated into a :class:`~.streaming.SampleChunk` object containing a NumPy array of samples and attributes identifying the start time and sample period of each chunk. The number of samples in a chunk may vary but it defaults to 1000. Raw sample data can be converted to a sample stream with the :func:`~.streaming.samples_to_sample_stream` function.
+
+
+Edge streams
+~~~~~~~~~~~~
+
+Edge streams are different from sample streams in that they represent the logical levels of edge transitions. An edge stream consists of a sequence (list, tuple, etc.) or iterable (iterator or generator function object) that contains/yields a series of tuple pairs of numbers. The first number is a float representing the time that the second element of the pair occurs at. The second number is an int that represents the logical edge state (high, low, middle, etc.).
+
+The time value in each pair is an arbitrary time in seconds relative to whatever point is desired. Negative values are acceptable. The only firm requirement is that time increases monotonically. The time intervals between edges are not fixed. The logical state of each edge represents a transition at the current time that is maintained until the next edge in the sequence. Logical states are encoded as an integer value. For waveforms with binary states these will be 0 for low and 1 for high. For differential signals the states are -1 for low, 0 for differential-0, and 1 for high. The first element of an edge stream establishes the initial state of the stream and does not represent an edge.
 
 
 StreamRecords
@@ -34,6 +43,11 @@ The ``stream_id`` attribute is largely unused in the current implementation of R
 
 StreamRecord objects have a :meth:`~.streaming.StreamRecord.nested_status` method that returns the largest status code for the current StreamRecord and all of its children. This can be useful when an error code is present in a subrecord but not in the containing StreamRecord.
 
+Annotation
+~~~~~~~~~~
+
+StreamRecord objects have additional attributes used to support plot annotation. These are ``style``, ``data_format``, and ``fields``. The ``style`` attribute is a string identifying the name of a style defined in ripyl.util.plot.annotation_styles. ``data_format`` is an :class:`~.streaming.AnnotationFormat` value identifying the format of a text label for the record. ``fields`` is a dict containing additional kay, value pairs of useful display information. These attributes can be set together with the :meth:`~.streaming.StreamRecord.annotate` method. 
+
 StreamRecord subclasses
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -51,7 +65,7 @@ Iterators
 
 Many of the functions in Ripyl are `generator functions <http://docs.python.org/2/howto/functional.html#generators>`_ that yield results through an iterable generator object rather than returning a result all at once. Some functions require an iterator as input and will not work properly if a list is passed instead. The following examples show how to convert between lists and iterators as needed.
 
-It is important to realize that generator objects result in lazy evaluation and that the function call to them does not terminate until they have no more data to produce. You can force evaluation with the list() built-in.
+It is important to realize that generator objects result in lazy evaluation and that the function call to them does not terminate until they have no more data to produce. You can force complete evaluation of a generator with the list() built-in.
 
 .. code-block:: python
 
@@ -86,7 +100,7 @@ Note that iterators can only advance through a sequence and once completed they 
     records_it = spi.spi_decode(iter(clk_samples), ...)
 
 
-You can also use the built-in `itertools.tee() <http://docs.python.org/2/library/itertools.html#itertools.tee>`_ function to split an iterator into two or more iterators if you need to process a stream data set more than once.
+You can also use the built-in `itertools.tee() <http://docs.python.org/2/library/itertools.html#itertools.tee>`_ function to split an iterator into two or more iterators if you need to process a stream data set more than once. In this example the clk_ss_it variable is repeatedly rebound to new iterator objects but the previous iterators continue to exist until the entire data set is consumed.
 
 .. code-block:: python
 

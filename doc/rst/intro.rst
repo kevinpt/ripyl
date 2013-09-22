@@ -24,35 +24,39 @@ Once you have :doc:`installed Ripyl <installation>` you are ready to use it in P
 This will display some information about the parameters used for the UART protocol and the sampling of the internal synthesizer. If the decode was successful the "Decoded message:" will display the original message encoded in the protocol. If `matplotlib <http://matplotlib.org/>`_ is installed you will also see a plot of the simulated UART waveform annotated with graphics showing the location of frames, data bits (blue) and parity bits (yellow or red).
 
 .. image:: ../image/uart_hello.png
+    :scale: 65%
 
 We can make changes to the synthesized waveform to explore the effect it has on Ripyl.
 
 .. code-block:: sh
 
-  > ripyl_demo -p uart -d "3.2e-4, 4.09e-4"
+  > ripyl_demo -p uart -d "3.4e-4, 5.1e-4"
   
 .. image:: ../image/uart_hello_err.png
+    :scale: 65%
 
-The dropout option (-d) forces the synthesized waveform to a fixed level between the specified start and end times. This causes errors in the decode process which show up in the plotted results. You can see that dropout introduces parity and framing errors that force the decoder out of sync with the correct data. In this case the UART decoder recovers on its own by the sixth character but recovery is not a guarantee. This is an inherent issue with the decoding of corrupt UART signals and not an failure specific to Ripyl.
+The dropout option (-d) forces the synthesized waveform to a fixed level between the specified start and end times. This causes errors in the decode process which show up in the plotted results. You can see that dropout introduces parity and framing errors that force the decoder out of sync with the correct data. The decoder may or may not recover on its own. This is an inherent issue with the decoding of corrupt UART signals and not a failure specific to Ripyl.
 
 You can examine all of the protocols supported by Ripyl with ``ripyl_demo``. The available protocols are:
 
 uart
   Asynchronous serial
 i2c
-  Inter-IC bus
+  Inter-IC (I\ :sup:`2`\ C) bus
 spi
   Serial Peripheral Interface
 ps2
   PS/2 and AT keyboard protocol
-usb
-  USB 2.0
-usb-diff
-  USB 2.0 (differentially probed)
-hsic
-  USB 2.0 High Speed IC protocol
+usb, usb-diff, hsic
+  USB 2.0 with support for differentially probed input and the High Speed IC variant
 kline
   ISO9141 and ISO14230 "K-line" automotive interfaces
+rc5, rc6
+  Philips RC-5 and RC-6 infrared protocols
+nec
+  NEC infrared protocol
+sirc
+  Sony SIRC infrared protocol
 
 
 Here is the test message encoded as a USB data packet:
@@ -62,6 +66,7 @@ Here is the test message encoded as a USB data packet:
   > ripyl_demo -p usb
   
 .. image:: ../image/usb_hello.png
+    :scale: 65%
 
 The packet is shown with the PID (Data0), data payload, and checksum (0x6d71).
 
@@ -77,5 +82,8 @@ The ripyl_demo script has a variety of command line options. You can list them w
 -d DROPOUT, --dropout=DROPOUT  Dropout signal from "start,end[,level]"
 -t TITLE, --title=TITLE  Title for plot
 -f FIGSIZE, --figsize=FIGSIZE  Figure size (w,h) in inches
+-l, --label-names     Show field names for text labels
+-a, --no-annotation   Disable plot annotation
 
-					
+
+
