@@ -1097,8 +1097,10 @@ def usb_diff_decode(d_diff, logic_levels=None, stream_type=stream.StreamType.Sam
         else:
             s_diff_it = d_diff
 
-        hyst = 0.1
-        d_diff_it = find_differential_edges(s_diff_it, logic_levels, hysteresis=hyst)
+        #d_diff_it = find_differential_edges(s_diff_it, logic_levels, hysteresis=0.1)
+        center_thresh = (logic_levels[0] + logic_levels[1]) / 2.0
+        hyst_thresholds = gen_hyst_thresholds((logic_levels[0], center_thresh, logic_levels[1]), hysteresis=0.1)
+        d_diff_it = find_multi_edges(s_diff_it, hyst_thresholds)
 
     else: # The stream is already a list of edges
         d_diff_it = d_diff

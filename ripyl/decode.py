@@ -280,7 +280,7 @@ def find_hist_peaks(hist, thresh_scale=1.0):
     
 
 def find_logic_levels(samples, max_samples=20000, buf_size=2000):
-    '''Automatically determine the logic levels of a digital signal.
+    '''Automatically determine the binary logic levels of a digital signal.
     
     This function consumes up to max_samples from samples in an attempt
     to build a buffer containing a representative set of samples at high
@@ -512,7 +512,7 @@ def find_logic_levels(samples, max_samples=20000, buf_size=2000):
 
 
 def check_logic_levels(samples, max_samples=20000, buf_size=2000):
-    '''Automatically determine the logic levels of a digital signal.
+    '''Automatically determine the binary logic levels of a digital signal.
 
     This is a wrapper for find_logic_levels() that handles teeing off
     a buffered sample stream and raising AutoLevelError when detection
@@ -549,7 +549,7 @@ def check_logic_levels(samples, max_samples=20000, buf_size=2000):
         raise AutoLevelError
 
     return samp_it, logic_levels
-    
+
 
 def find_edges(samples, logic, hysteresis=0.4):
     '''Find the edges in a sampled digital waveform
@@ -654,130 +654,176 @@ def find_edges(samples, logic, hysteresis=0.4):
 
 
 
-def find_differential_edges(samples, logic, hysteresis=0.1):
-    '''Find the edges in a sampled differential digital waveform
+def gen_hyst_thresholds(logic_levels, hysteresis=0.1):
+    '''Generate hysteresis thresholds for find_multi_edges()
+
+    This function computes the hysteresis thresholds for multi-level edge finding
+    with find_multi_edges().
+
+    logic_levels (sequence of float)
+        A sequence of the nominal voltage levels for each logic state sorted
+        in ascending order.
+
+    hysteresis (float)
+        A value between 0.0 and 1.0 representing the amount of hysteresis the use for
+        detecting valid edge crossings.
+
+    Returns a list of floats. Every pair of numbers represents a hysteresis band.
+    '''
+
+    assert len(logic_levels) >= 2, 'There must be at least two logic levels'
+    centers = []
+    for a, b in zip(logic_levels[0:-1], logic_levels[1:]):
+        centers.append((a + b) / 2.0)
+
+    #spans = [] #FIX: this could be removed
+    #for c, t in zip(centers, logic_levels[1:]):
+    #    spans.append(t - c)
+
+    hyst = []
+    hysteresis = min(max(hysteresis, 0.0), 1.0) # Coerce to range [0.0, 1.0]
+    #for level, s in zip(logic_levels[0:-1], spans):
+    #    h_top = s * (1 + hysteresis) + level
+    #    h_bot = s * (1 - hysteresis) + level
+    for level, c in zip(logic_levels[0:-1], centers):
+        h_top = (c - level) * (1 + hysteresis) + level
+        h_bot = (c - level) * (1 - hysteresis) + level
+        
+        hyst.extend((h_bot, h_top))
+
+    return hyst
+
+
+def find_multi_edges(samples, hyst_thresholds):
+    '''Find the multi-level edges in a sampled digital waveform
     
     This is a generator function that can be used in a pipeline of waveform
     procesing operations.
     
-    The samples should be from a differential input such that the input signal can
-    be in one of three states: differential +1, differential -1, or 0.
-    
     Note that the output of this function cannot be used directly without further
-    processing. Transitions from -1 to +1 and vice versa cannot be easily
-    distinguished from transitions from -/+1 to 0 to +/-1. Short periods in the 0 state
+    processing. Transitions across multiple states cannot be easily
+    distinguished from transitions incliding intermediate states.
+    For the case of three states (-1, 0, 1), Short periods in the 0 state
     should be removed but this requires knowledge of the minimum time for a 0 state
     to be valid. This is performed by the remove_short_diff_0s() function.
+
+    The logic state encoding is formulated to balance the number of positive and negative
+    states around 0 for odd numbers of states and with one extra positive state for even
+    state numbers. For 2 states the encoding is the usual (0,1). For 3: (-1, 0, 1).
+    For 4: (-1, 0, 1, 2). For 5: (-2, -1, 0, 1, 2), etc. 
     
     samples (iterable of SampleChunk objects)
         An iterable sample stream. Each element is a SampleChunk containing
         an array of samples.
 
-    logic ((float, float))
-        A 2-tuple (low, high) representing the mean logic levels in the sampled waveform
-        for -1 and +1. The logic level for 0 is assumed to be midway between these two.
-        
-    hysteresis (float)
-        A value between 0.0 and 1.0 representing the amount of hysteresis the use for
-        detecting valid edge crossings.
-        
-    Yields a series of 2-tuples (time, value) representing the time and
-      logic value (-1, 0, or 1) for each edge transition. The first tuple
+    hyst_thresholds (sequence of float)
+        A sequence containing the hysteresis thresholds for the logic states.
+        For N states there should be (N-1) * 2 thresholds.
+        The gen_hyst_thresholds() function can compute these values from more
+        usual logic parameters. The numbers must be sorted in ascending order.
+        Every pair of numbers in the sequence forms the bounds of a hysteresis
+        band. Samples within these bands are considered transient states. Samples
+        outside these bands are the valid logic states.
+
+    Yields a series of 2-tuples (time, int) representing the time and
+      logic value for each edge transition. The first tuple
       yielded is the initial state of the sampled waveform. All remaining
       tuples are detected edges.
     
     Raises StreamError if the stream is empty
     '''
 
-    center = (logic[1] + logic[0]) / 2.0
-    span_high = logic[1] - center
-    span_low = center - logic[0]
-    thresh_high = (logic[1] + center) / 2.0
-    thresh_low = (center + logic[0]) / 2.0
 
-    hyst_high_top = span_high * (0.5 + hysteresis / 2.0) + center
-    hyst_high_bot = span_high * (0.5 - hysteresis / 2.0) + center
-    
-    hyst_low_top = span_low * (0.5 + hysteresis / 2.0) + logic[0]
-    hyst_low_bot = span_low * (0.5 - hysteresis / 2.0) + logic[0]
-    
-    # A sample can be in one of five zones: three differential states (1, 0, -1) and
-    # two transition bands for the hysteresis (low, high)
-    
-    ZONE_1_DP = 1 # differential 1
-    ZONE_2_HT = 2 # high transition
-    ZONE_3_D0 = 3 # differential 0
-    ZONE_4_LT = 4 # low transition
-    ZONE_5_DM = 5 # differential -1
-    
+    assert len(hyst_thresholds) % 2 == 0, 'There must be an even number of hyst_thresholds'
+
+    # To establish the initial state we need to compare the first sample against thresholds
+    # without involving any hysteresis. We compute new thresholds at the center of each
+    # hysteresis pair.
+    center_thresholds = []
+    for i in xrange(0, len(hyst_thresholds), 2):
+        center_thresholds.append((hyst_thresholds[i] + hyst_thresholds[i+1]) / 2.0)
+
     def get_sample_zone(sample):
-        if sample > hyst_high_top:
-            zone = ZONE_1_DP
-        elif sample > hyst_high_bot:
-            zone = ZONE_2_HT
-        elif sample > hyst_low_top:
-            zone = ZONE_3_D0
-        elif sample > hyst_low_bot:
-            zone = ZONE_4_LT
-        else:
-            zone = ZONE_5_DM
-            
-        return zone
+        for i in xrange(len(hyst_thresholds)):
+            if sample <= hyst_thresholds[i]:
+                return i
+
+        # The sample is greater than the highest threshold
+        return len(hyst_thresholds)
         
     def is_stable_zone(zone):
-        return zone == ZONE_1_DP or zone == ZONE_3_D0 or zone == ZONE_5_DM
-        
+        return zone % 2 == 0 # Even zones are stable
+
+    # Compute offset between zone codings and the final logic state coding
+    # logic state = zone // 2 - zone_offset
+    zone_offset = len(hyst_thresholds) // 4
+    #print('### zone offset:', zone_offset, len(hyst_thresholds), hyst_thresholds, center_thresholds)
     def zone_to_logic_state(zone):
-        ls = 999
-        if zone == ZONE_1_DP: ls = 1
-        elif zone == ZONE_3_D0: ls = 0
-        elif zone == ZONE_5_DM: ls = -1
-        
-        return ls
+        if zone % 2 == 1: # Odd zones are in hysteresis transition bands
+            return 999
+
+        return zone // 2 - zone_offset
     
-    #states
-    ES_START = 0
+    # states
+    ES_START = 1000
+    # NOTE: The remaining states have the same encoding as the zone numbers.
+    # These are integers starting from 0. Even zones represent stable states
+    # corresponding to the logic levels we want to detect. Odd zones represent
+    # unstable states corresponding to samples within the hysteresis transition bands.
 
     state = ES_START
     
     for sc in samples:
         t = sc.start_time
-        sample_period = sc.sample_period
-        chunk = sc.samples
+        #sample_period = sc.sample_period
+        #chunk = sc.samples
 
-        if state == ES_START: # set initial edge state
-            initial_state = (t, 1 if chunk[0] > thresh_high else 0 if chunk[0] > thresh_low else -1)
+        if state == ES_START: # Set initial edge state
+            #initial_state = (t, 1 if chunk[0] > thresh_high else 0 if chunk[0] > thresh_low else -1)
+            center_ix = len(center_thresholds)
+            for i in xrange(center_ix):
+                if sc.samples[0] <= center_thresholds[i]:
+                    center_ix = i
+
+            initial_state = (t, center_ix - zone_offset)
             yield initial_state
 
-        for sample in chunk:
-            zone = get_sample_zone(sample)
+        for sample in sc.samples:
+            #zone = get_sample_zone(sample)
+            #zone_is_stable = is_stable_zone(zone)
+            zone = len(hyst_thresholds)
+            for i in xrange(len(hyst_thresholds)):
+                if sample <= hyst_thresholds[i]:
+                    zone = i
+                    break
+            zone_is_stable = zone % 2 == 0
             
             if state == ES_START:
                 # Stay in start until we reach one of the stable states
-                if is_stable_zone(zone):
+                if zone_is_stable:
                     state = zone
 
-            # last zone was a stable state
-            elif state == ZONE_1_DP or state == ZONE_3_D0 or state == ZONE_5_DM:
-                if is_stable_zone(zone):
-                    if zone != state:
+            else:
+                if state % 2 == 0: # last zone was a stable state
+                    if zone_is_stable:
+                        if zone != state:
+                            state = zone
+                            yield (t, zone // 2 - zone_offset) #zone_to_logic_state(zone))
+                    else:
+                        prev_stable = state
                         state = zone
-                        yield (t, zone_to_logic_state(zone))
-                else:
-                    prev_stable = state
+                
+                else: # last zone was a transitional state (in hysteresis band)
+                    if zone_is_stable:
+                        if zone != prev_stable: # This wasn't just noise
+                            yield (t, zone // 2 - zone_offset) #zone_to_logic_state(zone))
+
                     state = zone
-            
-            # last zone was a transitional state (in hysteresis band)
-            elif state == ZONE_2_HT or state == ZONE_4_LT:
-                if is_stable_zone(zone):
-                    if zone != prev_stable: # This wasn't just noise
-                        yield (t, zone_to_logic_state(zone))
 
-                state = zone
-
-            t += sample_period
+            t += sc.sample_period
 
 
+#FIX: make this more generic for 5-level logic as well
 def remove_short_diff_0s(diff_edges, min_diff_0_time):
     '''Filter out unwanted differential 0's from an edge stream
     

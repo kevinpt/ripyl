@@ -64,14 +64,21 @@ def remove_excess_edges(edges):
         yield last_e
 
 
-def edges_to_sample_stream(edges, sample_period, end_extension=None, chunk_size=1000):
+
+def edges_to_sample_stream(edges, sample_period, logic_states=(0,1), end_extension=None, chunk_size=1000):
     '''Convert an edge stream to a sample stream
+
+    The output samples are scaled to the range of 0.0 to 1.0 regardless of the number of logic states.
     
     edges (iterable of (float, int) tuples)
         An edge stream to sample
         
     sample_period (float)
         The sample period for converting the edge stream
+
+    logic_states (sequence of int)
+        The coded state values for the lowest and highest state in the edge stream.
+        For 2-level states these will be (0,1). For 3-level: (-1, 1). For 5-level: (-2, 2).
         
     end_extension (float)
         Optional amount of time to add to the end after the last edge transition
@@ -94,9 +101,12 @@ def edges_to_sample_stream(edges, sample_period, end_extension=None, chunk_size=
     chunk_count = 0
     start_time = cur_states[0]
 
-    while True:
+    offset = min(logic_states)
+    scale = 1.0 / (max(logic_states) - min(logic_states))
+
+    while True: # Main loop generating samples
         while t < next_states[0]:
-            chunk[chunk_count] = cur_states[1]
+            chunk[chunk_count] = (cur_states[1] + offset) * scale
             chunk_count += 1
             
             t += sample_period
@@ -116,7 +126,7 @@ def edges_to_sample_stream(edges, sample_period, end_extension=None, chunk_size=
     if end_extension is not None:
         end_time = t + end_extension
         while t < end_time:
-            chunk[chunk_count] = cur_states[1]
+            chunk[chunk_count] = (cur_states[1] + offset) * scale
             chunk_count += 1
 
             t += sample_period
@@ -238,7 +248,7 @@ def filter_waveform(samples, sample_rate, rise_time, ripple_db=60.0, chunk_size=
 
 
 
-def synth_wave(edges, sample_rate, rise_time, ripple_db=60.0):
+def synth_wave(edges, sample_rate, rise_time, logic_states=(0,1), ripple_db=60.0):
     '''Convert an edge stream to a sampled waveform with band limited rise/fall times
     
     This is a convenience function combining edges_to_sample_stream() and
@@ -252,6 +262,10 @@ def synth_wave(edges, sample_rate, rise_time, ripple_db=60.0):
     
     rise_time (float)
         Rise (and fall) time for the filtered samples
+
+    logic_states (sequence of int)
+        The coded state values for the lowest and highest state in the edge stream.
+        For 2-level states these will be (0,1). For 3-level: (-1, 1). For 5-level: (-2, 2).
     
     ripple_db (float)
         Noise suppression in dB for the bandwidth filter stop band. This should
@@ -262,7 +276,7 @@ def synth_wave(edges, sample_rate, rise_time, ripple_db=60.0):
     '''
     sample_period = 1.0 / sample_rate
 
-    samples = edges_to_sample_stream(edges, sample_period)
+    samples = edges_to_sample_stream(edges, sample_period, logic_states)
 
     return filter_waveform(samples, sample_rate, rise_time, ripple_db)
 

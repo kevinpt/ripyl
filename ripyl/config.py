@@ -27,6 +27,7 @@ import os
 
 use_cython = False
 cython_prebuild = False
+cython_active = False
 
 def _parse_config():
     '''Read the library configuration file if it exists'''

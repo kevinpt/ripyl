@@ -75,5 +75,6 @@ for mname in cy_module_names:
 #print 'cython modules:', cy_modules
 
 monkeypatch_modules(cy_modules, 'ripyl')
+ripyl.config.cython_active = True
 
 
