@@ -2,6 +2,11 @@
 Ripyl change log
 ================
 
+  Bug fixes
+  ---------
+
+  * Fixed bug in Cython implementation of find_edges()
+
 v1.1 / 2013-9-21
 ================
 
