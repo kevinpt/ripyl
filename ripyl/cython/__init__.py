@@ -4,7 +4,7 @@
 
 import ripyl
 
-if ripyl.config.cython_prebuild == False:
+if ripyl.config.settings.cython_prebuild == False:
     #print 'No prebuild'
     import pyximport; pyximport.install()
 #else:
@@ -47,6 +47,8 @@ def find_cy_modules():
 
 def monkeypatch_modules(modules, lib_base):
     '''Replace pure python functions and classes with cython equivalents'''
+
+    patched_objs = []
     for mname, module in modules.iteritems():
         py_mname = '.'.join((lib_base, mname))
         if py_mname in sys.modules:
@@ -55,8 +57,12 @@ def monkeypatch_modules(modules, lib_base):
             objs.extend(classes)
             # Monkeypatch the cython functions and classes over the original python implementation
             for obj_name, obj in objs:
-                #print 'patching:', obj_name
-                sys.modules[py_mname].__dict__[obj_name] = obj
+                orig_obj = sys.modules[py_mname].__dict__[obj_name]
+                po = ripyl.config.PatchObject(py_mname, obj_name, obj, orig_obj)
+                po.activate()
+                patched_objs.append(po)
+
+    return patched_objs
 
 
 
@@ -74,7 +80,7 @@ for mname in cy_module_names:
 
 #print 'cython modules:', cy_modules
 
-monkeypatch_modules(cy_modules, 'ripyl')
-ripyl.config.cython_active = True
+ripyl.config.settings.patched_objs = monkeypatch_modules(cy_modules, 'ripyl')
+
 
 

@@ -20,5 +20,5 @@ except ImportError:
     cython_exists = False
 
 
-if ripyl.config.use_cython and cython_exists:
+if ripyl.config.settings.use_cython and cython_exists:
     import ripyl.cython

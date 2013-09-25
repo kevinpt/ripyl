@@ -92,7 +92,7 @@ class TestPerformance(unittest.TestCase):
     #@unittest.skip('debug')
     @timedtest
     def test_edge_finding(self):
-        cy_status = 'enabled' if ripyl.config.cython_active else 'disabled'
+        cy_status = 'enabled' if ripyl.config.settings.cython_active else 'disabled'
         print('\nDetermining edge processing rate (Cython is {})...'.format(cy_status))
 
         edge_count = 1000
@@ -109,7 +109,7 @@ class TestPerformance(unittest.TestCase):
 
 
         sample_rate = 20 / period
-        samples = list(sigp.synth_wave(iter(edges), sample_rate, sigp.min_rise_time(sample_rate) * 6.0))
+        samples = list(sigp.synth_wave(iter(edges), sample_rate, sigp.min_rise_time(sample_rate) * 6.0, chunk_size=10000))
 
         iterations = 100
 
@@ -118,14 +118,15 @@ class TestPerformance(unittest.TestCase):
             d_edges = list(decode.find_edges(iter(samples), (0.0, 1.0)))
             #print('### found edges:', len(d_edges), d_edges[:10])
 
-        samples_processed = iterations * len(samples)
+        samples_processed = iterations * (t * sample_rate)
+        #print('### samples:', samples_processed, int(t * sample_rate))
 
         return (iterations, samples_processed, 'samples')
 
     #@unittest.skip('debug')
     @timedtest
     def test_multi_edge_finding(self):
-        cy_status = 'enabled' if ripyl.config.cython_active else 'disabled'
+        cy_status = 'enabled' if ripyl.config.settings.cython_active else 'disabled'
         print('\nDetermining multi-level edge processing rate (Cython is {})...'.format(cy_status))
 
         edge_count = 1000
@@ -143,7 +144,7 @@ class TestPerformance(unittest.TestCase):
 
         sample_rate = 20 / period
         
-        samples = list(sigp.synth_wave(iter(edges), sample_rate, sigp.min_rise_time(sample_rate) * 6.0, (-1, 1)))
+        samples = list(sigp.synth_wave(iter(edges), sample_rate, sigp.min_rise_time(sample_rate) * 6.0, (-1, 1), chunk_size=10000))
 
         hyst_thresh = decode.gen_hyst_thresholds((0.0, 0.5, 1.0), 0.4)
 
@@ -153,7 +154,8 @@ class TestPerformance(unittest.TestCase):
         for _ in xrange(iterations):
             d_edges = list(decode.find_multi_edges(iter(samples), hyst_thresh))
 
-        samples_processed = iterations * len(samples)
+        samples_processed = iterations * (t * sample_rate)
+        #print('### samples:', samples_processed, int(t * sample_rate))
 
         return (iterations, samples_processed, 'samples')
 
