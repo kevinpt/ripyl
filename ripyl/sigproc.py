@@ -65,7 +65,7 @@ def remove_excess_edges(edges):
 
 
 
-def edges_to_sample_stream(edges, sample_period, logic_states=(0,1), end_extension=None, chunk_size=1000):
+def edges_to_sample_stream(edges, sample_period, logic_states=(0,1), end_extension=None, chunk_size=10000):
     '''Convert an edge stream to a sample stream
 
     The output samples are scaled to the range of 0.0 to 1.0 regardless of the number of logic states.
@@ -169,7 +169,7 @@ def approximate_bandwidth(rise_time):
     
    
 
-def filter_waveform(samples, sample_rate, rise_time, ripple_db=60.0, chunk_size=1000):
+def filter_waveform(samples, sample_rate, rise_time, ripple_db=60.0, chunk_size=10000):
     '''Apply a bandwidth limiting low-pass filter to a sample stream
     
     This is a generator function.
@@ -248,7 +248,7 @@ def filter_waveform(samples, sample_rate, rise_time, ripple_db=60.0, chunk_size=
 
 
 
-def synth_wave(edges, sample_rate, rise_time, logic_states=(0,1), ripple_db=60.0):
+def synth_wave(edges, sample_rate, rise_time, logic_states=(0,1), ripple_db=60.0, chunk_size=10000):
     '''Convert an edge stream to a sampled waveform with band limited rise/fall times
     
     This is a convenience function combining edges_to_sample_stream() and
@@ -271,14 +271,16 @@ def synth_wave(edges, sample_rate, rise_time, logic_states=(0,1), ripple_db=60.0
         Noise suppression in dB for the bandwidth filter stop band. This should
         be a positive value.
 
+    chunk_size (int)
+        Number of samples in each SampleChunk
     
     Returns an iterator for the synthesized sample stream
     '''
     sample_period = 1.0 / sample_rate
 
-    samples = edges_to_sample_stream(edges, sample_period, logic_states)
+    samples = edges_to_sample_stream(edges, sample_period, logic_states, chunk_size=chunk_size)
 
-    return filter_waveform(samples, sample_rate, rise_time, ripple_db)
+    return filter_waveform(samples, sample_rate, rise_time, ripple_db, chunk_size)
 
     
 def noisify(samples, snr_db=30.0):

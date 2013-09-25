@@ -488,7 +488,7 @@ class ChunkExtractor(object):
         self.buf_start_time = 0.0
         self.sample_period = 0.0
 
-    def next_chunk(self, chunk_size=1000):
+    def next_chunk(self, chunk_size=10000):
         '''Get a new chunk of samples from the stream
 
         chunk_size (int)
@@ -553,7 +553,7 @@ class ChunkExtractor(object):
 
         return None
 
-    def next_samples(self, sample_count=1000):
+    def next_samples(self, sample_count=10000):
         '''Get a new set of raw samples from the stream
 
         sample_count (int)
@@ -576,7 +576,7 @@ class ChunkExtractor(object):
         return self.next_chunk(self.buf_count)
 
 
-def rechunkify(samples, chunk_size=1000):
+def rechunkify(samples, chunk_size=10000):
     '''Create a new gerator that yields SampleChunk objects of the desired size
 
     This is a generator function. Its send() method can be used to change the
@@ -605,7 +605,7 @@ def rechunkify(samples, chunk_size=1000):
             chunk_size = next_cs
 
 
-def extract_samples(samples, sample_count=1000):
+def extract_samples(samples, sample_count=10000):
     '''Create a new gerator that yields sample arrays of the desired size
 
     This is a generator function. Its send() method can be used to change the
@@ -668,7 +668,7 @@ def sample_stream_to_samples(samples):
     
     
 
-def samples_to_sample_stream(raw_samples, sample_period, start_time=0.0, chunk_size=1000):
+def samples_to_sample_stream(raw_samples, sample_period, start_time=0.0, chunk_size=10000):
     '''Convert raw samples to a chunked sample stream
 
     This is a generator function that can be used in a pipeline of waveform
