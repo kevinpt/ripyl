@@ -310,8 +310,8 @@ def noisify(samples, snr_db=30.0):
         noise_sd = 0.5 / (10.0 ** (snr_db / 20.0))
 
         for sc in samples:
-            sc.samples += np.random.normal(0.0, noise_sd, len(sc.samples))
-            yield sc
+            filt = sc.samples + np.random.normal(0.0, noise_sd, len(sc.samples))
+            yield SampleChunk(filt, sc.start_time, sc.sample_period)
 
 
 def quantize(samples, full_scale, bits=8):
@@ -336,8 +336,8 @@ def quantize(samples, full_scale, bits=8):
     ulp = float(full_scale) / 2**bits
 
     for sc in samples:
-        sc.samples = np.floor(sc.samples / full_scale * 2**bits) * ulp
-        yield sc
+        filt = np.floor(sc.samples / full_scale * 2**bits) * ulp
+        yield SampleChunk(filt, sc.start_time, sc.sample_period)
 
 
 def amplify(samples, gain=1.0, offset=0.0):
@@ -360,9 +360,8 @@ def amplify(samples, gain=1.0, offset=0.0):
     '''
 
     for sc in samples:
-        sc.samples *= gain
-        sc.samples += offset
-        yield sc
+        filt = (sc.samples * gain) + offset
+        yield SampleChunk(filt, sc.start_time, sc.sample_period)
 
        
 def dropout(samples, start_time, end_time, val=0.0):
@@ -404,8 +403,9 @@ def dropout(samples, start_time, end_time, val=0.0):
         else:
             end_ix = len(sc.samples)
 
-        sc.samples[start_ix:end_ix] = val
-        yield sc
+        filt = np.copy(sc.samples)
+        filt[start_ix:end_ix] = val
+        yield SampleChunk(filt, sc.start_time, sc.sample_period)
 
 
 def invert(stream):
@@ -420,8 +420,8 @@ def invert(stream):
     '''
 
     for sc in stream:
-        sc.samples *= -1.0
-        yield sc
+        filt = sc.samples * -1.0
+        yield SampleChunk(filt, sc.start_time, sc.sample_period)
 
 
 def capacify(samples, capacitance, resistance=50.0):
@@ -459,6 +459,7 @@ def capacify(samples, capacitance, resistance=50.0):
 
         dt = sc.sample_period
         #print('# vc', vc, capacitance, q, vc * capacitance, dt)
+        filt = np.zeros((len(sc.samples),), dtype = np.float)
         for j in xrange(len(sc.samples)):
             i = (sc.samples[j] - vc) / resistance # Capacitor current
 
@@ -466,8 +467,8 @@ def capacify(samples, capacitance, resistance=50.0):
             q += dq
             vc = q / capacitance # New capacitor voltage
             #print('$$ i, dq, d, vc', i, dq, q, vc)
-            sc.samples[j] = vc
-        yield sc
+            filt[j] = vc
+        yield SampleChunk(filt, sc.start_time, sc.sample_period)
 
         
 def sum_streams(stream1, stream2):
@@ -498,11 +499,11 @@ def sum_streams(stream1, stream2):
 
         if len(c1.samples) != len(c2.samples):
             size = min(len(c1.samples), len(c2.samples))
-            c1.samples = c1.samples[:size] + c2.samples[:size]
+            filt = c1.samples[:size] + c2.samples[:size]
         else:
-            c1.samples += c2.samples
+            filt = c1.samples + c2.samples
 
-        yield c1
+        yield SampleChunk(filt, c1.start_time, c1.sample_period)
 
 
 
@@ -525,9 +526,8 @@ def chain(stream_gap_time, *streams):
 
     for stream in streams:
         for sc in stream:
-            sc.start_time += offset
-            sc_end_time = sc.start_time + len(sc.samples) * sc.sample_period
-            yield sc
+            sc_end_time = sc.start_time + offset + len(sc.samples) * sc.sample_period
+            yield SampleChunk(np.copy(sc.samples), sc.start_time + offset, sc.sample_period)
 
         offset = sc_end_time + stream_gap_time
 
