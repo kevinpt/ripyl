@@ -49,7 +49,7 @@ if matplotlib_exists:
 def main():
     '''Entry point for script'''
 
-    protocols = ('uart', 'i2c', 'spi', 'usb', 'usb-diff', 'hsic', 'ps2', 'kline', 'rc5', 'rc6', 'nec', 'sirc')
+    protocols = ('uart', 'i2c', 'spi', 'usb', 'usb-diff', 'hsic', 'ps2', 'kline', 'rc5', 'rc6', 'nec', 'sirc', 'can')
 
     usage = '''%prog [-p PROTOCOL] [-n] [-m MSG]
     
@@ -399,8 +399,8 @@ def demo_i2c(options):
     scl, sda = i2c.i2c_synth(transfers, clock_freq, idle_start=3.0e-5, idle_end=3.0e-5)
     
     # Convert to a sample stream with band-limited edges and noise
-    cln_scl_it = sigp.synth_wave(scl, sample_rate, rise_time)
-    cln_sda_it = sigp.synth_wave(sda, sample_rate, rise_time)
+    cln_scl_it = sigp.synth_wave(scl, sample_rate, rise_time, tau_factor=0.7)
+    cln_sda_it = sigp.synth_wave(sda, sample_rate, rise_time, tau_factor=1.5)
     
     nsy_scl_it = sigp.amplify(sigp.noisify(cln_scl_it, snr_db=noise_snr), gain=3.3, offset=0.0)
     nsy_sda_it = sigp.amplify(sigp.noisify(cln_sda_it, snr_db=noise_snr), gain=3.3, offset=0.0)
@@ -879,6 +879,76 @@ def demo_sirc(options):
     plot_channels(channels, records, options, plot_params)
 
 
+def demo_can(options):
+    import ripyl.protocol.can as can
+
+    print('CAN protocol\n')
+    
+    # CAN params
+    clock_freq = 100.0e3
+    
+    # Sampled waveform params
+    sample_rate = clock_freq * 100.0
+    rise_time = min_rise_time(sample_rate) * 10.0 # 10x min. rise time
+    noise_snr = options.snr_db
+    
+    frames = []
+    frames.append(can.CANBaseFrame(0x42, [1,2,3,4,7,7], bit_period=1.0 / clock_freq))
+    frames.append(can.CANBaseFrame(0x32, [1,2,3,4,], bit_period=1.0 / clock_freq))
+    
+    
+    # Synthesize the waveform edge stream
+    # This can be fed directly into i2c_decode() if an analog waveform is not needed
+    ch, cl = can.can_synth(frames, idle_start=3.0e-5, idle_end=3.0e-5)
+    
+    # Convert to a sample stream with band-limited edges and noise
+    cln_ch_it = sigp.synth_wave(ch, sample_rate, rise_time)
+    cln_cl_it = sigp.synth_wave(cl, sample_rate, rise_time)
+    
+    nsy_ch_it = sigp.amplify(sigp.noisify(cln_ch_it, snr_db=noise_snr), gain=1.0, offset=2.5)
+    nsy_cl_it = sigp.amplify(sigp.noisify(cln_cl_it, snr_db=noise_snr), gain=1.0, offset=1.5)
+    
+    if options.dropout is not None:
+        nsy_cl_it = sigp.dropout(nsy_cl_it, options.dropout[0], options.dropout[1], options.dropout_level)
+    
+    # Capture the samples from the iterator
+    nsy_ch = list(nsy_ch_it)
+    nsy_cl = list(nsy_cl_it)
+    
+
+    # Decode the samples
+    decode_success = True
+    records = []
+    decode_success = False
+    #try:
+    #    records = list(i2c.i2c_decode(iter(nsy_scl), iter(nsy_sda)))
+        
+    #except stream.StreamError as e:
+    #    print('Decode failed:\n  {}'.format(e))
+    #    decode_success = False
+    #    records = []
+
+    protocol_params = {
+        'clock frequency': eng.eng_si(clock_freq, 'Hz')
+    }
+
+    wave_params = {
+        'sample rate': eng.eng_si(sample_rate, 'Hz'),
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
+    }
+
+    plot_params = {
+        'default_title': 'CAN Simulation',
+        'label_format': stream.AnnotationFormat.Text
+    }
+
+    #data_records = list(i2c.reconstruct_i2c_transfers(records))
+    
+    report_results(records, [], protocol_params, wave_params, decode_success, lambda d, o: (d, o))
+    channels = OrderedDict([('CH (V)', nsy_ch), ('CL (V)', nsy_cl)])
+    plot_channels(channels, records, options, plot_params)
+
 
 def edges_to_waveform(edges, options, sample_rate, rise_time, gain, offset=0.0, quant_full_range=20.0):
     # Convert to a sample stream with band-limited edges and noise
@@ -892,7 +962,7 @@ def edges_to_waveform(edges, options, sample_rate, rise_time, gain, offset=0.0, 
 
     return noisy_samples
 
-def plot_channels(channels, annotations, options, plot_params):
+def plot_channels(channels, annotations, options, plot_params, ylim=None):
     if not options.no_plot:
         if options.title is not None:
             title = options.title
@@ -902,7 +972,8 @@ def plot_channels(channels, annotations, options, plot_params):
 
         plotter = rplot.Plotter()
         annotations = None if options.no_annotation else annotations
-        plotter.plot(channels, annotations, title, label_format=plot_params['label_format'], show_names=options.show_names)
+        plotter.plot(channels, annotations, title, label_format=plot_params['label_format'], show_names=options.show_names, \
+            ylim=ylim)
         if options.save_file is None:
             plotter.show()
         else:
