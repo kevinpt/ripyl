@@ -1076,6 +1076,7 @@ class EdgeSequence(object):
                 self.it_end = True
                 break
 
+
     def advance_to_edge(self):
         '''Advance to the next edge in the iterator after the current time
         
@@ -1085,11 +1086,8 @@ class EdgeSequence(object):
         if self.it_end:
             return 0.0
             
-        time_step = 0.0
         start_state = self.cur_states[1]
         while self.cur_states[1] == start_state:
-            time_step += self.next_states[0] - self.cur_time
-            self.cur_time = self.next_states[0]
             self.cur_states = self.next_states
             
             try:
@@ -1099,6 +1097,9 @@ class EdgeSequence(object):
                 if self.cur_states[1] == start_state:
                     self.it_end = True
                 break
+
+        time_step = self.cur_states[0] - self.cur_time
+        self.cur_time = self.cur_states[0]
             
         return time_step
     
