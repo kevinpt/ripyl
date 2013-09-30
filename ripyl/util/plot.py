@@ -99,7 +99,7 @@ class Plotter(object):
         
         return bounds
 
-    def plot(self, channels, annotations, title='', label_format=stream.AnnotationFormat.Int, show_names=False):
+    def plot(self, channels, annotations, title='', label_format=stream.AnnotationFormat.Int, show_names=False, ylim=None):
         '''Plot annotated waveform data
 
         channels (dict of string:sample stream)
@@ -117,6 +117,10 @@ class Plotter(object):
             equal to AnnotationFormat.General
 
         show_names (bool)
+            Show the field names for each annotation value
+
+        ylim (pair of float or None)
+            Set lower and upper bound for the y-axes
 
         '''
 
@@ -158,8 +162,13 @@ class Plotter(object):
         else:
             name_ypos = None
 
-        self.axes[-1].set_ylim(ann_b['ovl_bot'] * 1.05, ann_b['ovl_top'] * 1.05)
+        if ylim is None:
+            self.axes[-1].set_ylim(ann_b['ovl_bot'] * 1.05, ann_b['ovl_top'] * 1.05)
+        else:
+            self.axes[-1].set_ylim(1.0, 4.0)
+
         self.axes[-1].set_xlim(vectors[ann_chan][1][0], vectors[ann_chan][1][-1])
+
 
 
         if annotations is not None:
