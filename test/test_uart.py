@@ -28,6 +28,7 @@ import unittest
 import random
 from collections import deque
 import sys
+import time
 
 import ripyl.protocol.uart as uart
 import ripyl.sigproc as sigp
@@ -77,7 +78,8 @@ class TestUARTFuncs(tsup.RandomSeededTestCase):
             self.assertEqual(msg, decoded_msg, \
                 "Message not decoded successfully msg:'{0}', baud:{1}, parity:{2}, bits:{3}".format(msg, \
                 baud, parity, bits))
-            
+
+    #@unittest.skip('debug')            
     def test_uart_hello(self):
     
         bits = 8
@@ -124,3 +126,32 @@ class TestUARTFuncs(tsup.RandomSeededTestCase):
         # Check the message bytes
         dmsg = ''.join([chr(d.data) for d in frames])
         self.assertEqual(message, dmsg, 'Message 2 mismatch. Expected: "{}" Got: "{}"'.format(message, dmsg))
+
+
+    @tsup.timedtest
+    def test_uart_speed(self):
+
+        bits = 8
+        baud = 9600
+        polarity = uart.UARTConfig.IdleHigh
+        parity = None
+        stop_bits = 1
+
+        char_count = 1000
+        data = [random.randint(0,255) for _ in xrange(char_count)]
+
+        edges = list(uart.uart_synth(data, bits, baud, parity=parity, stop_bits=stop_bits))
+
+        iterations = 10
+
+        self._t_start = time.time()
+        for _ in xrange(iterations):
+            records = list(uart.uart_decode(iter(edges), bits=bits, polarity=polarity, parity=parity, stop_bits=stop_bits, \
+                stream_type=stream.StreamType.Edges, baud_rate=baud))
+
+        characters_processed = iterations * char_count
+
+        return (iterations, characters_processed, 'characters')
+
+
+

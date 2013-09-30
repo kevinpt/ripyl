@@ -30,6 +30,9 @@ import array
 import sys
 import unittest
 import random
+import time
+import gc
+from ripyl.util.eng import eng_si
 
 
 def relativelyEqual(a, b, epsilon):
@@ -84,8 +87,57 @@ class RandomSeededTestCase(unittest.TestCase):
         if not relativelyEqual(a, b, epsilon):
             raise self.failureException(msg)
 
+
+def timedtest(f):
+    '''Decorator that times execution of a test case'''
+    def wrapper(self, *args, **kwargs):
+        gc.disable()
+        try:
+            t_start = time.time()
+            result = f(self, *args, **kwargs)
+            t_end = time.time()
+            try:
+                _t_start = self._t_start
+                t_start = _t_start if isinstance(_t_start, float) else t_start
+                self._t_start = None
+            except:
+                pass
+
+        finally:
+            gc.enable()
+
+        delta = t_end - t_start
+
+        iterations = None
+        units_processed = 1
+        unit_name = 'units'
+        if result:
+            try:
+                if len(result) >= 2:
+                    iterations = result[0]
+                    units_processed = result[1]
+
+                    if len(result) >= 3:
+                        unit_name = result[2]
+            except TypeError:
+                iterations = result
+            
+
+        if iterations:
+            per_iter = delta / iterations
+        else:
+            per_iter = delta
+
+        processing_rate = units_processed / delta
+
+        print('*   Test duration: total {}, per iteration {}, rate {}'.format( \
+            eng_si(delta, 's'), eng_si(per_iter, 's'), eng_si(processing_rate, unit_name + '/s') ))
+
+    return wrapper
+
         
 def write_bin_file(fname, samples, sample_period, start_time):
+    '''Write samples to binary file'''
     with open(fname, 'wb') as fo:
         fo.write(struct.pack('<f', sample_period))
         fo.write(struct.pack('<f', start_time))
@@ -93,6 +145,7 @@ def write_bin_file(fname, samples, sample_period, start_time):
             fo.write(struct.pack('<f', s))
             
 def read_bin_file(fname):
+    '''Read samples from binary file'''
     with open(fname, 'rb') as fo:
         sample_period = struct.unpack('<f', fo.read(4))[0]
         start_time = struct.unpack('<f', fo.read(4))[0]
