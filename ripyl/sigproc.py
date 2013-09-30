@@ -247,12 +247,11 @@ def filter_waveform(samples, sample_rate, rise_time, ripple_db=60.0, chunk_size=
             yield SampleChunk(filt[N-1:valid_samples], sc.start_time, sample_period)
 
 
-
-def synth_wave(edges, sample_rate, rise_time, logic_states=(0,1), ripple_db=60.0, chunk_size=10000):
+def synth_wave(edges, sample_rate, rise_time, tau_factor=0.0, logic_states=(0,1), ripple_db=60.0, chunk_size=10000):
     '''Convert an edge stream to a sampled waveform with band limited rise/fall times
     
-    This is a convenience function combining edges_to_sample_stream() and
-    filter_waveform().
+    This is a convenience function combining edges_to_sample_stream(),
+    filter_waveform(), and (optionally) capacify().
     
     edges (sequence of (float, int) tuples)
         An edge stream to be sampled
@@ -262,6 +261,11 @@ def synth_wave(edges, sample_rate, rise_time, logic_states=(0,1), ripple_db=60.0
     
     rise_time (float)
         Rise (and fall) time for the filtered samples
+
+    tau_factor (float)
+        The scale factor used to derive a capacify() time constant from the rise_time
+        such that tau = rise_time * tau_factor. The capacify operation is skipped
+        if tau_factor is < 0.01.
 
     logic_states (sequence of int)
         The coded state values for the lowest and highest state in the edge stream.
@@ -279,6 +283,12 @@ def synth_wave(edges, sample_rate, rise_time, logic_states=(0,1), ripple_db=60.0
     sample_period = 1.0 / sample_rate
 
     samples = edges_to_sample_stream(edges, sample_period, logic_states, chunk_size=chunk_size)
+
+    if tau_factor >= 0.01: # Using capacify
+        tau = rise_time * tau_factor
+        r = 100.0
+        c = tau / r
+        samples = capacify(samples, c, r)
 
     return filter_waveform(samples, sample_rate, rise_time, ripple_db, chunk_size)
 
@@ -424,7 +434,7 @@ def invert(stream):
         yield SampleChunk(filt, sc.start_time, sc.sample_period)
 
 
-def capacify(samples, capacitance, resistance=50.0):
+def capacify(samples, capacitance, resistance=50.0, iterations=80):
     '''Simulate an RC filter on a waveform::
 
         : samples >--R--+--> out
@@ -434,9 +444,9 @@ def capacify(samples, capacitance, resistance=50.0):
 
     Warning: This function becomes unstable for small time constants (C * R).
     It is implemented with a simple application of the RC difference equations.
-    The time step (dt) is taken from the sample period of each sample chunk
-    The results will be inaccurate for large values of dt but still largely
-    representative of the expected behavior.
+    The time step (dt) is taken from the sample period of each sample chunk divided
+    by the number of iterations. The results will be inaccurate for large values of
+    dt but still largely representative of the expected behavior.
 
     This is a generator function.
 
@@ -448,6 +458,10 @@ def capacify(samples, capacitance, resistance=50.0):
 
     resistance (float)
         The resistance value
+
+    iterations (int)
+        The number of iterations to calculate each sample. You can experience numeric
+        instability if this value is too low.
     
     Yields a sample stream.
     '''
@@ -457,16 +471,18 @@ def capacify(samples, capacitance, resistance=50.0):
             vc = sc.samples[0]
             q = vc * capacitance
 
-        dt = sc.sample_period
+        dt = sc.sample_period / iterations
         #print('# vc', vc, capacitance, q, vc * capacitance, dt)
         filt = np.zeros((len(sc.samples),), dtype = np.float)
         for j in xrange(len(sc.samples)):
-            i = (sc.samples[j] - vc) / resistance # Capacitor current
+            sample_v = sc.samples[j]
+            for _ in xrange(iterations):
+                i = (sample_v - vc) / resistance # Capacitor current
 
-            dq = i * dt # Change in charge
-            q += dq
-            vc = q / capacitance # New capacitor voltage
-            #print('$$ i, dq, d, vc', i, dq, q, vc)
+                dq = i * dt # Change in charge
+                q += dq
+                vc = q / capacitance # New capacitor voltage
+                #print('$$ i, dq, d, vc', i, dq, q, vc)
             filt[j] = vc
         yield SampleChunk(filt, sc.start_time, sc.sample_period)
 
