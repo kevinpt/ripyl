@@ -57,10 +57,16 @@ def monkeypatch_modules(modules, lib_base):
             objs.extend(classes)
             # Monkeypatch the cython functions and classes over the original python implementation
             for obj_name, obj in objs:
-                orig_obj = sys.modules[py_mname].__dict__[obj_name]
-                po = ripyl.config.PatchObject(py_mname, obj_name, obj, orig_obj)
-                po.activate()
-                patched_objs.append(po)
+                # Cython releases before 0.19.1 include extraneous internal classes in the extension modules.
+                # We need to catch any attempts to acces these classes that don't exist in the
+                # Python implementations
+                try:
+                    orig_obj = sys.modules[py_mname].__dict__[obj_name]
+                    po = ripyl.config.PatchObject(py_mname, obj_name, obj, orig_obj)
+                    po.activate()
+                    patched_objs.append(po)
+                except KeyError:
+                    pass
 
     return patched_objs
 

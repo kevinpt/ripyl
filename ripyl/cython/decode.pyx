@@ -25,7 +25,7 @@ cimport cython
 cimport numpy as np
 import numpy as np
 
-from libc.stdlib cimport malloc, free
+#from libc.stdlib cimport malloc, free
 
 # states
 
@@ -72,7 +72,7 @@ cdef _cy_find_edges(double[:] chunk, double t, double sample_period, double hyst
     cdef int zone
     cdef bint zone_is_stable
     cdef double sample
-    cdef unsigned int i
+    cdef size_t i
     cdef int state, prev_stable
 
     edges = []
@@ -126,7 +126,7 @@ def find_multi_edges(samples, hyst_thresholds):
     cdef int zone_offset
     cdef int state = ES_START
     cdef int prev_stable
-    cdef unsigned int i
+    cdef size_t i
 
     cdef double t, sample_period
     cdef double [:] chunk

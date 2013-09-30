@@ -44,6 +44,7 @@ class PatchObject(object):
             sys.modules[self.py_mname].__dict__[self.obj_name] = self.orig_obj
             self.active = False
 
+#FIX: docstrings
 class ConfigSettings(object):
     def __init__(self):
         self.use_cython = False
@@ -54,7 +55,12 @@ class ConfigSettings(object):
     def cython_active(self):
         return any(po.active for po in self.patched_objs)
 
-    def find_patch_obj(self, py_mname, obj_name):
+    def find_patch_obj(self, obj_path):
+        try:
+            py_mname, obj_name = obj_path.rsplit('.', 1)
+        except ValueError:
+            return None
+
         for po in self.patched_objs:
             if po.py_mname == py_mname and po.obj_name == obj_name:
                 return po
