@@ -2,10 +2,21 @@
 Ripyl change log
 ================
 
+next version
+============
+
+  Changes
+  -------
+
+  * Tested sucessfully with Cython 0.17. Required version has been reduced.
+
   Bug fixes
   ---------
 
   * Fixed bug in Cython implementation of find_edges()
+  * Fix bugs in the sigproc.py filter functions that resulted in overwriting
+    chunk samples rather than properly allocating new StreamChunk objects.
+
 
 v1.1 / 2013-9-21
 ================

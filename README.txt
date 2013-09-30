@@ -19,7 +19,7 @@ Dependencies
 Optional libraries
 ------------------
 * Matplotlib for plotting support
-* Cython >= 0.19 for improved performance
+* Cython >= 0.17 for improved performance
 
 
 Features

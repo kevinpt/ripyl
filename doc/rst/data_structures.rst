@@ -14,7 +14,7 @@ Throughout the Ripyl documentation there is reference to "streams" of data. This
 Sample streams
 ~~~~~~~~~~~~~~
 
-Sample streams are farily self explanatory. They are a time series of sampled data points. For efficiency purposes, a group of samples is aggregated into a :class:`~.streaming.SampleChunk` object containing a NumPy array of samples and attributes identifying the start time and sample period of each chunk. The number of samples in a chunk may vary but it defaults to 1000. Raw sample data can be converted to a sample stream with the :func:`~.streaming.samples_to_sample_stream` function.
+Sample streams are farily self explanatory. They are a time series of sampled data points. For efficiency purposes, a group of samples is aggregated into a :class:`~.streaming.SampleChunk` object containing a NumPy array of samples and attributes identifying the start time and sample period of each chunk. The number of samples in a chunk may vary but it defaults to 10000. Raw sample data can be converted to a sample stream with the :func:`~.streaming.samples_to_sample_stream` function.
 
 
 Edge streams

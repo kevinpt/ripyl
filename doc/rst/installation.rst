@@ -13,7 +13,7 @@ Ripyl requires the following:
 
 Optional libraries are:
     * `matplotlib <http://matplotlib.org/>`_ for plotting support
-    * `cython <http://cython.org/>`_ >= 0.19 for improved performance
+    * `cython <http://cython.org/>`_ >= 0.17 for improved performance
 
 You should ensure the dependencies are installed and functioning properly on your platform before attempting to install Ripyl.
 
