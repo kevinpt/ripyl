@@ -36,7 +36,7 @@ try:
     from pkg_resources import parse_version
 
     # Check cython version
-    min_cy_version = '0.19'
+    min_cy_version = '0.17'
     if parse_version(cy_version) < parse_version(min_cy_version):
         print('Older Cython version {} found. Need at least {}.'.format(cy_version, min_cy_version))
     else:
@@ -93,7 +93,7 @@ if cython_exists:
         #mfile = '{}.pyx'.format(os.path.join(*[e for x in [cy_root, mname.split('.')] for e in x]))
         mfile = '{}.pyx'.format(os.path.join(*full_mname.split('.')))
         #print '### create extension', mname, full_name, mfile
-        ext_modules.append(Extension(full_mname, [mfile]))
+        ext_modules.append(Extension(full_mname, [mfile], extra_compile_args=['-O3']))
 
     cython_prebuild = True if use_cython else False
     features = {
