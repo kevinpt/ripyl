@@ -52,6 +52,7 @@ Contents
    rst/reading_data
    rst/data_structures
    rst/protocols
+   rst/simulation
    apidoc/modules
 
 
