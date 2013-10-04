@@ -88,8 +88,15 @@ class CANTiming(object):
 
 
 class CANErrorFrame(object):
+    '''CAN Error frame'''
     def __init__(self, flag_bits=6):
         self.flag_bits = min(max(6, flag_bits), 12)
+
+    def __repr__(self):
+        return 'CANErrorFrame({})'.format(self.flag_bits)
+
+    def __str__(self):
+        return '(error)'
 
     def get_bits(self):
         return ([0] * self.flag_bits) + ([1] * 8)
@@ -104,9 +111,29 @@ class CANErrorFrame(object):
 
         return edges
 
+    def __eq__(self, other):
+        return isinstance(other, CANErrorFrame)
+
+    def __ne__(self, other):
+        return not (self == other)
+
+
+class CANOverloadFrame(CANErrorFrame):
+    '''CAN Overload frame'''
+    def __init__(self, flag_bits=6):
+        CANErrorFrame.__init__(self, flag_bits)
+
+    def __repr__(self):
+        return 'CANOverloadFrame({})'.format(self.flag_bits)
+
+    def __str__(self):
+        return '(overload)'
+
+
+
 class CANFrame(object):
     '''CAN Data and Remote frames'''
-    def __init__(self, id, data, dlc=None, crc=None, ack=True):
+    def __init__(self, id, data, dlc=None, crc=None, ack=True, trim_bits=0):
         self.id = id
         self._rtr = None
         self.ide = 0
@@ -114,6 +141,7 @@ class CANFrame(object):
         self.data = data
         self._crc = crc
         self.ack = ack
+        self.trim_bits = trim_bits
 
 
     @property
@@ -193,6 +221,10 @@ class CANFrame(object):
 
         # Add EOF bits
         frame_bits = stuffed_bits + crc_and_ack_bits + [1, 1, 1, 1, 1, 1, 1]
+
+        if self.trim_bits > 0:
+            frame_bits = frame_bits[:-self.trim_bits]
+
         edges = []
 
         for b in frame_bits:
@@ -201,11 +233,32 @@ class CANFrame(object):
 
         return edges
 
+    def __eq__(self, other):
+        s_vars = vars(self)
+        s_vars['_rtr'] = self.rtr
+        s_vars['_dlc'] = self.dlc
+        s_vars['_crc'] = self.crc
+
+        o_vars = vars(other)
+        o_vars['_rtr'] = other.rtr
+        o_vars['_dlc'] = other.dlc
+        o_vars['_crc'] = other.crc
+
+
+        #print('### eq s:', s_vars)
+        #print('### eq o:', o_vars)
+
+        return s_vars == o_vars
+
+
+    def __ne__(self, other):
+        return not (self == other)
+
 
 class CANStandardFrame(CANFrame):
     '''CAN frame format for 11-bit id'''
-    def __init__(self, id, data, dlc=None, crc=None, ack=True):
-        CANFrame.__init__(self, id, data, dlc, crc, ack)
+    def __init__(self, id, data, dlc=None, crc=None, ack=True, trim_bits=0):
+        CANFrame.__init__(self, id, data, dlc, crc, ack, trim_bits)
         self._rtr = None
         self.ide = 0
         self.r0 = 0
@@ -231,7 +284,7 @@ class CANStandardFrame(CANFrame):
         # Generate CRC
         crc_bits = can_crc15(check_bits)
 
-        print('### Gen CRC:', crc_bits, hex(join_bits(crc_bits)))
+        #print('### Gen CRC:', crc_bits, hex(join_bits(crc_bits)))
 
         #ack_bits = [0 if self.ack else 1, 1]
 
@@ -278,8 +331,8 @@ class ExtendedIdentifier(object):
 
 class CANExtendedFrame(CANFrame):
     '''CAN frame format for 29-bit id'''
-    def __init__(self, id, id_ext, data, dlc=None, crc=None, ack=True):
-        CANFrame.__init__(self, id, data, dlc, crc, ack)
+    def __init__(self, id, id_ext, data, dlc=None, crc=None, ack=True, trim_bits=0):
+        CANFrame.__init__(self, id, data, dlc, crc, ack, trim_bits)
         
         self.srr = 1 # Replaces RTR bit in standard frame format; always 1
         self.ide = 1 # Always 1 for extended format
@@ -313,27 +366,46 @@ class CANExtendedFrame(CANFrame):
         # Generate CRC
         crc_bits = can_crc15(check_bits)
 
-        print('### Gen Ext CRC:', crc_bits, hex(join_bits(crc_bits)))
+        #print('### Gen Ext CRC:', crc_bits, hex(join_bits(crc_bits)))
 
         return check_bits + crc_bits
 
 
+class CANStreamStatus(Enum):
+    '''Enumeration for CANStreamFrame status codes'''
+    ShortPacketError = stream.StreamStatus.Error + 1
+    BitStuffingError = stream.StreamStatus.Error + 2
+    CRCError         = stream.StreamStatus.Error + 3
+    AckError         = stream.StreamStatus.Error + 4
+
 class CANStreamFrame(stream.StreamSegment):
     '''Encapsulates a CANFrame object into a StreamSegment'''
-    def __init__(self, bounds, frame, status=stream.StreamStatus.Ok):
+    def __init__(self, bounds, frame, field_info=None, stuffed_bits=None, status=stream.StreamStatus.Ok):
         stream.StreamSegment.__init__(self, bounds, data=frame, status=status)
         self.kind = 'CAN frame'
+        self.stuffed_bits = stuffed_bits
+        self.field_info = field_info
 
         self.annotate('frame', {}, stream.AnnotationFormat.Hidden)
 
 
-def coerce_symbol_rate(raw_symbol_rate, std_rates):
-    # find the standard symbol rate closest to the raw rate
+def _coerce_symbol_rate(raw_symbol_rate, std_rates):
+    # Find the standard symbol rate closest to the raw rate
     return min(std_rates, key=lambda x: abs(x - raw_symbol_rate))
 
+_can_field_formats = {
+    'id': ('addr', stream.AnnotationFormat.Hex),
+    'id_ext': ('addr', stream.AnnotationFormat.Hex),
+    'crc': ('check', stream.AnnotationFormat.Hex),
+    'ack': ('ack', stream.AnnotationFormat.Hidden),
+    'r0': ('misc', stream.AnnotationFormat.Hidden),
+    'r1': ('misc', stream.AnnotationFormat.Hidden),
+    'data': ('data', stream.AnnotationFormat.Hex),
+}
 
+can_std_bit_rates = (10e3, 20e3, 50e3, 125e3, 250e3, 500e3, 800e3, 1e6)
 
-def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, use_std_rate=False, logic_levels=None, stream_type=stream.StreamType.Samples):
+def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=None, logic_levels=None, stream_type=stream.StreamType.Samples):
     
     if stream_type == stream.StreamType.Samples:
         if logic_levels is None:
@@ -366,11 +438,9 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, use_std_rate=Fal
         #del symbol_rate_edges
         del sre_it
         
-        std_rates = (10e3, 20e3, 50e3, 125e3, 250e3, 500e3, 800e3, 1e6)
-
-        if use_std_rate:
+        if coerce_rates:
             # find the standard rate closest to the raw rate
-            bit_rate = coerce_symbol_rate(raw_symbol_rate, std_rates)
+            bit_rate = _coerce_symbol_rate(raw_symbol_rate, coerce_rates)
         else:
             bit_rate = raw_symbol_rate
             
@@ -385,7 +455,6 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, use_std_rate=Fal
     bit_period = 1.0 / float(bit_rate)
     es = EdgeSequence(edges_it, bit_period)
 
-    print('## begin CAN decode', bit_period)
     # initialize to point where state is high --> idle time before first SOF
     while es.cur_state() == 0 and not es.at_end():
         es.advance_to_edge()
@@ -411,14 +480,17 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, use_std_rate=Fal
 
         # Collect bits until we see a stuffing error (6 0's) or an EOF (7 1's)
         raw_bits = []
-        raw_bit_times = []
+        raw_bit_starts = []
         stuffing_error = False
-        while True: #not es.at_end():
+        dom_start_time = 0.0
+        while True:
             raw_bits.append(es.cur_state())
-            raw_bit_times.append(es.cur_time)
+            raw_bit_starts.append(es.cur_time - bit_period / 2) #FIX bit timing
             if es.cur_state() == 0:
                 dom_count += 1
                 rec_count = 0
+                if dom_count == 1:
+                    dom_start_time = es.cur_time - bit_period / 2 #FIX bit timing
             else:
                 rec_count += 1
                 dom_count = 0
@@ -432,10 +504,11 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, use_std_rate=Fal
 
             es.advance(bit_period)
 
+        field_info = []
         if not stuffing_error: # Potentially valid frame
-            print('## got frame:', stuffing_error, start_time, raw_bits)
+            #print('## got frame:', stuffing_error, start_time, raw_bits)
             unstuffed_bits, stuffed_bits, stuffing_errors = _unstuff(raw_bits)
-            print('##   unstuffed:', unstuffed_bits, stuffed_bits, stuffing_errors)
+            #print('##   unstuffed:', unstuffed_bits, stuffed_bits, stuffing_errors)
 
             std_header_bits = 1 + 12 + 6
             ext_header_bits = 1 + 32 + 6
@@ -443,9 +516,9 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, use_std_rate=Fal
             if len(unstuffed_bits) >= std_header_bits:
                 header_bits = std_header_bits
                 # Extract fields from unstuffed bits
-                id_bits = unstuffed_bits[1:12]
-                rtr = unstuffed_bits[12]
-                ide = unstuffed_bits[13]
+                id_bits = unstuffed_bits[1:12]; field_info.append(('id', (1,11)))
+                rtr = unstuffed_bits[12]; field_info.append(('rtr', (12, 12)))
+                ide = unstuffed_bits[13]; field_info.append(('ide', (13, 13)))
 
                 field_ix = 14
 
@@ -453,20 +526,21 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, use_std_rate=Fal
                     if len(unstuffed_bits) >= ext_header_bits:
                         header_bits = ext_header_bits
                         srr = rtr
-                        id_ext_bits = unstuffed_bits[field_ix:field_ix + 18]
+                        id_ext_bits = unstuffed_bits[field_ix:field_ix + 18]; field_info.append(('id_ext', (field_ix, field_ix+17)))
                         field_ix += 18
-                        rtr = unstuffed_bits[field_ix]
+                        rtr = unstuffed_bits[field_ix]; field_info.append(('rtr', (field_ix, field_ix)))
+                        field_info[1] = ('srr', (12, 12))
                         field_ix += 1
-                        r1 = unstuffed_bits[field_ix]
+                        r1 = unstuffed_bits[field_ix]; field_info.append(('r1', (field_ix, field_ix)))
                         field_ix += 1
                     else: # FIX: ERROR
                         pass
 
-                r0 = unstuffed_bits[field_ix]
+                r0 = unstuffed_bits[field_ix]; field_info.append(('r0', (field_ix, field_ix)))
                 field_ix += 1
 
 
-                dlc_bits = unstuffed_bits[field_ix:field_ix + 4]
+                dlc_bits = unstuffed_bits[field_ix:field_ix + 4]; field_info.append(('dlc', (field_ix, field_ix+3)))
                 dlc = min(join_bits(dlc_bits), 8) # Limit to max of 8 data bytes
                 field_ix += 4
                 data = []
@@ -481,6 +555,7 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, use_std_rate=Fal
                     else:
                         for b in xrange(dlc):
                             data.append(join_bits(unstuffed_bits[field_ix:field_ix + 8]))
+                            field_info.append(('data', (field_ix, field_ix+7)))
                             field_ix += 8
                 else: # Remote frame
                     # Verify we have enough raw bits
@@ -491,12 +566,12 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, use_std_rate=Fal
 
 
                 # Get checksum
-                check_bits = unstuffed_bits[field_ix:field_ix + 15]
+                check_bits = unstuffed_bits[field_ix:field_ix + 15]; field_info.append(('crc', (field_ix, field_ix+14)))
                 #print('## checksum:', hex(join_bits(check_bits)))
                 field_ix += 15
 
                 # Get ack
-                ack = True if unstuffed_bits[field_ix + 1] == 0 else False
+                ack = True if unstuffed_bits[field_ix + 1] == 0 else False; field_info.append(('ack', (field_ix+1, field_ix+1)))
                 
 
                 #print('## id, rtr, dlc:', hex(join_bits(id_bits)), rtr, hex(join_bits(dlc_bits)))
@@ -514,10 +589,90 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, use_std_rate=Fal
                 cf.r0 = r0 
 
                 print('### CRC valid:', cf.crc_is_valid(), cf)
+                print('### fields:', field_info)
 
-                yield CANStreamFrame((start_time, es.cur_time), cf)
+                sf = CANStreamFrame((start_time, es.cur_time), cf, field_info, stuffed_bits)
 
-        print('######## End time:', es.cur_time) 
+                # Add subrecords for each field in the frame
+                adj_info = _adjust_fields_for_stuffing(field_info, stuffed_bits)
+
+                field_sizes = [e - s + 1 for _, (s, e) in field_info]
+
+                data_ix = 0
+                for (field, bit_bounds), field_size in zip(adj_info, field_sizes):
+                    #fields[field] = (self.sop_end + start * clock_period, self.sop_end + (end + 1) * clock_period)
+                    bounds = (start_time + bit_bounds[0] * bit_period, start_time + (bit_bounds[1] + 1) * bit_period)
+
+
+
+
+                    if field in _can_field_formats:
+                        style, text_format = _can_field_formats[field]
+                    else:
+                        style = 'ctrl'
+                        text_format = stream.AnnotationFormat.Hex
+
+                    value = getattr(cf, field)
+                    if field == 'data':
+                        value = value[data_ix]
+                        data_ix += 1
+   
+                    status = stream.StreamStatus.Ok
+                    if field == 'crc' and not cf.crc_is_valid():
+                        status = CANStreamStatus.CRCError
+                    if field == 'ack' and not cf.ack:
+                        status = CANStreamStatus.AckError
+                    sf.subrecords.append(stream.StreamSegment(bounds, value, kind=field, status=status))
+                    sf.subrecords[-1].annotate(style, {'_bits':field_size}, text_format)
+
+                yield sf
+
+        else: # Stuffing error
+            # This could be an error or overload frame
+
+            # Keep fetching dominant bits until they become recessive. Then look for 8 recessive delimiter bits.
+            while es.cur_state() == 0 and not es.at_end():
+                es.advance(bit_period)
+
+            delim_bits = []
+            for _ in xrange(8):
+                delim_bits.append(es.cur_state())
+                es.advance(bit_period)
+
+            if all(delim_bits): # Valid error or overload frame
+                cf = CANErrorFrame()
+                sf = CANStreamFrame((dom_start_time, es.cur_time), cf)
+                sf.annotate('frame', {'name':''}, stream.AnnotationFormat.String)
+                yield sf
+
+
+def _adjust_fields_for_stuffing(field_info, stuffed_bits):
+    '''Correct field positions for presence of stuffed bits'''
+    import bisect
+
+    if len(stuffed_bits) == 0: # No bit stuffing present
+        return field_info
+
+    cum_offsets = list(xrange(len(stuffed_bits)))
+
+    adj_info = []
+    for field, (start, end) in field_info:
+        # Find the bit offsets that apply to the field range
+        i = bisect.bisect_left(stuffed_bits, start)
+        if i < len(cum_offsets):
+            start += cum_offsets[i]
+        else:
+            start += cum_offsets[-1] + 1
+        
+        i = bisect.bisect_left(stuffed_bits, end)
+        if i < len(cum_offsets):
+            end += cum_offsets[i]
+        else:
+            end += cum_offsets[-1] + 1
+
+        adj_info.append((field, (start, end)))
+
+    return adj_info
 
 
 
