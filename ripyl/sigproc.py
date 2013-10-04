@@ -434,7 +434,7 @@ def invert(stream):
         yield SampleChunk(filt, sc.start_time, sc.sample_period)
 
 
-def capacify(samples, capacitance, resistance=50.0, iterations=80):
+def capacify(samples, capacitance, resistance=1.0, iterations=80):
     '''Simulate an RC filter on a waveform::
 
         : samples >--R--+--> out
@@ -454,7 +454,8 @@ def capacify(samples, capacitance, resistance=50.0, iterations=80):
         An iterable sample stream to modify.
 
     capacitance (float)
-        The capacitance value
+        The capacitance value. If resistance is kept at the default value of 1.0 Ohms
+        this parameter is equivalent to the time constant tau (c = tau / r).
 
     resistance (float)
         The resistance value
