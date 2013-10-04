@@ -26,6 +26,7 @@ from __future__ import print_function, division
 from ripyl.util.enum import Enum
 from ripyl.util.eng import eng_si
 import string
+import math
 
 
 class StreamType(Enum):
@@ -164,7 +165,13 @@ class StreamRecord(object):
             if data_format == AnnotationFormat.Int:
                 words.append(str(d))
             elif data_format == AnnotationFormat.Hex:
-                words.append('16#{:02X}#'.format(d))
+                # If the '_bits' field is present we will compute the number of nibbles needed
+                # to display in hex
+                if '_bits' in self.fields:
+                    nibbles = int(math.ceil(self.fields['_bits'] / 4.0))
+                else: # Default to 2 nibbles (may leave an extraneous leading 0)
+                    nibbles = 2
+                words.append('16#{:0{}X}#'.format(d, nibbles))
             elif data_format == AnnotationFormat.Text:
                 try:
                     char = chr(d)
