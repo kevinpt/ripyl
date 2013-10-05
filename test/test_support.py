@@ -85,6 +85,8 @@ class RandomSeededTestCase(unittest.TestCase):
 
     def assertRelativelyEqual(self, a, b, epsilon, msg=None):
         if not relativelyEqual(a, b, epsilon):
+            if msg is None:
+                msg = '{} != {}'.format(a, b)
             raise self.failureException(msg)
 
 
