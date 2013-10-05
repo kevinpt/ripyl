@@ -101,7 +101,7 @@ def edges_to_sample_stream(edges, sample_period, logic_states=(0,1), end_extensi
     chunk_count = 0
     start_time = cur_states[0]
 
-    offset = min(logic_states)
+    offset = -min(logic_states)
     scale = 1.0 / (max(logic_states) - min(logic_states))
 
     while True: # Main loop generating samples
