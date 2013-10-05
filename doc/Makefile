@@ -42,6 +42,9 @@ help:
 clean:
 	-rm -rf $(BUILDDIR)/*
 
+RIPYL_CYTHON = 0
+export RIPYL_CYTHON
+
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo

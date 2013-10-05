@@ -46,7 +46,12 @@ On Windows you can optionally run the executable installer to setup Ripyl.
 Cython
 ------
 
-The Ripyl library has been designed with optional Cython support. By default the installation script will detect and enable Cython if it is present. You can force Cython support off by passing the ``--without-cython`` argument to setup.py.
+The Ripyl library has been designed with optional Cython support. By default the installation script will detect and enable Cython if it is present. You can force Cython support off by passing the ``--without-cython`` argument to setup.py. The status of the Cython configuration is written into a ripyl.cfg file at build time. You can enable or disable the use of Cython after Ripyl is installed by setting the `RIPYL_CYTHON` environment variable to a true or false value as desired:
+
+.. code-block:: sh
+
+  > export RIPYL_CYTHON=1
+
 
 Testing
 -------
