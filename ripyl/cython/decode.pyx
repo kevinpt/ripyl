@@ -176,13 +176,14 @@ def find_multi_edges(samples, hyst_thresholds):
             for i in xrange(center_ix):
                 if chunk[0] <= center_thresholds[i]:
                     center_ix = i
+                    break
 
             initial_state = (t, center_ix - zone_offset)
             prev_stable = initial_state[1]
             yield initial_state
 
 
-        edges, state, prev_stable = _cy_find_multi_edges(chunk, t, sample_period, h_t, len(hyst_thresholds), state, prev_stable)
+        edges = _cy_find_multi_edges(chunk, t, sample_period, h_t, len(hyst_thresholds), &state, &prev_stable)
 
         for e in edges:
             yield e
@@ -192,13 +193,17 @@ def find_multi_edges(samples, hyst_thresholds):
 
 @cython.boundscheck(False)
 cdef _cy_find_multi_edges(double[:] chunk, double t, double sample_period, double *hyst_thresholds, int h_t_len, \
-    int state, int prev_stable):
+    int *p_state, int *p_prev_stable):
 
     cdef int zone, zone_offset, zone_is_stable
     cdef double sample
     cdef unsigned int i, j
+    cdef int state, prev_stable
 
     edges = []
+    
+    state = p_state[0]
+    prev_stable = p_prev_stable[0]
 
     zone_offset = h_t_len // 4
 
@@ -236,5 +241,8 @@ cdef _cy_find_multi_edges(double[:] chunk, double t, double sample_period, doubl
 
         t += sample_period
 
-    return edges, state, prev_stable
+    p_state[0] = state
+    p_prev_stable[0] = prev_stable
+
+    return edges
 

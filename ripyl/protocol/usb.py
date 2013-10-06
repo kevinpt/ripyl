@@ -1119,7 +1119,7 @@ def usb_diff_decode(d_diff, logic_levels=None, stream_type=stream.StreamType.Sam
         # We needed the bus speed before we could properly strip just
         # the anomalous SE0s
         min_se0 = USBClockPeriod[bus_speed] * 0.75
-        d_diff_it = remove_short_diff_0s(d_diff_it, min_se0)
+        d_diff_it = remove_transitional_states(d_diff_it, min_se0)
 
     es = EdgeSequence(d_diff_it, 0.0)
     state_seq = EdgeSequence(_convert_differential_states(es, bus_speed), 0.0)

@@ -676,15 +676,8 @@ def gen_hyst_thresholds(logic_levels, hysteresis=0.1):
     for a, b in zip(logic_levels[0:-1], logic_levels[1:]):
         centers.append((a + b) / 2.0)
 
-    #spans = [] #FIX: this could be removed
-    #for c, t in zip(centers, logic_levels[1:]):
-    #    spans.append(t - c)
-
     hyst = []
     hysteresis = min(max(hysteresis, 0.0), 1.0) # Coerce to range [0.0, 1.0]
-    #for level, s in zip(logic_levels[0:-1], spans):
-    #    h_top = s * (1 + hysteresis) + level
-    #    h_bot = s * (1 - hysteresis) + level
     for level, c in zip(logic_levels[0:-1], centers):
         h_top = (c - level) * (1 + hysteresis) + level
         h_bot = (c - level) * (1 - hysteresis) + level
@@ -705,7 +698,7 @@ def find_multi_edges(samples, hyst_thresholds):
     distinguished from transitions incliding intermediate states.
     For the case of three states (-1, 0, 1), Short periods in the 0 state
     should be removed but this requires knowledge of the minimum time for a 0 state
-    to be valid. This is performed by the remove_short_diff_0s() function.
+    to be valid. This is performed by the remove_transitional_states() function.
 
     The logic state encoding is formulated to balance the number of positive and negative
     states around 0 for odd numbers of states and with one extra positive state for even
@@ -772,7 +765,6 @@ def find_multi_edges(samples, hyst_thresholds):
     # unstable states corresponding to samples within the hysteresis transition bands.
 
     state = ES_START
-    
     for sc in samples:
         t = sc.start_time
         #sample_period = sc.sample_period
@@ -784,6 +776,7 @@ def find_multi_edges(samples, hyst_thresholds):
             for i in xrange(center_ix):
                 if sc.samples[0] <= center_thresholds[i]:
                     center_ix = i
+                    break
 
             initial_state = (t, center_ix - zone_offset)
             yield initial_state
@@ -823,67 +816,60 @@ def find_multi_edges(samples, hyst_thresholds):
             t += sc.sample_period
 
 
-#FIX: make this more generic for 5-level logic as well
-def remove_short_diff_0s(diff_edges, min_diff_0_time):
-    '''Filter out unwanted differential 0's from an edge stream
+
+def remove_transitional_states(edges, min_state_period):
+    '''Filter out brief transitional states from an edge stream
     
     This is a generator function that can be used in a pipeline of waveform
     procesing operations.
     
-    diff_edges (iterable of (float, int) tuples)
+    edges (iterable of (float, int) tuples)
         An iterable of 2-tuples representing each edge transition.
         The 2-tuples *must* be in the absolute time form (time, logic level).
-        The logic levels should be in the set (-1, 0, 1) as produced by
-        find_differential_edges().
     
-    min_diff_0_time (float)
-        The threshold for differential 0 states. A diff 0 lasting less than this
+    min_state_period (float)
+        The threshold for transitional states. A transition lasting less than this
         threshold will be filtered out of the edge stream.
 
     Yields a series of 2-tuples (time, value) representing the time and
-      logic value (-1, 0, or 1) for each edge transition. The first tuple
-      yielded is the initial state of the sampled waveform. All remaining
-      tuples are detected edges.
+      logic value for each edge transition. The first tuple yielded is the
+      initial state of the sampled waveform. All remaining tuples are
+      detected edges.
       
     Raises StreamError if the stream is empty
     '''
-    diff_0_start = None
-    merged_edge = False
-    
+
     # Get the first edge
     try:
-        prev_edge = next(diff_edges)
+        prev_edge = next(edges)
     except StopIteration:
         raise StreamError('Unable to initialize edge stream')
 
-    for edge in diff_edges:
+    in_transition = False
+    tran_start = None
 
-        if edge[1] != 0:
-            merged_edge = False
+    for edge in edges:
+        ts = edge[0] - prev_edge[0]
+        if in_transition:
+            ts += prev_edge[0] - tran_start[0] # Include current transition in time step
 
-        if diff_0_start is not None: # prev edge started differential 0
-            diff_0_end = edge[0]
-            diff_0_len = diff_0_end - diff_0_start
-            
-            if diff_0_len < min_diff_0_time:
-                # merge edges and remove differential 0
-                prev_edge = ((diff_0_start + diff_0_end) / 2.0, edge[1])
-                merged_edge = True
+        if ts >= min_state_period:
+            if in_transition:
+                # Merge edges
+                merge_edge = ((tran_start[0] + prev_edge[0]) / 2, prev_edge[1])
+                yield merge_edge
+                in_transition = False
+            else: 
                 yield prev_edge
-            else:
-                merged_edge = False
 
-            diff_0_start = None
+        elif not in_transition: # Start of a transition
+            in_transition = True
+            tran_start = prev_edge
 
-        if edge[1] == 0: #diff_0
-            diff_0_start = edge[0]
-
-        if not merged_edge:
-            yield prev_edge
-            
         prev_edge = edge
+    
+    yield prev_edge # Last edge
 
-    yield prev_edge # last edge
 
     
 def find_symbol_rate(edges, sample_rate=1.0, spectra=2, auto_span_limit=True, max_span_limit=None):

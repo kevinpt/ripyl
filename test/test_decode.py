@@ -35,9 +35,6 @@ import test.test_support as tsup
 
 
 class TestDecodeFuncs(tsup.RandomSeededTestCase):
-    @unittest.skip('incomplete')
-    def test_find_bot_top_hist_peaks(self):
-        pass
 
     #@unittest.skip('debug')
     def test_find_symbol_rate(self):
@@ -144,7 +141,59 @@ class TestDecodeFuncs(tsup.RandomSeededTestCase):
             #print('####', name, logic_levels)
             self.assertRelativelyEqual(logic_levels[0], 0.0, epsilon=0.16, msg='Bad logic 0: {}'.format(logic_levels[0]))
             self.assertRelativelyEqual(logic_levels[1], 1.0, epsilon=0.1, msg='Bad logic 1: {}'.format(logic_levels[1]))
-            
+
+
+    def test_find_multi_edges(self):
+        self.test_name = 'find_multi_edges() test'
+        self.trial_count = 100
+        for i in xrange(self.trial_count):
+            self.update_progress(i+1)
+
+            bit_period = 1.0
+            sample_rate = bit_period * 1000
+            rt = sigp.min_rise_time(sample_rate) * random.uniform(20.0, 200.0)
+
+            num_states = random.randint(2, 7)
+            offset = (2 * (num_states - 1)) // 4
+            logic_states = (0 - offset, num_states - 1 - offset)
+            #print('\nlogic states:', logic_states, num_states)
+
+            # Generate random edges
+            prev_state = 0
+            state = 0
+            edges = []
+            t = 0.0
+            for _ in xrange(10):
+                while state == prev_state: # Guarantee that each edge is different from the previous
+                    state = random.randint(logic_states[0], logic_states[-1])
+
+                prev_state = state
+                edges.append((t, state))
+                t += bit_period
+
+            # Duplicate the last edge so that it will be decoded
+            edges = edges + [(edges[-1][0] + bit_period, edges[-1][1])]
+
+            #print('## edges:', edges)
+
+            samples = sigp.synth_wave(iter(edges), sample_rate, rt, logic_states=logic_states)
+
+            # Generate logic levels in range [0.0, 1.0]
+            logic_levels = [float(level) / (num_states-1) for level in xrange(num_states)]
+            #print('## logic_levels:', logic_levels)
+            found_edges = list(decode.find_multi_edges(samples, decode.gen_hyst_thresholds(logic_levels)))
+            #print('## found:', found_edges)
+
+            # Remove brief transitional states that last less than half the bit period
+            rts_edges = list(decode.remove_transitional_states(iter(found_edges), bit_period * 0.5))
+            #print('\n## RTS edges:', rts_edges)
+
+            edges = edges[:-1] # Trim off last (duplicate) edge
+            self.assertEqual(len(edges), len(rts_edges), msg='Mismatch in found edge count {} != {}'.format(len(edges), len(rts_edges)))
+
+            for i, (e, f) in enumerate(zip(edges, rts_edges)):
+                self.assertRelativelyEqual(e[0], f[0], epsilon=0.5, msg='Edge times not close enough {} != {}'.format(e[0], f[0]))
+                self.assertEqual(e[1], f[1], msg='Edges not the same index={}, edge={}, found={}'.format(i, e[1], f[1]))
 
     
 class TestEdgeSequence(unittest.TestCase):
