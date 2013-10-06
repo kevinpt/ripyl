@@ -9,12 +9,12 @@ The Ripyl library makes use of a few common data structures that will be discuss
 Streams
 -------
 
-Throughout the Ripyl documentation there is reference to "streams" of data. This is a term used to describe an informally defined sequence of sample or edge data that is used as input and output of many library functions. A stream is a sequence of data that may be produced on demand by an iterator or generator function. Sample streams and edge streams are the two types of stream data structures used in Ripyl. Internally, all of the decode functions convert their input streams to edge streams before proceding to decode their content.
+Throughout the Ripyl documentation there is reference to "streams" of data. This is a term used to describe a sequence of sample or edge data that is used as input and output of many library functions. A stream is a sequence of data that may be produced on demand by an iterator or generator function. Sample streams and edge streams are the two types of stream data structures used in Ripyl. Internally, all of the decode functions convert their input streams to edge streams before proceding to decode their content.
 
 Sample streams
 ~~~~~~~~~~~~~~
 
-Sample streams are farily self explanatory. They are a time series of sampled data points. For efficiency purposes, a group of samples is aggregated into a :class:`~.streaming.SampleChunk` object containing a NumPy array of samples and attributes identifying the start time and sample period of each chunk. The number of samples in a chunk may vary but it defaults to 10000. Raw sample data can be converted to a sample stream with the :func:`~.streaming.samples_to_sample_stream` function.
+Sample streams are farily self explanatory. They are a time series of sampled data points. For efficiency purposes, a group of samples is aggregated into a :class:`~.streaming.SampleChunk` object containing a NumPy array of samples and attributes identifying the start time and sample period of each chunk. The number of samples in a chunk may vary but it defaults to 10000. Raw sample data can be converted to a sample stream with the :func:`~.streaming.samples_to_sample_stream` function. A sample stream can be converted back into a raw array of samples with :func:`~.streaming.sample_stream_to_samples`. The :func:`~.streaming.extract_all_samples` function will produce a raw array along with information about the start time and sample period.
 
 
 Edge streams
@@ -23,6 +23,8 @@ Edge streams
 Edge streams are different from sample streams in that they represent the logical levels of edge transitions. An edge stream consists of a sequence (list, tuple, etc.) or iterable (iterator or generator function object) that contains/yields a series of tuple pairs of numbers. The first number is a float representing the time that the second element of the pair occurs at. The second number is an int that represents the logical edge state (high, low, middle, etc.).
 
 The time value in each pair is an arbitrary time in seconds relative to whatever point is desired. Negative values are acceptable. The only firm requirement is that time increases monotonically. The time intervals between edges are not fixed. The logical state of each edge represents a transition at the current time that is maintained until the next edge in the sequence. Logical states are encoded as an integer value. For waveforms with binary states these will be 0 for low and 1 for high. For differential signals the states are -1 for low, 0 for differential-0, and 1 for high. The first element of an edge stream establishes the initial state of the stream and does not represent an edge.
+
+Edge streams can be manually created when necessary. They can also be created from a sample stream using the :func:`~.decode.find_edges` and :func:`~.decode.find_multi_edges` functions. An edge stream can be converted back to a sample stream using :func:`~.sigproc.edges_to_sample_stream` and :func:`~.sigproc.synth_wave`.
 
 
 StreamRecords

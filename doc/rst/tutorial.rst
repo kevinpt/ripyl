@@ -22,16 +22,16 @@ Ripyl's processing is performed through a pipeline of `generator functions <http
 .. code-block:: python
 
     import ripyl
-    import ripyl.sigproc as sigp
+    import ripyl.streaming as stream
     import ripyl.protocol.uart as uart
     
     raw_samples, sample_period = read_samples_from_your_oscilloscope()
-    txd = sigp.samples_to_sample_stream(raw_samples, sample_period)
+    txd = stream.samples_to_sample_stream(raw_samples, sample_period)
 
 .. note::
     You will need to figure out how to populate the raw_samples and sample_period variables on your own. read_samples_from_your_oscilloscope() is just a placeholder that does not exist in Ripyl. See the section on :doc:`reading data <reading_data>` for some examples for various devices.
     
-The ``txd`` variable is an iterable object that will extract data from ``raw_samples`` as needed and yield a series of sample stream tuples with time markers for each sample. If you need accurate time correlation you can pass an additional ``start_time`` parameter to the :func:`~.sigproc.samples_to_sample_stream` function.
+The ``txd`` variable is an iterable object that will extract data from ``raw_samples`` as needed and yield a series of sample stream tuples with time markers for each sample. If you need accurate time correlation you can pass an additional ``start_time`` parameter to the :func:`~.streaming.samples_to_sample_stream` function.
 
 .. note::
 
@@ -129,12 +129,12 @@ Some protocols may insert non-data :class:`~.streaming.StreamEvent` objects to i
 What could go wrong?
 --------------------
 
-The protocol decoders perform some automatic parametric analysis to simplify the library interface. By default all decoders will attempt to perform automatic logic level analysis on the sample stream. The UART and USB decoders also provide automatic baud and bus speed detection. In some cases these automatic actions will fail or produce the wrong results.
+The protocol decoders perform some automatic parametric analysis to simplify the library interface. By default all decoders will attempt to perform automatic logic level analysis on the sample stream. The :mod:`UART <.protocol.uart>` :mod:`USB <.protocol.usb>`, and :mod:`CAN <.protocol.can>` decoders also provide automatic baud and bus speed detection. In some cases these automatic actions will fail or produce the wrong results.
 
 Logic level detection
 ~~~~~~~~~~~~~~~~~~~~~
 
-The protocol decoders need to do some statistical analysis of the sample stream(s) before they can start decoding. Internally each decoder works on an edge stream rather than directly on the sample stream. The samples need to be converted to edges by first discovering what the logic levels are, removing the need to manually specify logic thresholds. This requires consuming a portion of the input samples for analysis. By default the Ripyl library is limited to consuming 20000 samples for its logic level analysis. If the input has no identifiable edge transitions in this period the AutoLevelError exception will be raised. The analyzed samples are buffered and will still be used if they contain useful data for decode.
+The protocol decoders need to do some statistical analysis of the sample stream(s) before they can start decoding. Internally each decoder works on an edge stream rather than directly on the sample stream. The samples need to be converted to edges by first discovering what the logic levels are, removing the need to manually specify logic thresholds. This requires consuming a portion of the input samples for analysis. By default the Ripyl library is limited to consuming 20000 samples for its logic level analysis. If the input has no identifiable edge transitions in this period the `AutoLevelError` exception will be raised. The analyzed samples are buffered and will still be used if they contain useful data for decode.
 
 The logic level analysis may produce incorrect results if you have an unusual input signal that contains more than two identifiable logic levels (or three for differential USB). Consider the case of HighSpeed (480 Mb/s) USB devices where normal single-ended signaling levels are 0V and 0.4V but 3.3V may also be present during the initial connection phase and during any suspend period. This could interfere with the logic level detection process.
 
@@ -152,12 +152,11 @@ The other option is to manually generate an edge stream on a set of sampled data
 .. code-block:: python
 
     import ripyl
-    import ripyl.sigproc as sigp
+    import ripyl.streaming as stream
     from ripyl.decode import find_edges
-    from ripyl.streaming import StreamType
 
     # Prepare your raw samples
-    sample_stream = sigp.samples_to_sample_stream(raw_samples, sample_period)
+    sample_stream = stream.samples_to_sample_stream(raw_samples, sample_period)
 
     logic = (0.0, 0.4) # Logic low and high for your signal
     hysteresis = 0.4 # 40% of the transition band between low and high
@@ -166,7 +165,7 @@ The other option is to manually generate an edge stream on a set of sampled data
     edges_it = find_edges(sample_stream, logic, hysteresis)
     
     # Tell the decoder the input is an edge stream
-    records_it = XXX.XXX_decode(edges_it, ..., stream_type = StreamType.Edges)
+    records_it = XXX.XXX_decode(edges_it, ..., stream_type = stream.StreamType.Edges)
 
 
     

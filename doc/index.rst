@@ -20,7 +20,7 @@ It can process a waveform like this:
 
 .. image:: image/uart_hello_small.png
 
-The library provides decoded information in an easily traversed tree detailing the time and data for each sub-element of a protocol transmission.
+The library provides decoded information in an easily traversed tree detailing the time and data for each sub-element of a protocol transmission. In the example above you can see the individual frames along with the highlighted data and parity bits within each frame. The status of parity is verified as are checksums and CRCs used in other protocols.
 
 Features include:
     * Multi-protocol support:
