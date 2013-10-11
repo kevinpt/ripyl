@@ -25,7 +25,6 @@ from __future__ import print_function, division
 
 import operator
 
-#from ripyl.decode import *
 import ripyl
 import ripyl.streaming as stream
 import ripyl.sigproc as sigp
@@ -35,12 +34,31 @@ import ripyl.protocol.uart as uart
 
 
 class LINChecksum(Enum):
+    '''Enumeration for LIN checksum type'''
     Classic = 0
     Enhanced = 1
 
 
 class LINFrame(object):
+    '''LIN frame object'''
     def __init__(self, id, data=None, checksum=None, pid_parity=None, cs_type=LINChecksum.Classic):
+        '''
+        id (int)
+            The ID field from the PID
+
+        data (sequence of int or None)
+            Optional sequence of data bytes for the frame
+
+        checksum (int or None)
+            Optional checksum for the frame
+        
+        pid_parity (int or None)
+            Optional parity bits from the PID field
+
+        cs_type (LINChecksum)
+            The checksum type to use for this frame
+
+        '''
         self.id = id
         self.data = data
         self._checksum = checksum
@@ -48,14 +66,12 @@ class LINFrame(object):
         self.cs_type = cs_type
 
     def __repr__(self):
-        return 'LINFrame({}, {}, {}, {})'.format(self.pid, self.data, self._checksum, self.cs_type)
+        return 'LINFrame({}, {}, {}, {}, {})'.format(self.pid, self.data, self._checksum, self._pid_parity, self.cs_type)
 
-    #@property
-    #def id(self):
-    #    return self.pid & 0x3F
 
     @property
     def pid(self):
+        '''Get the frame PID'''
         return (self.pid_parity << 6) + self.id
 
     @property
@@ -84,6 +100,7 @@ class LINFrame(object):
 
     @property
     def data_checksum(self):
+        '''Get the checksum over the data bytes without reference to any existing _checksum value'''
         if self.data is None:
             raise ValueError('No data in frame')
 
@@ -97,6 +114,13 @@ class LINFrame(object):
 
 
     def checksum_is_valid(self, recv_cs=None):
+        '''Determine if the checksum is valid
+
+        recv_cs (int or None)
+            Optional received checksum value. If None, the stored checksum
+            for the frame is used instead.
+
+        '''
         if recv_cs is None:
             recv_cs = self._checksum
 
@@ -106,9 +130,11 @@ class LINFrame(object):
 
 
     def pid_is_valid(self):
+        '''Determine if the PID parity bits are correct'''
         return self.pid_parity == (lin_pid(self.id) >> 6)
 
     def bytes(self):
+        '''Returns a sequence of raw frame bytes including the sync field'''
         if self.data is None:
             return [0x55, self.pid]
         else:
@@ -125,6 +151,9 @@ class LINFrame(object):
         if self._checksum is not None:
             s_vars['_checksum'] = self.checksum
             o_vars['_checksum'] = other.checksum
+
+        #print('### sv:', s_vars)
+        #print('### ov:', o_vars)
 
         return s_vars == o_vars
 
@@ -148,6 +177,13 @@ class LINStreamFrame(stream.StreamSegment):
 
 
 def lin_checksum(data):
+    '''Compute the LIN checksum
+
+    data (sequence of int)
+        The bytes (including ID if enhanced format) to compute the checksum over
+
+    Returns the checksum as an int.
+    '''
     cs = 0
     for d in data:
         cs += d
@@ -162,6 +198,13 @@ _p0_mask = 0x17 # ID 0, 1, 2, 4
 _p1_mask = 0x3A # ID 1, 3, 4, 5
 
 def lin_pid(id):
+    '''Generate a LIN PID from an ID
+
+    id (int)
+        The ID to generate parity for
+
+    Returns the PID as an int.
+    '''
 
     p0 = reduce(operator.xor, split_bits(id & _p0_mask, 6))
     p1 = reduce(operator.xor, split_bits(id & _p1_mask, 6)) ^ 0x01
@@ -169,7 +212,7 @@ def lin_pid(id):
     return join_bits([p1, p0] + split_bits(id, 6))
 
 
-def lin_decode(stream_data, baud_rate=None, logic_levels=None, stream_type=stream.StreamType.Samples):
+def lin_decode(stream_data,  enhanced_ids=None, baud_rate=None, logic_levels=None, stream_type=stream.StreamType.Samples):
     '''Decode a LIN data stream
 
     This is a generator function that can be used in a pipeline of waveform
@@ -184,11 +227,14 @@ def lin_decode(stream_data, baud_rate=None, logic_levels=None, stream_type=strea
     stream_data (iterable of SampleChunk objects or (float, int) pairs)
         A sample stream or edge stream representing a LIN signal.
 
+    enhanced_ids (sequence of int or None)
+        An optional sequence of frame IDs that are to use LIN 2.x enhanced checksums.
+
     baud_rate (int or None)
         The baud rate of the stream. If None, the first 50 edges will be analyzed to
         automatically determine the most likely baud rate for the stream. On average
         50 edges will occur after 11 bytes have been captured.
-    
+
     logic_levels ((float, float) or None)
         Optional pair that indicates (low, high) logic levels of the sample
         stream. When present, auto level detection is disabled. This has no effect on
@@ -216,6 +262,9 @@ def lin_decode(stream_data, baud_rate=None, logic_levels=None, stream_type=strea
         edges = ripyl.decode.find_edges(samp_it, logic_levels, hysteresis=0.4)
     else: # the stream is already a list of edges
         edges = stream_data
+
+    if enhanced_ids is None:
+        enhanced_ids = []
 
     bits = 8
     parity = None
@@ -264,24 +313,27 @@ def lin_decode(stream_data, baud_rate=None, logic_levels=None, stream_type=strea
 
 
         if frame_complete:
-            sf = _make_lin_frame(raw_bytes, frame_start)
+            sf = _make_lin_frame(raw_bytes, frame_start, enhanced_ids)
             frame_complete = False
             frame_start = next_frame_start
 
             yield sf
 
     if len(raw_bytes) > 0: # Partial frame remains
-        sf = _make_lin_frame(raw_bytes, frame_start)
+        sf = _make_lin_frame(raw_bytes, frame_start, enhanced_ids)
         yield sf
 
         
 
-def _make_lin_frame(raw_bytes, frame_start):
+def _make_lin_frame(raw_bytes, frame_start, enhanced_ids):
     '''Generate a LINStreamFrame from raw bytes'''
     if len(raw_bytes) >= 2:
         lf = LINFrame(raw_bytes[0].data & 0x3F, [b.data for b in raw_bytes[1:-1]], raw_bytes[-1].data, pid_parity=raw_bytes[0].data >> 6)
     else:
         lf = LINFrame(raw_bytes[0].data & 0x3F, pid_parity=raw_bytes[0].data >> 6)
+
+    if lf.id in enhanced_ids:
+        lf.cs_type = LINChecksum.Enhanced
 
     sf = LINStreamFrame((frame_start, raw_bytes[-1].end_time), lf)
 
