@@ -65,7 +65,7 @@ class UARTConfig(Enum):
     IdleLow = 2
 
 def uart_decode(stream_data, bits=8, parity=None, stop_bits=1.0, lsb_first=True, polarity=UARTConfig.IdleHigh, \
-    baud_rate=None, use_std_baud=True, logic_levels=None, stream_type=stream.StreamType.Samples, baud_deque=None):
+    baud_rate=None, use_std_baud=True, logic_levels=None, stream_type=stream.StreamType.Samples, param_info=None):
     
     '''Decode a UART data stream
 
@@ -118,10 +118,9 @@ def uart_decode(stream_data, bits=8, parity=None, stop_bits=1.0, lsb_first=True,
         A StreamType value indicating that the stream parameter represents either Samples
         or Edges
         
-    baud_deque (collections.deque or None)
-        An optional collections.deque object that is used to monitor the results of
-        automatic baud detection. A dict containing the internal variables baud_rate
-        and raw_symbol_rate is placed on the deque when uart_decode() is called.
+    param_info (dict or None)
+        An optional dictionary object that is used to monitor the results of
+        automatic baud detection.
 
         
     Yields a series of UARTFrame objects. Each frame contains subrecords marking the location
@@ -196,16 +195,12 @@ def uart_decode(stream_data, bits=8, parity=None, stop_bits=1.0, lsb_first=True,
     if polarity == UARTConfig.IdleLow:
         edges_it = ((t, 1 - e) for t, e in edges_it)
         
-    if baud_deque is not None:
-        bd_dict = {'baud_rate': baud_rate, 'raw_symbol_rate': raw_symbol_rate}
+    if param_info is not None:
+        param_info['baud_rate'] = baud_rate
+        param_info['raw_symbol_rate'] = raw_symbol_rate
         if stream_type == stream.StreamType.Samples:
-            bd_dict['logic_levels'] = logic_levels
-            
-        edge_list = list(edges_it)
-        bd_dict['edges'] = edge_list
-        edges_it = iter(edge_list)
-        baud_deque.append(bd_dict)
-    
+            param_info['logic_levels'] = logic_levels
+
     bit_period = 1.0 / float(baud_rate)
     es = EdgeSequence(edges_it, bit_period)
     
