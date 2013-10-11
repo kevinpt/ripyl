@@ -672,3 +672,9 @@ sid_decoders = {
     0x04: _decode_obd_sid_04_msg,
     0x3F: _decode_obd_neg_response # Only used as response 0x7F
 }
+
+# NOTE: ISO14229 has additional SIDs
+
+# SID 0x11 ECU reset
+# SID 0x27 Security access
+

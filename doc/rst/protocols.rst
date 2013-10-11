@@ -6,8 +6,10 @@ The Ripyl library supports a number of protocols for decoding. Protocol decoders
 
 The base protocols provided with Ripyl are the following:
 
+* :ref:`CAN <can>`
 * :ref:`I2C <i2c>` (also handles SMBus)
 * :ref:`ISO K-line <kline>` (ISO 9141 and ISO 14230 automotive protocols)
+* :ref:`LIN <lin>`
 * :ref:`NEC <nec>`
 * :ref:`PS/2 <ps2>`
 * :ref:`RC5 <rc5>`
@@ -26,6 +28,14 @@ The higher level protocols provided with Ripyl are:
 * :ref:`OBD-2 <obd2>` automotive ECU message format
 
 The protocol decoders do not check timing parameters to verify that they meet specifications. The emphasis is on getting usable data out of waveforms even if they depart from requirements.
+
+
+.. _can:
+
+CAN
+---
+
+The :mod:`can <.protocol.can>` module decodes the CAN protocol. It supports 11-bit and 29-bit identifiers.
 
 .. _i2c:
 
@@ -46,6 +56,15 @@ ISO K-line (ISO 9141 and ISO 14230)
     :scale: 60%
 
 The :mod:`iso_k_line <.protocol.iso_k_line>` module decodes the ISO 9141 and ISO 14230 (KWP2000) automotive protocols. It supports slow and fast init sequences and 3 or 4-byte headers.
+
+
+.. _lin:
+
+LIN
+---
+
+The :mod:`lin <.protocol.lin>` module decodes the LIN (Local Interconnect Network) automotive protocol. It supports LIN 1.3 and 2.x style checksums.
+
 
 .. _lm73:
 

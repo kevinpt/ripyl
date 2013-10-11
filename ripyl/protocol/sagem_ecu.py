@@ -90,6 +90,7 @@ sid_22_pids = {
     0x2346: PTE(2, '???', '', lambda a, b: (a*256+b) * 10.0)
 }
 
+# Security access mode
 sid_27_pids = {
     0x0302: PTE(2, 'Unlock Sagem extensions', '')
 }
