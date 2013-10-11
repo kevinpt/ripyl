@@ -346,7 +346,7 @@ def quantize(samples, full_scale, bits=8):
     ulp = float(full_scale) / 2**bits
 
     for sc in samples:
-        filt = np.floor(sc.samples / full_scale * 2**bits) * ulp
+        filt = np.floor(sc.samples / ulp) * ulp
         yield SampleChunk(filt, sc.start_time, sc.sample_period)
 
 
