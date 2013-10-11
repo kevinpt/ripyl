@@ -1,5 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+# xcython: profile=True
+# cython: boundscheck=False
+# cython: wraparound=False
 
 '''Cython implementation of sigproc.py functions
 '''
@@ -25,7 +28,7 @@ cimport cython
 cimport numpy as np
 import numpy as np
 
-from ripyl.streaming import SampleChunk
+from ripyl.streaming import SampleChunk, StreamError
 
 @cython.boundscheck(False)
 def capacify(samples, capacitance, resistance=1.0, iterations=80):
@@ -107,4 +110,96 @@ cdef double _capacify_inner_loop(unsigned int iterations, double capacitance, do
 
     return vc
     
+
+
+def edges_to_sample_stream(edges, sample_period, logic_states=(0,1), end_extension=None, chunk_size=10000):
+    '''Convert an edge stream to a sample stream
+
+    The output samples are scaled to the range of 0.0 to 1.0 regardless of the number of logic states.
+    
+    edges (iterable of (float, int) tuples)
+        An edge stream to sample
+        
+    sample_period (float)
+        The sample period for converting the edge stream
+
+    logic_states (sequence of int)
+        The coded state values for the lowest and highest state in the edge stream.
+        For 2-level states these will be (0,1). For 3-level: (-1, 1). For 5-level: (-2, 2).
+        
+    end_extension (float)
+        Optional amount of time to add to the end after the last edge transition
+
+    chunk_size (int)
+        Number of samples in each SampleChunk
+    
+    Yields a stream of SampleChunk objects.
+    '''
+    cdef double t = 0.0
+    cdef double c_sample_period = sample_period
+    cdef int chunk_count = 0
+    cdef int c_chunk_size = chunk_size
+    cdef np.ndarray chunk = np.empty(c_chunk_size, dtype=float)
+    cdef double[:] chunk_d = chunk
+    cdef double start_time
+    cdef double offset
+    cdef double scale
+    cdef double end_time
+    cdef double next_edge_time
+    cdef double cur_level
+    
+    try:
+        cur_states = next(edges)
+        next_states = next(edges)
+    except StopIteration:
+        raise StreamError('Not enough edges to generate samples')
+    
+    t = cur_states[0]
+    #chunk = np.empty(chunk_size, dtype=float)
+    #chunk_count = 0
+    start_time = cur_states[0]
+
+    offset = -min(logic_states)
+    scale = 1.0 / (max(logic_states) - min(logic_states))
+
+    while True: # Main loop generating samples
+        next_edge_time = next_states[0]
+        cur_level = (cur_states[1] + offset) * scale
+        while t < next_edge_time:
+            chunk_d[chunk_count] = cur_level
+            chunk_count += 1
+            
+            t += c_sample_period
+            if chunk_count == c_chunk_size:
+                yield SampleChunk(chunk, start_time, c_sample_period)
+
+                chunk = np.empty(c_chunk_size, dtype=float)
+                chunk_d = chunk
+                chunk_count = 0
+                start_time = t
+        
+        cur_states = next_states
+        try:
+            next_states = next(edges)
+        except StopIteration:
+            break
+            
+    if end_extension is not None:
+        end_time = t + end_extension
+        cur_level = (cur_states[1] + offset) * scale
+        while t < end_time:
+            chunk_d[chunk_count] = cur_level
+            chunk_count += 1
+
+            t += c_sample_period
+            if chunk_count == c_chunk_size:
+                yield SampleChunk(chunk, start_time, c_sample_period)
+
+                chunk = np.empty(c_chunk_size, dtype=float)
+                chunk_d = chunk
+                chunk_count = 0
+                start_time = t
+
+    if chunk_count > 0:
+        yield SampleChunk(chunk[:chunk_count], start_time, c_sample_period)
 
