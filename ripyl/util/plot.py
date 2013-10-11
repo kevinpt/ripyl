@@ -42,6 +42,7 @@ class AnnotationStyle(object):
 
 annotation_styles = {
     'frame': AnnotationStyle('orange', 0.2),
+    'frame_bad': AnnotationStyle('red', 0.2),
     'data0': AnnotationStyle('blue', 0.3),
     'data1': AnnotationStyle('#5050FF', 0.3), # lighter blue
     'addr': AnnotationStyle('green', 0.3),
