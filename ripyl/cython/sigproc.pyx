@@ -30,7 +30,7 @@ import numpy as np
 
 from ripyl.streaming import SampleChunk, StreamError
 
-@cython.boundscheck(False)
+
 def capacify(samples, capacitance, resistance=1.0, iterations=80):
     '''Simulate an RC filter on a waveform::
 
