@@ -168,10 +168,17 @@ def uart_decode(stream_data, bits=8, parity=None, stop_bits=1.0, lsb_first=True,
         # Just consume them all for a count        
         sre_list = list(symbol_rate_edges)
         if len(sre_list) < min_edges:
-            raise AutoBaudError('Unable to compute automatic baud rate.')
+            raise AutoBaudError('Unable to compute automatic baud rate. Insufficient edges.')
         
         raw_symbol_rate = find_symbol_rate(iter(sre_list), spectra=2)
-        
+
+        if raw_symbol_rate == 0:
+            # Some special data sequences may lack a second harmonic which
+            # ruins the HPS used in find_symbol_rate().
+
+            # In this case we bypass the HPS and just take the symbol rate using the dominant span
+            raw_symbol_rate = find_symbol_rate(iter(sre_list), spectra=1)
+
         # delete the tee'd iterators so that the internal buffer will not grow
         # as the edges_it is advanced later on
         del symbol_rate_edges
@@ -187,7 +194,10 @@ def uart_decode(stream_data, bits=8, parity=None, stop_bits=1.0, lsb_first=True,
             baud_rate = raw_symbol_rate
             
         #print('@@@@@@@@@@ baud rate:', baud_rate, raw_symbol_rate)
-        
+
+        if baud_rate == 0:
+            raise AutoBaudError('Unable to compute automatic baud rate. Got 0.')
+
     else:
         edges_it = edges
 

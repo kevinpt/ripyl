@@ -31,6 +31,7 @@ import itertools
 
 import ripyl.util.stats as stats
 from ripyl.streaming import ChunkExtractor, StreamError, AutoLevelError
+from ripyl.util.equality import relatively_equal
 
 #import matplotlib.pyplot as plt
 
@@ -911,7 +912,8 @@ def find_symbol_rate(edges, sample_rate=1.0, spectra=2, auto_span_limit=True, ma
     max_span_limit (int)
         An optional upper limit for span length to include in the HPS.
         auto_span_limit must be False for this to take effect.
-    
+
+   
     Returns the estimated symbol rate of the edge data set as an int
     
     Raises ValueError if there are not enough edge spans to evaluate
@@ -920,7 +922,6 @@ def find_symbol_rate(edges, sample_rate=1.0, spectra=2, auto_span_limit=True, ma
     e = zip(*edges)
     e2 = np.array(e[0]) # get the sample indices of each edge
     spans = e2[1:] - e2[:-1] # time span (in samples) between successive edges
-
 
     #plt.plot(e[0], e[1])
     #plt.show()
@@ -967,6 +968,13 @@ def find_symbol_rate(edges, sample_rate=1.0, spectra=2, auto_span_limit=True, ma
     # fundamental symbol rate.
     hps = kde(x_hps)[:bins] # fundamental spectrum (slice needed because sometimes kde() returns bins+1 elements)
 
+    # Find all peaks in the fundamental spectrum
+    all_peaks = find_hist_peaks(hps)
+    hps_pairs = zip(x_hps, hps)
+    all_peak_spans = [max(hps_pairs[pk[0]:pk[1]+1], key=lambda x: x[1])[0] for pk in all_peaks]
+    #print('$$$ all peak spans:', all_peak_spans)
+
+
     #plt.plot(x_hps, hps / hps[np.argmax(hps)])
     #print('$$$ hps peak:', max(hps))
     tallest_initial_peak = max(hps)
@@ -983,22 +991,33 @@ def find_symbol_rate(edges, sample_rate=1.0, spectra=2, auto_span_limit=True, ma
     #plt.plot(x_hps, hps / hps[np.argmax(hps)])
     #plt.show()
 
-    # It is possible to get anomalous HPS peaks with extremely small values
+    # It is possible to get anomalous HPS peaks with extremely small values.
     # If the tallest peak in the final HPS isn't within three orders of magnitude
     # we will consider the HPS invalid.
     if max(hps) < tallest_initial_peak / 1000.0:
         return 0
 
     peaks = find_hist_peaks(hps)
+
     if len(peaks) < 1:
         return 0
     
-    # We want the leftmost (first) peak as the fundamental
-    # This is approximately the length of one bit period
+    # We want the leftmost (first) peak of the HPS as the fundamental
+    # This should be approximately the length of one bit period
     hps_pairs = zip(x_hps, hps)
     peak_span = max(hps_pairs[peaks[0][0]:peaks[0][1]+1], key=lambda x: x[1])[0]
+
     
     if peak_span != 0.0:
+        # In cases where the 2nd harmonic is missing but the 3rd and 6th are present
+        # we can miss the true fundamental span in the HPS.
+        # Check if there was a peak span in the pre-HPS spectrum that is 1/3 of this peak.
+        # If so then this peak is not likely the true fundamental.
+        for pk in all_peak_spans:
+            if relatively_equal(pk, peak_span / 3, 0.01):
+                #print('$$$ MISSED harmonic', pk, peak_span)
+                return 0
+
         symbol_rate = int(sample_rate / peak_span)
     else:
         symbol_rate = 0

@@ -47,7 +47,8 @@ class LINFrame(object):
             The ID field from the PID
 
         data (sequence of int or None)
-            Optional sequence of data bytes for the frame
+            Optional sequence of data bytes for the frame. Should be between 1 and 8 bytes long.
+            An empty list is converted to None.
 
         checksum (int or None)
             Optional checksum for the frame
@@ -59,14 +60,23 @@ class LINFrame(object):
             The checksum type to use for this frame
 
         '''
+
+        if data is not None:
+            if len(data) == 0:
+                data = None
+            else:
+                data = data[:8]
+
         self.id = id
         self.data = data
         self._checksum = checksum
         self._pid_parity = pid_parity
         self.cs_type = cs_type
 
+        #print('#### create frame:', self.id, self._checksum)
+
     def __repr__(self):
-        return 'LINFrame({}, {}, {}, {}, {})'.format(self.pid, self.data, self._checksum, self._pid_parity, self.cs_type)
+        return 'LINFrame({}, {}, {}, {}, {})'.format(self.id, self.data, self._checksum, self._pid_parity, self.cs_type)
 
 
     @property
@@ -135,7 +145,7 @@ class LINFrame(object):
 
     def bytes(self):
         '''Returns a sequence of raw frame bytes including the sync field'''
-        if self.data is None:
+        if self.data is None or len(self.data) == 0:
             return [0x55, self.pid]
         else:
             return [0x55, self.pid] + self.data + [self.checksum]
@@ -212,7 +222,7 @@ def lin_pid(id):
     return join_bits([p1, p0] + split_bits(id, 6))
 
 
-def lin_decode(stream_data,  enhanced_ids=None, baud_rate=None, logic_levels=None, stream_type=stream.StreamType.Samples):
+def lin_decode(stream_data, enhanced_ids=None, baud_rate=None, logic_levels=None, stream_type=stream.StreamType.Samples, param_info=None):
     '''Decode a LIN data stream
 
     This is a generator function that can be used in a pipeline of waveform
@@ -243,6 +253,10 @@ def lin_decode(stream_data,  enhanced_ids=None, baud_rate=None, logic_levels=Non
     stream_type (streaming.StreamType)
         A StreamType value indicating that the stream parameter represents either Samples
         or Edges
+
+    param_info (dict or None)
+        An optional dictionary object that is used to monitor the results of
+        automatic baud detection.
         
         
     Yields a series of LINStreamFrame objects.
@@ -273,7 +287,7 @@ def lin_decode(stream_data,  enhanced_ids=None, baud_rate=None, logic_levels=Non
 
     records_it = uart.uart_decode(edges, bits, parity, stop_bits, lsb_first=True, \
         polarity=polarity, baud_rate=baud_rate, use_std_baud=False, logic_levels=logic_levels, \
-        stream_type=stream.StreamType.Edges)
+        stream_type=stream.StreamType.Edges, param_info=param_info)
 
     S_NEED_BREAK = 0
     S_SYNC = 1
@@ -282,6 +296,7 @@ def lin_decode(stream_data,  enhanced_ids=None, baud_rate=None, logic_levels=Non
     state = S_NEED_BREAK
     raw_bytes = []
     frame_start = 0.0
+    next_frame_start = 0.0
     frame_complete = False
     for r in records_it:
         # Look for a break condition
@@ -316,6 +331,7 @@ def lin_decode(stream_data,  enhanced_ids=None, baud_rate=None, logic_levels=Non
             sf = _make_lin_frame(raw_bytes, frame_start, enhanced_ids)
             frame_complete = False
             frame_start = next_frame_start
+            raw_bytes = []
 
             yield sf
 
@@ -392,6 +408,10 @@ def lin_synth(frames, baud, idle_start=0.0, frame_interval=8.0e-3, idle_end=0.0,
     Yields an edge stream of (float, int) pairs. The first element in the iterator
       is the initial state of the stream.
     '''
+
+    return sigp.remove_excess_edges(_lin_synth(frames, baud, idle_start, frame_interval, idle_end, byte_interval))
+
+def _lin_synth(frames, baud, idle_start=0.0, frame_interval=8.0e-3, idle_end=0.0, byte_interval=1.0e-3):
 
     bit_period = 1.0 / baud
 
