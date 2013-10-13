@@ -31,6 +31,7 @@ import ripyl.sigproc as sigp
 from ripyl.util.enum import Enum
 from ripyl.util.bitops import split_bits, join_bits
 import ripyl.protocol.uart as uart
+from copy import copy
 
 
 class LINChecksum(Enum):
@@ -151,8 +152,8 @@ class LINFrame(object):
             return [0x55, self.pid] + self.data + [self.checksum]
 
     def __eq__(self, other):
-        s_vars = vars(self)
-        o_vars = vars(other)
+        s_vars = copy(vars(self))
+        o_vars = copy(vars(other))
 
 
         s_vars['_pid_parity'] = self.pid_parity
@@ -164,6 +165,10 @@ class LINFrame(object):
 
         #print('### sv:', s_vars)
         #print('### ov:', o_vars)
+        if self.data is None:
+            # The checksum type is irrelevant since this is just a header
+            del s_vars['cs_type']
+            del o_vars['cs_type']
 
         return s_vars == o_vars
 
@@ -239,6 +244,8 @@ def lin_decode(stream_data, enhanced_ids=None, baud_rate=None, logic_levels=None
 
     enhanced_ids (sequence of int or None)
         An optional sequence of frame IDs that are to use LIN 2.x enhanced checksums.
+        If None, the checksum type is guessed by trying both methods to see if one matches
+        decoded checksum.
 
     baud_rate (int or None)
         The baud rate of the stream. If None, the first 50 edges will be analyzed to
@@ -276,9 +283,6 @@ def lin_decode(stream_data, enhanced_ids=None, baud_rate=None, logic_levels=None
         edges = ripyl.decode.find_edges(samp_it, logic_levels, hysteresis=0.4)
     else: # the stream is already a list of edges
         edges = stream_data
-
-    if enhanced_ids is None:
-        enhanced_ids = []
 
     bits = 8
     parity = None
@@ -348,8 +352,15 @@ def _make_lin_frame(raw_bytes, frame_start, enhanced_ids):
     else:
         lf = LINFrame(raw_bytes[0].data & 0x3F, pid_parity=raw_bytes[0].data >> 6)
 
-    if lf.id in enhanced_ids:
-        lf.cs_type = LINChecksum.Enhanced
+    if lf.data is not None:
+        if enhanced_ids is not None:
+            if lf.id in enhanced_ids:
+                lf.cs_type = LINChecksum.Enhanced
+        else: # Determine checksum type automatically
+            if not lf.checksum_is_valid():
+                lf.cs_type = LINChecksum.Enhanced # Try using enhanced checksum
+                if not lf.checksum_is_valid():
+                    lf.cs_type = LINChecksum.Classic # Revert to classic checksum
 
     sf = LINStreamFrame((frame_start, raw_bytes[-1].end_time), lf)
 
@@ -363,7 +374,7 @@ def _make_lin_frame(raw_bytes, frame_start, enhanced_ids):
 
     status = stream.StreamStatus.Ok if lf.pid_is_valid() else LINStreamStatus.PIDError
     sf.subrecords.append(stream.StreamSegment((id_end, pid_end), lf.pid >> 6, kind='PID parity', status=status))
-    sf.subrecords[-1].annotate('check', {'_bits':2}, stream.AnnotationFormat.Hex)
+    sf.subrecords[-1].annotate('check', {'_bits':2}, stream.AnnotationFormat.Hidden)
 
 
     if len(raw_bytes) >= 2:
@@ -417,14 +428,15 @@ def _lin_synth(frames, baud, idle_start=0.0, frame_interval=8.0e-3, idle_end=0.0
 
     frame_its = []
     for i, f in enumerate(frames):
-        #istart = idle_start if i == 0 else 0.0
         iend = idle_end if i == len(frames)-1 else 0.0
 
+        # Generate the break character starting the frame
         if i == 0 and idle_start > 0.0:
             break_edges = [(0.0, 1), (idle_start, 0), (idle_start + 14.0 * bit_period, 1)]
         else:
             break_edges = [(0.0, 0), (14.0 * bit_period, 1)]
         
+        # Generate bytes for the rest of the frame
         byte_edges = uart.uart_synth(f.bytes(), bits=8, baud=baud, idle_start=0.0, \
                     idle_end=iend, word_interval=byte_interval)
 

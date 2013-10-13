@@ -26,11 +26,8 @@ from __future__ import print_function, division
 
 import unittest
 import random
-import sys
 
 import ripyl.protocol.lin as lin
-import ripyl.protocol.uart as uart
-import ripyl.sigproc as sigp
 import ripyl.streaming as stream
 import test.test_support as tsup
 
@@ -45,8 +42,6 @@ class TestLINFuncs(tsup.RandomSeededTestCase):
             frame_count = random.randint(3, 6)
             frames = []
 
-            #print('##### generating lin frames:', frame_count)
-
             # We will randomly decide which ids use enhanced checksum
             id_cs_type = [random.choice((lin.LINChecksum.Classic, lin.LINChecksum.Enhanced)) for _ in xrange(0x40)]
 
@@ -57,7 +52,6 @@ class TestLINFuncs(tsup.RandomSeededTestCase):
             # Collect the enhanced ids together
             enhanced_ids = [i for i, t in enumerate(id_cs_type) if t == lin.LINChecksum.Enhanced]
 
-            #print('### enhanced_ids:', len(id_cs_type), enhanced_ids)
 
             for i in xrange(frame_count):
 
@@ -72,21 +66,21 @@ class TestLINFuncs(tsup.RandomSeededTestCase):
             baud = random.randint(1000, 20000)
 
             # These frames lack a second harmonic in the edge stream
-            xframes = [
-                lin.LINFrame(21, [7, 188, 161], None, None, 1),
-                lin.LINFrame(4, [250, 65, 40, 175, 8, 192, 32, 86], None, None, 1),
-                lin.LINFrame(13, [119, 94, 5], None, None, 1)
-            ]
+            #frames = [
+            #    lin.LINFrame(21, [7, 188, 161], None, None, 1),
+            #    lin.LINFrame(4, [250, 65, 40, 175, 8, 192, 32, 86], None, None, 1),
+            #    lin.LINFrame(13, [119, 94, 5], None, None, 1)
+            #]
             #baud = 18989
 
             # These frames lack a second harmonic in the edge stream (from seed 465994505)
-            xframes = [
-                lin.LINFrame(16, None, None, None, 0),
-                lin.LINFrame(48, None, None, None, 1),
-                lin.LINFrame(4, [131, 195, 187, 28, 235], None, None, 0),
-                lin.LINFrame(25, [108, 73, 209, 162], None, None, 1),
-                lin.LINFrame(1, [214, 209], None, None, 0)
-            ]
+            #frames = [
+            #    lin.LINFrame(16, None, None, None, 0),
+            #    lin.LINFrame(48, None, None, None, 1),
+            #    lin.LINFrame(4, [131, 195, 187, 28, 235], None, None, 0),
+            #    lin.LINFrame(25, [108, 73, 209, 162], None, None, 1),
+            #    lin.LINFrame(1, [214, 209], None, None, 0)
+            #]
 
             #baud = 10000
 
@@ -94,34 +88,17 @@ class TestLINFuncs(tsup.RandomSeededTestCase):
                 idle_start=4.0 / baud, idle_end=8.0 / baud, byte_interval=3.0 / baud)
             
             param_info = {}
-            try:
-                records = list(lin.lin_decode(edges, enhanced_ids, baud_rate=None, stream_type=stream.StreamType.Edges, param_info=param_info))
-
-            except uart.AutoBaudError as e:
-                print('ERROR:', e)
-
-                print('### original frames:')
-                for o in frames:
-                    print('  ', o)
-
-                print('## baud:', baud)
-                raise
-
-            if not tsup.relativelyEqual(baud, param_info['baud_rate'], 0.01):
-                print('### original frames:')
-                for o in frames:
-                    print('  ', o)
-
-                print('## baud:', baud, param_info['baud_rate'])
+            records = list(lin.lin_decode(edges, enhanced_ids=None, baud_rate=None, \
+                stream_type=stream.StreamType.Edges, param_info=param_info))
 
 
             #if param_info['baud_rate'] < 1000:
-            #    print('### original frames:')
-            #    for o in frames:
-            #        print('  ', o)
-            #    print('### decoded frames:')
-            #    for r in records:
-            #        print('  ', r.data)
+            #print('### original frames:')
+            #for o in frames:
+            #    print('  ', o, o.cs_type)
+            #print('### decoded frames:')
+            #for r in records:
+            #    print('  ', r.data, r.data.cs_type)
 
             self.assertRelativelyEqual(baud, param_info['baud_rate'], 0.01, \
                 'Decoded incorrect baud rate {} -> {}'.format(baud, param_info['baud_rate']))
