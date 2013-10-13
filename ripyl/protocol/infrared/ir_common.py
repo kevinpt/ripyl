@@ -93,6 +93,8 @@ def modulate(edges, carrier_freq, duty_cycle=0.5, polarity=IRConfig.IdleLow):
         edges = ((t, 1 - e) for t, e in edges)
 
     mod_period = (1.0 / carrier_freq)
+    high_time = mod_period * duty_cycle
+    low_time = mod_period * (1.0 - duty_cycle)
 
     es = EdgeSequence(edges, mod_period)
 
@@ -103,9 +105,9 @@ def modulate(edges, carrier_freq, duty_cycle=0.5, polarity=IRConfig.IdleLow):
 
         while es.cur_state() == 1:
             yield (es.cur_time, 1)
-            es.advance(mod_period * duty_cycle)
+            es.advance(high_time)
             yield (es.cur_time, 0)
-            es.advance(mod_period * (1.0 - duty_cycle))
+            es.advance(low_time)
 
     yield (es.cur_time, es.cur_state()) # final state
 
