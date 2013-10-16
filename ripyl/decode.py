@@ -920,8 +920,8 @@ def find_symbol_rate(edges, sample_rate=1.0, spectra=2, auto_span_limit=True, ma
       a HPS.
     '''
     e = zip(*edges)
-    e2 = np.array(e[0]) # get the sample indices of each edge
-    spans = e2[1:] - e2[:-1] # time span (in samples) between successive edges
+    e2 = np.array(e[0][1:]) # Get the sample indices of each edge after the first one
+    spans = e2[1:] - e2[:-1] # Time span (in samples) between successive edges
 
     #plt.plot(e[0], e[1])
     #plt.show()
