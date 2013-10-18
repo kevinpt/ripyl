@@ -205,7 +205,7 @@ class CANFrame(object):
         sbits = []
         same_count = 0
         prev_bit = None
-        for b in bits:
+        for i, b in enumerate(bits):
             sbits.append(b)
 
             if b == prev_bit:
@@ -214,7 +214,7 @@ class CANFrame(object):
                 same_count = 1
                 prev_bit = b
 
-            if same_count == 5:
+            if same_count == 5 and i < len(bits)-1: #FIX: verify that a final stuffed bit should be suppressed
                 # Stuff an opposite bit in the bit stream
                 sbits.append(1 - b)
                 same_count = 1
@@ -232,8 +232,6 @@ class CANFrame(object):
 
         if self.trim_bits > 0:
             trimmed_bits = frame_bits[:-self.trim_bits]
-            #print('### trimming bits: {} {} -> {}\n  {}\n  {}'.format(self.trim_bits, \
-            #    len(frame_bits), len(trimmed_bits), frame_bits, trimmed_bits))
             frame_bits = frame_bits[:-self.trim_bits]
 
         edges = []
@@ -306,8 +304,6 @@ class CANStandardFrame(CANFrame):
         # Generate CRC
         crc_bits = can_crc15(check_bits)
 
-        #print('### Gen CRC:', crc_bits, hex(join_bits(crc_bits)))
-
         #ack_bits = [0 if self.ack else 1, 1]
 
         return check_bits + crc_bits #+ ack_bits
@@ -322,8 +318,6 @@ class CANExtendedFrame(CANFrame):
         self.ide = 1 # Always 1 for extended format
         self.id_ext = full_id & 0x3FFFF
         
-        #self._rtr = None
-
         self.r0 = 0
         self.r1 = 0
 
@@ -349,8 +343,6 @@ class CANExtendedFrame(CANFrame):
 
         # Generate CRC
         crc_bits = can_crc15(check_bits)
-
-        #print('### Gen Ext CRC:', crc_bits, hex(join_bits(crc_bits)))
 
         return check_bits + crc_bits
 
@@ -430,10 +422,111 @@ _can_field_formats = {
     'data': ('data', stream.AnnotationFormat.Hex),
 }
 
-can_std_bit_rates = (10e3, 20e3, 50e3, 125e3, 250e3, 500e3, 800e3, 1e6)
 
 std_header_bits = 1 + 12 + 6
 ext_header_bits = 1 + 32 + 6
+
+
+class _BitExtractor(object):
+    def __init__(self, es, bit_period):
+        self.es = es
+        self.bit_period = bit_period
+        self.dom_count = 0
+        self.rec_count = 0
+        self.expect_stuffing = False
+        self.dom_start_time = 0.0
+        self.raw_bit_count = 0
+        self.stuffed_bits = []
+        self.prev_bit = 0
+
+    def advance_to_falling(self):
+        while not self.es.at_end():
+            # look for SOF falling edge
+            self.es.advance_to_edge()
+            
+            # We could have an anamolous edge at the end of the edge list
+            # Check if edge sequence is complete after our advance
+            if self.es.at_end():
+                break
+
+            # We should be at the start of the SOF
+            if self.es.cur_state() != 0:
+                continue
+            else:
+                break
+
+        self.dom_count = 1
+        self.rec_count = 0
+        self.expect_stuffing = False
+        self.dom_start_time = self.es.cur_time
+        self.raw_bit_count = 0
+        self.stuffed_bits = []
+        self.prev_bit = 0
+
+    def get_bits(self, num_bits, unstuff=True):
+        extract_bits = []
+        last_bit = False
+
+        if self.es.at_end():
+            return extract_bits
+
+        while len(extract_bits) < num_bits:
+            edge_span = self.es.next_states[0] - self.es.cur_states[0]
+                
+            if self.es.cur_state() == 0 and edge_span >= 5.5 * self.bit_period:
+                break
+
+            if unstuff:
+                if not self.expect_stuffing:
+                    extract_bits.append(self.es.cur_state())
+
+                elif self.es.cur_state() != self.prev_bit: # Found a stuffed bit
+                    self.stuffed_bits.append(self.raw_bit_count)
+
+                self.expect_stuffing = False
+
+                if self.dom_count == 5: # Next bit should be a stuffed 1
+                    self.expect_stuffing = True
+                    self.dom_count = 0
+                elif self.rec_count == 5: # Next bit should be a stuffed 0
+                    self.expect_stuffing = True
+                    self.rec_count = 0
+                    
+            else: # No unstuffing
+                extract_bits.append(self.es.cur_state())
+
+
+            if self.es.next_states[0] < self.es.cur_time + self.bit_period: # Adjust for timing drift
+                half_bit_err = self.es.cur_time - (self.es.next_states[0] - (self.bit_period / 2)) #FIX
+                advance_time = self.bit_period - half_bit_err
+            else:
+                advance_time = self.bit_period
+
+            self.prev_bit = self.es.cur_state()
+            self.es.advance(advance_time)
+            self.raw_bit_count += 1
+
+            if self.es.cur_state() == 1:
+                self.rec_count += 1
+                self.dom_count = 0
+            else:
+                self.dom_count += 1
+                self.rec_count = 0
+
+                if self.dom_count == 1:
+                    self.dom_start_time = self.es.cur_time - self.bit_period / 2 #FIX bit timing
+
+            if last_bit:
+                break
+
+            if self.es.at_end():
+                last_bit = True
+
+        return extract_bits
+
+
+
+can_std_bit_rates = (10e3, 20e3, 50e3, 125e3, 250e3, 500e3, 800e3, 1e6)
 
 
 def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=None, logic_levels=None, stream_type=stream.StreamType.Samples):
@@ -491,61 +584,31 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=Non
     bit_period = 1.0 / float(bit_rate)
     es = EdgeSequence(edges_it, bit_period)
 
+    be = _BitExtractor(es, bit_period)
+
     # initialize to point where state is high --> idle time before first SOF
     while es.cur_state() == 0 and not es.at_end():
         es.advance_to_edge()
 
     while not es.at_end():
         # look for SOF falling edge
-        es.advance_to_edge()
+        #es.advance_to_edge()
+
+        be.advance_to_falling()
+        # We are now at a potential SOF
         
         # We could have an anamolous edge at the end of the edge list
         # Check if edge sequence is complete after our advance
         if es.at_end():
             break
 
-        # We should be at the start of the SOF
-        if es.cur_state() != 0:
-            continue
 
         start_time = es.cur_time
-        dom_count = 0
-        rec_count = 0
         es.advance(bit_period * 0.5) # Move to middle of SOF bit #FIX
 
-        #print('### frame start:', start_time)
+        unstuffed_bits = be.get_bits(std_header_bits)
 
-
-        # Collect bits until we see a stuffing error (6 0's) or an EOF (7 1's)
-        raw_bits = []
-        raw_bit_starts = []
-        stuffing_error = False
-        dom_start_time = 0.0
-        while True:
-            raw_bits.append(es.cur_state())
-            raw_bit_starts.append(es.cur_time - bit_period / 2) #FIX bit timing
-            if es.cur_state() == 0:
-                dom_count += 1
-                rec_count = 0
-                if dom_count == 1:
-                    dom_start_time = es.cur_time - bit_period / 2 #FIX bit timing
-            else:
-                rec_count += 1
-                dom_count = 0
-
-            if dom_count == 6:
-                stuffing_error = True
-                break
-
-            if rec_count == 7:
-                break
-
-            if es.next_states[0] < es.cur_time + bit_period: # Adjust for timing drift
-                half_bit_err = es.cur_time - (es.next_states[0] - (bit_period / 2)) #FIX
-                advance_time = bit_period - half_bit_err
-            else:
-                advance_time = bit_period
-            es.advance(advance_time)
+        stuffing_error = True if len(unstuffed_bits) < std_header_bits and not es.at_end() else False
 
         # If a data or remote frame ends with an error frame we will get a stuffing error.
         # If the error happens in the EOF field, the frame is still recoverable.
@@ -554,8 +617,6 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=Non
         found_data_rmt_frame = False
 
         field_info = []
-
-        unstuffed_bits, stuffed_bits, stuffing_errors = _unstuff(raw_bits)
 
         if len(unstuffed_bits) >= std_header_bits:
             found_data_rmt_frame = True
@@ -568,6 +629,7 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=Non
             field_ix = 14
 
             if ide == 1: # Extended format frame
+                unstuffed_bits += be.get_bits(ext_header_bits - std_header_bits)
                 if len(unstuffed_bits) >= ext_header_bits:
                     header_bits = ext_header_bits
                     srr = rtr
@@ -594,16 +656,13 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=Non
             data = []
 
             if rtr == 0: # Data frame
-                stuffed_frame_bits = header_bits + 8 * dlc + 15
+                remaining_stuffed_bits = 8 * dlc + 15
             else: # Remote frame
-                stuffed_frame_bits = header_bits + 15
+                remaining_stuffed_bits = 15
 
-            # Regenerate unstuffed bits with limit for unstuffing set
-            unstuffed_bits, stuffed_bits, stuffing_errors = _unstuff(raw_bits, stop_after_bit=stuffed_frame_bits)
-            #print('### unstuffed (regen):', stuffed_frame_bits, unstuffed_bits)
+            min_frame_bits = header_bits + remaining_stuffed_bits
 
-            min_frame_bits = stuffed_frame_bits + 1 + 2
-            
+            unstuffed_bits += be.get_bits(remaining_stuffed_bits)
 
             short_frame = False
             if rtr == 0: # Data frame
@@ -611,7 +670,7 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=Non
                 if len(unstuffed_bits) < min_frame_bits:
                     # ERROR: short frame
                     short_frame = True
-                else:
+                else: # Get data bytes
                     for b in xrange(dlc):
                         data.append(join_bits(unstuffed_bits[field_ix:field_ix + 8]))
                         field_info.append(('data', (field_ix, field_ix+7)))
@@ -630,10 +689,20 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=Non
                 check_bits = unstuffed_bits[field_ix:field_ix + 15]; field_info.append(('crc', (field_ix, field_ix+14)))
                 field_ix += 15
 
-                # Get ack
-                ack = True if unstuffed_bits[field_ix + 1] == 0 else False; field_info.append(('ack', (field_ix+1, field_ix+1)))
-                field_ix += 1
-            
+                # The remaining fields (crc delim, ack, ack delim) are not stuffed
+                end_bits = be.get_bits(3, unstuff=False)
+                if len(end_bits) == 3:
+                    ack = True if end_bits[1] == 0 else False
+                else:
+                    ack = False
+
+                    # The last frame of the stream requires special treatment
+                    # To position ourselves after the ack delim.
+                    if es.cur_state() == 1:
+                        es.advance((2 - len(end_bits)) * bit_period)
+
+                field_info.append(('ack', (field_ix+1, field_ix+1)))
+
 
             if ide == 0:
                 cf = CANStandardFrame(join_bits(id_bits), data, join_bits(dlc_bits), join_bits(check_bits), ack)
@@ -648,38 +717,37 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=Non
             cf.ide = ide
             cf.r0 = r0 
 
-            if stuffing_error: # There was an error beginning in the EOF of a frame
-                #print('### stuffing errors:', stuffing_errors, stuffed_bits, field_ix, field_ix + len(stuffed_bits))
 
-                raw_ack_ix = field_ix + len(stuffed_bits)
-                #look for transition from 1 to 0
-                prev_b = 0
-                eof_end = 0
-                for i, b in enumerate(raw_bits[raw_ack_ix:]):
-                    if prev_b == 1 and b == 0:
-                        eof_end = i
-                        break
-                    prev_b = b
+            # Determine the end of the frame
+            if es.cur_state() == 1:
+                if es.cur_time > es.next_states[0]:
+                    # Special case for last frame in stream
+                    end_time = es.cur_time + 5.5 * bit_period
+                elif es.next_states[0] > es.cur_time + 5 * bit_period: #FIX
+                    end_time = es.cur_time + 5.5 * bit_period
+                else:
+                    end_time = es.next_states[0]
+                    stuffing_error = True
+                    es.advance_to_edge()
+                    be.dom_start_time = es.cur_time
 
-                end_time = raw_bit_starts[raw_ack_ix + eof_end]
+            else: # Aready in dominant state
+                end_time = be.dom_start_time
+                stuffing_error = True
 
-            else:
-                end_time = es.cur_time
-
-            sf = CANStreamFrame((start_time, end_time), cf, field_info, stuffed_bits)
+            sf = CANStreamFrame((start_time, end_time), cf, field_info, be.stuffed_bits)
 
             if short_frame:
                 sf.annotate('frame_bad', {}, stream.AnnotationFormat.Hidden)
                 sf.status = CANStreamStatus.ShortFrameError
 
             # Add subrecords for each field in the frame
-            adj_info = _adjust_fields_for_stuffing(field_info, stuffed_bits)
+            adj_info = _adjust_fields_for_stuffing(field_info, be.stuffed_bits)
 
             field_sizes = [e - s + 1 for _, (s, e) in field_info]
 
             data_ix = 0
             for (field, bit_bounds), field_size in zip(adj_info, field_sizes):
-                #fields[field] = (self.sop_end + start * clock_period, self.sop_end + (end + 1) * clock_period)
                 bounds = (start_time + bit_bounds[0] * bit_period, start_time + (bit_bounds[1] + 1) * bit_period)
 
 
@@ -706,7 +774,7 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=Non
 
             yield sf
 
-            # Check if the EOF was complete
+        # Check if the EOF was complete
 
         if stuffing_error:
             # This could be an error or overload frame
@@ -715,10 +783,12 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=Non
             while es.cur_state() == 0 and not es.at_end():
                 es.advance(bit_period)
 
-            #print('### delim start:', es.cur_time)
-            #dbg_delim_start = es.cur_time
+            if es.cur_time < es.next_states[0]:
+                end_time = es.next_states[0]
+            else: # Special case for end of stream
+                end_time = es.cur_time + 7 * bit_period
 
-            if es.next_states[0] - es.cur_time > 7 * bit_period: # Valid error or overload frame
+            if end_time - es.cur_time > 6.5 * bit_period: # Valid error or overload frame
                 es.advance(7 * bit_period)
 
                 if found_data_rmt_frame:
@@ -726,9 +796,8 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=Non
                     cf = CANErrorFrame()
                 else:
                     cf = CANOverloadFrame()
-                end_time = es.cur_time + 0.5*bit_period # FIX
-                #print('#### frame delim span:', (end_time - dbg_delim_start) / bit_period)
-                sf = CANStreamFrame((dom_start_time, end_time), cf)
+                end_time = es.cur_time + 0.5 * bit_period # FIX
+                sf = CANStreamFrame((be.dom_start_time, end_time), cf)
                 sf.annotate('frame', {'name':''}, stream.AnnotationFormat.String)
                 yield sf
 
@@ -764,54 +833,6 @@ def _adjust_fields_for_stuffing(field_info, stuffed_bits):
 
     return adj_info
 
-
-def _unstuff(raw_bits, stop_after_bit=None):
-    '''Remove stuffed bits from a list of bits representing a frame'''
-
-    unstuffed = []
-    dom = 0
-    rec = 0
-    expect_stuffing = False
-    stuffing_errors = []
-    stuffed_bits = []
-    prev_bit = 0
-    for i, b in enumerate(raw_bits):
-        if stop_after_bit is not None and len(unstuffed) > stop_after_bit:
-            unstuffed.append(b)
-            continue
-
-        if not expect_stuffing:
-            unstuffed.append(b)
-        else:
-            #print('$$ expect stuffing:', i, b, prev_bit, dom, rec)
-            # Should have a stuffed bit
-            if b == prev_bit: # No change from previous bit
-                stuffing_errors.append(i) # This shouldn't happen except for EOF since we already filtered stuffing errors
-            else: # Found a stuffed bit
-                stuffed_bits.append(i)
-
-        expect_stuffing = False
-
-        if b == 1:
-            rec += 1
-            dom = 0
-        else:
-            dom += 1
-            rec = 0
-            
-        if dom == 5:
-            # Next bit should be a stuffed 1
-            expect_stuffing = True
-            dom = 0
-
-        if rec == 5:
-            # Next bit should be a stuffed 0
-            expect_stuffing = True
-            rec = 0
-
-        prev_bit = b
-
-    return (unstuffed, stuffed_bits, stuffing_errors)
 
 
 def can_synth(frames, clock_freq, idle_start=0.0, message_interval=0.0, idle_end=0.0):
@@ -866,8 +887,6 @@ def _can_synth(frames, clock_freq, idle_start=0.0, message_interval=0.0, idle_en
 
 
 
-
-
 def can_crc15(d):
     '''Calculate CAN CRC-15 on data
 
@@ -891,4 +910,4 @@ def can_crc15(d):
 
     return split_bits(crc, 15)
 
-        
+
