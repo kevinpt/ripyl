@@ -89,42 +89,9 @@ class TestCANFuncs(tsup.RandomSeededTestCase):
 
             clock_freq = random.randint(10e3, 1e6)
 
-            xframes = [
-                can.CANOverloadFrame(12, 0),
-                #can.CANStandardFrame(0x3f6, [246], None, None, False, 0, 3),
-                can.CANStandardFrame(0x3f6, [136, 97, 14, 95, 131, 242, 71, 246], None, None, False, 0, 3),
-                #can.CANExtendedFrame(0x14110a43, [103, 69, 8, 162, 136], 5, 0x2c8e, True, 0, 3),
-                can.CANExtendedFrame(0x1f28b276, [13, 236, 179, 18, 211, 116, 197, 81], None, None, True, 0, 3), # 0x5c87
-
-                #can.CANExtendedFrame(0x1f28b276, [13, 236, 179, 18, 211, 116, 197, 81], 8, None, True, 0, 3), # 0x5c87
-                #can.CANExtendedFrame(0x775e560, [155, 17], 2, 0x516a, True, 0, 3),
-                #can.CANStandardFrame(0x629, [222, 68, 27, 126, 29, 120, 54, 176], 8, 0x25c5, True, 0, 3)
-            ]
-            #clock_freq = 100000 #285423
-
-
             ch, cl = can.can_synth(frames, clock_freq, idle_start=1.0e-5)
 
-            try:
-                records = list(can.can_decode(cl, stream_type=stream.StreamType.Edges))
-            except can.AutoRateError:
-                print('AutoRateError:')
-                for f in frames:
-                    print('  ', repr(f))
-                raise
-            except UnboundLocalError:
-                print('### original frames:', clock_freq)
-                for o in frames:
-                    print('  ', repr(o))
-                raise
-
-
-            #print('### original frames:')
-            #for o in frames:
-            #    print('  ', repr(o))
-            #print('### decoded frames:')
-            #for r in records:
-            #    print('  ', repr(r.data))
+            records = list(can.can_decode(cl, bit_rate=clock_freq, stream_type=stream.StreamType.Edges))
 
             self.assertEqual(len(records), len(frames), 'Decoded frame count mismatch: {} -> {}'.format(len(frames), len(records)))
 

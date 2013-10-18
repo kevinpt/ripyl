@@ -44,6 +44,7 @@ class CANConfig(Enum):
 
 
 class CANTiming(object):
+    '''Represent CAN bit timing and adaptive sampling point info'''
     def __init__(self, prop, p1, ipt=2, resync_jump=None):
         self.sync = 1
         self.prop = prop # 1-8 quanta
@@ -101,6 +102,16 @@ class CANErrorFrame(object):
         return '(error)'
 
     def get_edges(self, t, bit_period):
+        '''Generate an edge sequence for this frame
+
+        t (float)
+            Start time for the edges
+
+        bit_period (float)
+            The period for each bit of the frame
+            
+        Returns a list of 2-tuples representing each edge.
+        '''
         edges = []
 
         if self.ifs_bits > 0:
@@ -139,8 +150,30 @@ class CANOverloadFrame(CANErrorFrame):
 
 
 class CANFrame(object):
-    '''CAN Data and Remote frames'''
+    '''Base class for CAN Data and Remote frames'''
     def __init__(self, id, data, dlc=None, crc=None, ack=True, trim_bits=0, ifs_bits=3):
+        '''
+        id (int)
+            CAN frame ID
+
+        data (sequence of int or None)
+            Data bytes for a data frame. None or empty list for a remote frame.
+
+        dlc (int or None)
+            The Data Length Code (number of data bytes) for the frame.
+
+        crc (int or None)
+            The decoded CRC for the frame. Leave as None to generate CRC automatically.
+
+        ack (bool)
+            Indicates that the ack field is dominant (True) or recessive (False).
+
+        trim_bits (int)
+            The number of bits to trim off the end of the frame. Used to simulate error conditions.
+
+        ifs_bits (int)
+            The number of Inter-Frame Space bits at the start of this frame. Normally 3.
+        '''
         self.id = id
         self._rtr = None
         self.ide = 0
@@ -188,6 +221,13 @@ class CANFrame(object):
         self._crc = value
 
     def crc_is_valid(self, recv_crc=None):
+        '''Check if a decoded CRC is valid.
+
+        recv_crc (int or None)
+            The decoded CRC to check against. If None, the CRC passed in the constructor is used.
+
+        Returns True when the CRC is correct.
+        '''
         if recv_crc is None:
             recv_crc = self._crc
 
@@ -197,6 +237,7 @@ class CANFrame(object):
 
 
     def get_bits(self):
+        '''Get the raw bits for this frame'''
         raise NotImplementedError
 
 
@@ -222,6 +263,16 @@ class CANFrame(object):
         return sbits
 
     def get_edges(self, t, bit_period):
+        '''Generate an edge sequence for this frame
+
+        t (float)
+            Start time for the edges
+
+        bit_period (float)
+            The period for each bit of the frame
+            
+        Returns a list of 2-tuples representing each edge.
+        '''
         stuffed_bits = self._bit_stuff(self.get_bits())
 
         # Add delimiter and ack bits
@@ -276,8 +327,30 @@ class CANFrame(object):
 
 
 class CANStandardFrame(CANFrame):
-    '''CAN frame format for 11-bit id'''
+    '''CAN frame format for 11-bit ID'''
     def __init__(self, id, data, dlc=None, crc=None, ack=True, trim_bits=0, ifs_bits=3):
+        '''
+        id (int)
+            11-bit CAN frame ID
+
+        data (sequence of int or None)
+            Data bytes for a data frame. None or empty list for a remote frame.
+
+        dlc (int or None)
+            The Data Length Code (number of data bytes) for the frame.
+
+        crc (int or None)
+            The decoded CRC for the frame. Leave as None to generate CRC automatically.
+
+        ack (bool)
+            Indicates that the ack field is dominant (True) or recessive (False).
+
+        trim_bits (int)
+            The number of bits to trim off the end of the frame. Used to simulate error conditions.
+
+        ifs_bits (int)
+            The number of Inter-Frame Space bits at the start of this frame. Normally 3.
+        '''
         CANFrame.__init__(self, id, data, dlc, crc, ack, trim_bits, ifs_bits)
         self._rtr = None
         self.ide = 0
@@ -310,8 +383,31 @@ class CANStandardFrame(CANFrame):
 
 
 class CANExtendedFrame(CANFrame):
-    '''CAN frame format for 29-bit id'''
+    '''CAN frame format for 29-bit ID'''
     def __init__(self, full_id, data, dlc=None, crc=None, ack=True, trim_bits=0, ifs_bits=3):
+        '''
+        full_id (int)
+            29-bit CAN frame ID
+
+        data (sequence of int or None)
+            Data bytes for a data frame. None or empty list for a remote frame.
+
+        dlc (int or None)
+            The Data Length Code (number of data bytes) for the frame.
+
+        crc (int or None)
+            The decoded CRC for the frame. Leave as None to generate CRC automatically.
+
+        ack (bool)
+            Indicates that the ack field is dominant (True) or recessive (False).
+
+        trim_bits (int)
+            The number of bits to trim off the end of the frame. Used to simulate error conditions.
+
+        ifs_bits (int)
+            The number of Inter-Frame Space bits at the start of this frame. Normally 3.
+        '''
+
         CANFrame.__init__(self, (full_id >> 18) & 0x7FF, data, dlc, crc, ack, trim_bits, ifs_bits)
         
         self.srr = 1 # Replaces RTR bit in standard frame format; always 1
@@ -351,15 +447,26 @@ class CANExtendedFrame(CANFrame):
         return ((self.id & 0x7FF) << 18) + (self.id_ext & 0x3FFFF)
 
 
-
+# Dictionary defining bit fields for CAN-based higher level protocols.
 can_variant = {
-    'J1939': (('priority', (28, 26)), ('r', (25, 25)), ('dp', (24, 24)), ('pf', (23, 16)), ('ps', (15, 8)), ('sa', (7, 0))),
+    'J1939': (('priority', (28, 26)), ('r', (25, 25)), ('dp', (24, 24)),\
+                ('pf', (23, 16)), ('ps', (15, 8)), ('sa', (7, 0))),
     'CANOpen': (('fc', (10, 7)), ('nid', (6, 0)))
 }
 
 
 def can_id(variant, **kwargs):
-    '''Generate a CAN ID for a protocol variant from separate fields'''
+    '''Generate a CAN ID for a protocol variant from separate fields
+
+    variant (string)
+        Name of the variant to take field definitions from.
+
+    kwargs (dict of string:int)
+        Each additional keyword argument names a field for the selected variant.
+        The value is applied to the range of bits specified for the field.
+
+    Returns an int representing an 11-bit or 29-bit CAN ID composed from the values in kwargs.
+    '''
     if variant not in can_variant:
         raise ValueError('Invalid CAN variant "{}"'.format(variant))
 
@@ -393,9 +500,11 @@ def can_id(variant, **kwargs):
 class CANStreamStatus(Enum):
     '''Enumeration for CANStreamFrame status codes'''
     ShortFrameError  = stream.StreamStatus.Error + 1
-    BitStuffingError = stream.StreamStatus.Error + 2
+    BitStuffingError = stream.StreamStatus.Error + 2 #FIX: not used anywhere
     CRCError         = stream.StreamStatus.Error + 3
     AckError         = stream.StreamStatus.Error + 4
+
+#FIX: include form error?
 
 class CANStreamFrame(stream.StreamSegment):
     '''Encapsulates a CANFrame object into a StreamSegment'''
@@ -409,9 +518,11 @@ class CANStreamFrame(stream.StreamSegment):
 
 
 def _coerce_symbol_rate(raw_symbol_rate, std_rates):
-    # Find the standard symbol rate closest to the raw rate
+    '''Find the standard symbol rate closest to the raw rate'''
     return min(std_rates, key=lambda x: abs(x - raw_symbol_rate))
 
+
+# Annotation formats for CAN frame fields
 _can_field_formats = {
     'id': ('addr', stream.AnnotationFormat.Hex),
     'id_ext': ('addr', stream.AnnotationFormat.Hex),
@@ -423,12 +534,21 @@ _can_field_formats = {
 }
 
 
+# The header bit counts for 11-bit and 29-bit frames
 std_header_bits = 1 + 12 + 6
 ext_header_bits = 1 + 32 + 6
 
 
 class _BitExtractor(object):
+    '''Utility class to manage progressive bit retrieval with unstuffing'''
     def __init__(self, es, bit_period):
+        '''
+        es (EdgeSequence)
+            An EdgeSequence object for the edge stream that is being processed.
+
+        bit_period (float)
+            The period of a single bit.
+        '''
         self.es = es
         self.bit_period = bit_period
         self.dom_count = 0
@@ -440,6 +560,7 @@ class _BitExtractor(object):
         self.prev_bit = 0
 
     def advance_to_falling(self):
+        '''Position edge sequence at next falling edge'''
         while not self.es.at_end():
             # look for SOF falling edge
             self.es.advance_to_edge()
@@ -464,6 +585,17 @@ class _BitExtractor(object):
         self.prev_bit = 0
 
     def get_bits(self, num_bits, unstuff=True):
+        '''Get the next bits from the edge sequence
+
+        num_bits (int)
+            The number of bits to retrieve.
+
+        unstuff (bool)
+            Flag to indicate whether stuffed bits should be removed from bit sequence.
+
+        Returns a list of int for each bit retrieved. The list is empty if the edge sequence
+        is at its end or there is a error/overload frame ahead.
+        '''
         extract_bits = []
         last_bit = False
 
@@ -474,6 +606,7 @@ class _BitExtractor(object):
             edge_span = self.es.next_states[0] - self.es.cur_states[0]
                 
             if self.es.cur_state() == 0 and edge_span >= 5.5 * self.bit_period:
+                # 6 dominant bits lay ahead: An error or overload frame is next
                 break
 
             if unstuff:
@@ -525,12 +658,61 @@ class _BitExtractor(object):
         return extract_bits
 
 
-
+# Common CAN bit rates useful for coercion
 can_std_bit_rates = (10e3, 20e3, 50e3, 125e3, 250e3, 500e3, 800e3, 1e6)
 
 
 def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=None, logic_levels=None, stream_type=stream.StreamType.Samples):
+    '''Decode a CAN data stream
+
+    This is a generator function that can be used in a pipeline of waveform
+    procesing operations.
+
+    Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
+    of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
+    parameter. Sample streams will be analyzed to find edge transitions representing
+    0 and 1 logic states of the waveforms. With sample streams, an initial block of data
+    is consumed to determine the most likely logic levels in the signal.
+
+    can (iterable of SampleChunk objects or (float, int) pairs)
+        A sample stream or edge stream representing a CAN data signal.
+        This can be one of CAN-High, CAN-Low, or the differential voltage between
+        them.
+
+    polarity (CANConfig)
+        Set the polarity (idle state high or low). This will be low when the can
+        parameter is from CAN-Low, high when CAN-High, and dependent on probe orientation
+        when using a differential input.
+
+    bit_rate (number or None)
+        The bit rate of the stream. If None, the first 50 edges will be analyzed to
+        automatically determine the most likely bit rate for the stream. On average
+        50 edges will occur after 11 bytes have been captured.
+
+    coerce_rates (sequence of number or None)
+        An optional list of standard bit rates to coerce the automatically detected
+        bit rate to.
     
+    logic_levels ((float, float) or None)
+        Optional pair that indicates (low, high) logic levels of the sample
+        stream. When present, auto level detection is disabled. This has no effect on
+        edge streams.
+    
+    stream_type (streaming.StreamType)
+        A StreamType value indicating that the can parameter represents either Samples
+        or Edges
+        
+    Yields a series of CANStreamFrame objects. Each frame contains subrecords marking the location
+      of sub-elements within the frame. CRC and Ack errors are recorded as an error status in their
+      respective subrecords.
+      
+    Raises AutoLevelError if stream_type = Samples and the logic levels cannot
+      be determined.
+      
+    Raises AutoRateError if auto-rate detection is active and the bit rate cannot
+      be determined.
+    '''
+
     if stream_type == stream.StreamType.Samples:
         if logic_levels is None:
             can_it, logic_levels = check_logic_levels(can)
@@ -835,23 +1017,41 @@ def _adjust_fields_for_stuffing(field_info, stuffed_bits):
 
 
 
-def can_synth(frames, clock_freq, idle_start=0.0, message_interval=0.0, idle_end=0.0):
+def can_synth(frames, bit_rate, idle_start=0.0, idle_end=0.0):
+    '''Generate synthesized CAN data streams
+    
+    frames (sequence of CANFrame compatible objects)
+        Frames to be synthesized.
+
+    bit_rate (number)
+        The frequency of the clock generator
+
+    idle_start (float)
+        The amount of idle time before the transmission of framesbegins.
+
+    idle_end (float)
+        The amount of idle time after the last frame.
+
+    Yields an edge stream of (float, int) pairs. The first element in the iterator
+      is the initial state of the stream.
+    '''
+
     # This is a wrapper around the actual synthesis code in _can_synth()
     # It unzips the yielded tuple and removes unwanted artifact edges
-    ch, cl = itertools.izip(*_can_synth(frames, clock_freq, idle_start, message_interval, idle_end))
+    ch, cl = itertools.izip(*_can_synth(frames, bit_rate, idle_start, idle_end))
 
     ch = sigp.remove_excess_edges(ch)
     cl = sigp.remove_excess_edges(cl)
 
     return ch, cl
 
-def _can_synth(frames, clock_freq, idle_start=0.0, message_interval=0.0, idle_end=0.0):
+def _can_synth(frames, bit_rate, idle_start=0.0, idle_end=0.0):
     '''Core CAN synthesizer
     
     This is a generator function.
     '''
 
-    bit_period = 1.0 / clock_freq
+    bit_period = 1.0 / bit_rate
 
     t = 0.0
 
@@ -883,8 +1083,6 @@ def _can_synth(frames, clock_freq, idle_start=0.0, message_interval=0.0, idle_en
     yield ((t, ch), (t, cl))
     t += idle_end
     yield ((t, ch), (t, cl)) # final state
-
-
 
 
 def can_crc15(d):
