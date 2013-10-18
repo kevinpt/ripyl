@@ -33,6 +33,7 @@ import ripyl.protocol.usb as usb
 import ripyl.sigproc as sigp
 import ripyl.streaming as stream
 import test.test_support as tsup
+#from ripyl.util.bitops import join_bits
 
 
 def _gen_random_usb_packet(bus_speed, allow_preamble_pid=True, allow_ext_pid=True):
@@ -270,6 +271,9 @@ class TestUSBFuncs(tsup.RandomSeededTestCase):
             offsets = pkt.field_offsets(with_stuffing=False)
             s_offsets = pkt.field_offsets(with_stuffing=True)
 
+            #print('##  offsets:', offsets)
+            #print('## s offsets:', s_offsets)
+
             original_bits = pkt.get_bits()
             stuffed_bits = pkt._bit_stuff(original_bits)
             unstuffed_bits, stuffed_bit_indices, _ = usb._unstuff(stuffed_bits)
@@ -315,7 +319,8 @@ class TestUSBFuncs(tsup.RandomSeededTestCase):
             self.assertEqual(crc, unstuffed_crc, 'unstuffed CRC mismatch')
 
             if s_crc_bounds[1] - s_crc_bounds[0] == crc_bounds[1] - crc_bounds[0]:
-                # No stuffing in CRC itself
+                # No stuffing in CRC itself so we can compare values
+                #print('#### stuffed bounds, unstuffed bounds:', s_crc_bounds, crc_bounds, s_crc_bounds[1] - s_crc_bounds[0], crc_bounds[1] - crc_bounds[0], hex(join_bits(crc)), hex(join_bits(stuffed_crc)))
                 self.assertEqual(crc, stuffed_crc, 'stuffed CRC mismatch')
 
 
