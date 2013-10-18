@@ -68,10 +68,8 @@ class TestUARTFuncs(tsup.RandomSeededTestCase):
             
             noisy = sigp.amplify(sigp.noisify(samples, snr_db=20), gain=-15.0)
             waveform = list(noisy)
-            bd = deque()
-            frames = uart.uart_decode(iter(waveform), bits=bits, polarity=uart.UARTConfig.IdleLow, parity=parity, baud_rate=None, baud_deque=bd)
+            frames = uart.uart_decode(iter(waveform), bits=bits, polarity=uart.UARTConfig.IdleLow, parity=parity, baud_rate=None)
             frames = list(frames)
-            #print('@@@@ deque data:', bd.pop())
             #print(''.join(str(d) for d in frames))
             decoded_msg = ''.join(str(d) for d in frames)
             

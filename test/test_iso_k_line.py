@@ -26,7 +26,6 @@ from __future__ import print_function, division
 
 import unittest
 import random
-from collections import deque
 import sys
 
 import ripyl.protocol.iso_k_line as kline
