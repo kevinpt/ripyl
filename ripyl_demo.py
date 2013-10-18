@@ -49,7 +49,7 @@ if matplotlib_exists:
 def main():
     '''Entry point for script'''
 
-    protocols = ('uart', 'i2c', 'spi', 'usb', 'usb-diff', 'hsic', 'ps2', 'kline', 'rc5', 'rc6', 'nec', 'sirc', 'can')
+    protocols = ('uart', 'i2c', 'spi', 'usb', 'usb-diff', 'hsic', 'ps2', 'kline', 'rc5', 'rc6', 'nec', 'sirc', 'can', 'lin')
 
     usage = '''%prog [-p PROTOCOL] [-n] [-m MSG]
     
@@ -892,18 +892,20 @@ def demo_can(options):
     rise_time = min_rise_time(sample_rate) * 10.0 # 10x min. rise time
     noise_snr = options.snr_db
     
-    frames = []
-    frames.append(can.CANBaseFrame(0x42, [1,2,3,4,7,7], bit_period=1.0 / clock_freq))
-    frames.append(can.CANBaseFrame(0x32, [1,2,3,4,], bit_period=1.0 / clock_freq))
-    
+    frames = [
+        can.CANStandardFrame(0x42, [0x5A], None, None, False, trim_bits=2),
+        can.CANErrorFrame(6, 0),
+        can.CANExtendedFrame(0xececc9b, [0xDE, 0xAD], None, None, True),
+    ]
+
     
     # Synthesize the waveform edge stream
     # This can be fed directly into i2c_decode() if an analog waveform is not needed
-    ch, cl = can.can_synth(frames, idle_start=3.0e-5, idle_end=3.0e-5)
+    ch, cl = can.can_synth(frames, clock_freq, idle_start=1.0e-5, idle_end=0.0e-5)
     
     # Convert to a sample stream with band-limited edges and noise
-    cln_ch_it = sigp.synth_wave(ch, sample_rate, rise_time)
-    cln_cl_it = sigp.synth_wave(cl, sample_rate, rise_time)
+    cln_ch_it = sigp.synth_wave(ch, sample_rate, rise_time, tau_factor=1.5)
+    cln_cl_it = sigp.synth_wave(cl, sample_rate, rise_time, tau_factor=1.5)
     
     nsy_ch_it = sigp.amplify(sigp.noisify(cln_ch_it, snr_db=noise_snr), gain=1.0, offset=2.5)
     nsy_cl_it = sigp.amplify(sigp.noisify(cln_cl_it, snr_db=noise_snr), gain=1.0, offset=1.5)
@@ -918,15 +920,17 @@ def demo_can(options):
 
     # Decode the samples
     decode_success = True
-    records = []
-    decode_success = False
-    #try:
-    #    records = list(i2c.i2c_decode(iter(nsy_scl), iter(nsy_sda)))
+    try:
+        records = list(can.can_decode(iter(nsy_cl)))
         
-    #except stream.StreamError as e:
-    #    print('Decode failed:\n  {}'.format(e))
-    #    decode_success = False
-    #    records = []
+    except stream.StreamError as e:
+        print('Decode failed:\n  {}'.format(e))
+        decode_success = False
+        records = []
+
+    print('%%%% records:', len(records))
+    for r in records:
+        print('  ', r.data)
 
     protocol_params = {
         'clock frequency': eng.eng_si(clock_freq, 'Hz')
@@ -943,11 +947,75 @@ def demo_can(options):
         'label_format': stream.AnnotationFormat.Text
     }
 
-    #data_records = list(i2c.reconstruct_i2c_transfers(records))
-    
-    report_results(records, [], protocol_params, wave_params, decode_success, lambda d, o: (d, o))
+    report_results(records, frames, protocol_params, wave_params, decode_success, lambda d, o: (d.data, o))
     channels = OrderedDict([('CH (V)', nsy_ch), ('CL (V)', nsy_cl)])
+    plot_channels(channels, records, options, plot_params, ylim=(1.0, 4.0))
+
+
+def demo_lin(options):
+    import ripyl.protocol.lin as lin
+    print('ISO LIN protocol\n')
+    
+    # LIN params
+    baud = 10400
+
+    # Sampled waveform params
+    sample_rate = baud * 100.0
+    rise_time = min_rise_time(sample_rate) * 10.0 # 10x min. rise time
+    noise_snr = options.snr_db
+
+    frames = [
+        lin.LINFrame(0x3A, [0x8B, 0xAD, 0xF0, 0x0D], cs_type=lin.LINChecksum.Enhanced),
+        lin.LINFrame(0x29, []),
+        #lin.LINFrame(0x29, [6,7])
+    ]
+
+    # Synthesize the waveform edge stream
+    edges_it = lin.lin_synth(frames, baud, frame_interval=10.0 / baud, idle_start=4.0 / baud, \
+                            idle_end=8.0 / baud, byte_interval=3.0 / baud)
+    
+    # Convert to a sample stream with band-limited edges and noise
+    clean_samples_it = sigp.synth_wave(edges_it, sample_rate, rise_time, tau_factor=1.0)
+    
+    noisy_samples_it = sigp.quantize(sigp.amplify(sigp.noisify(clean_samples_it, snr_db=noise_snr), gain=12.0), 50.0)
+    if options.dropout is not None:
+        noisy_samples_it = sigp.dropout(noisy_samples_it, options.dropout[0], options.dropout[1], options.dropout_level)
+    
+    # Capture the samples from the iterator
+    noisy_samples = list(noisy_samples_it)
+    
+
+    # Decode the samples
+    decode_success = True
+    records = []
+    try:
+        records_it = lin.lin_decode(iter(noisy_samples))
+        records = list(records_it)
+        
+    except stream.StreamError as e:
+        print('Decode failed:\n  {}'.format(e))
+        decode_success = False
+
+    protocol_params = {
+        'baud': baud
+    }
+
+    wave_params = {
+        'sample rate': eng.eng_si(sample_rate, 'Hz'),
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
+    }
+
+    plot_params = {
+        'default_title': 'LIN Simulation',
+        'label_format': stream.AnnotationFormat.Hex
+    }
+
+    report_results(records, frames, protocol_params, wave_params, decode_success, lambda d, o: (d.data, o) )
+    channels = OrderedDict([('Volts', noisy_samples)])
     plot_channels(channels, records, options, plot_params)
+
+
 
 
 def edges_to_waveform(edges, options, sample_rate, rise_time, gain, offset=0.0, quant_full_range=20.0):
