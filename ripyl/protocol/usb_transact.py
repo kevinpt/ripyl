@@ -32,7 +32,8 @@ class USBTransaction(StreamRecord):
     '''Collection of packets forming a USB transaction
     
     The 'subrecords' attribute is aliased to the 'packets' attribute.
-    These "packets" are USBStreamPacket objects.
+    These "packets" are USBStreamPacket objects rather than unadorned
+    USBPacket objects.
     
     '''
     def __init__(self, packets, status=StreamStatus.Ok):
