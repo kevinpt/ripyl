@@ -126,6 +126,11 @@ class build_py(_build_py):
         print('Writing Ripyl configuration file: {}'.format(cfg_path))
         self.write_config(cfg_path, use_cython, cython_prebuild)
 
+        # Read back the config file for verification
+        with open(cfg_path, 'r') as f:
+            for line in f:
+                print('  >', line.rstrip())
+
         return _build_py.run(self)
 
     #def get_module_outfile(self, build_dir, package, module):

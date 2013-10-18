@@ -36,6 +36,7 @@ class TestCython(unittest.TestCase):
         print('  Use Cython:', cfg.settings.use_cython)
         print('  Cython prebuild:', cfg.settings.cython_prebuild)
         print('  Python fallback:', cfg.settings.python_fallback)
+        print('  Config source:', cfg.settings.config_source)
 
         print('\nCython patched objects:')
         for po in cfg.settings.patched_objs:

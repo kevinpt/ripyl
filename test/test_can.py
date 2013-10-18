@@ -91,7 +91,7 @@ class TestCANFuncs(tsup.RandomSeededTestCase):
 
             ch, cl = can.can_synth(frames, clock_freq, idle_start=1.0e-5)
 
-            records = list(can.can_decode(cl, bit_rate=clock_freq, stream_type=stream.StreamType.Edges))
+            records = list(can.can_decode(cl, stream_type=stream.StreamType.Edges))
 
             self.assertEqual(len(records), len(frames), 'Decoded frame count mismatch: {} -> {}'.format(len(frames), len(records)))
 

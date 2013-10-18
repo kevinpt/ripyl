@@ -75,6 +75,7 @@ class ConfigSettings(object):
         self.cython_prebuild = False  # Tracks whether Cython code was compiled during library installation
         self.python_fallback = True   # Silently ignore any failed cython import
         self.patched_objs = []        # List of PatchObject to control monkeypatching
+        self.config_source = 'unknown'
 
     @property
     def cython_active(self):
@@ -120,6 +121,7 @@ def _parse_config():
         global settings
         settings.use_cython = config.getboolean('setup', 'use_cython')
         settings.cython_prebuild = config.getboolean('setup', 'cython_prebuild')
+        settings.config_source = config_path
 
 
 def write_config(cfg_path, use_cython, cython_prebuild):
