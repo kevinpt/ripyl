@@ -1,6 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+# cython: boundscheck=False
+# cython: wraparound=False
+
 '''Cython implementation of decode.py functions
 '''
 
@@ -27,6 +30,50 @@ import numpy as np
 
 #from libc.stdlib cimport malloc, free
 
+ctypedef struct cEdge:
+    double time
+    int state
+
+cdef class Edge:
+    cdef cEdge c
+
+    property time:
+        def __get__(self):
+            return self.c.time
+
+        def __set__(self, value):
+            self.c.time = value
+
+    property state:
+        def __get__(self):
+            return self.c.state
+
+        def __set__(self, value):
+            self.c.state = value
+
+
+    def __cinit__(self, double time, int state):
+        self.time = time
+        self.state = state
+
+    def __getitem__(self, index):
+        #cdef int ix
+
+        #if isinstance(index, slice):
+        #    ix = index.indices(1).start
+        #else:
+        #    ix = index
+
+
+        if index == 0:
+            return self.time
+        else:
+            return self.state
+
+    def __iter__(self):
+        return iter((self.time, self.state))
+
+
 # states
 
 # NOTE: declaring these constants as ints rather than enums ends up creating
@@ -35,6 +82,7 @@ cdef int ES_START = 1000
 cdef int ZONE_1_L1 = 2 # logic 1
 cdef int ZONE_2_T  = 1 # transition
 cdef int ZONE_3_L0 = 0 # logic 0
+
 
 def find_edges(sample_chunks, logic, hysteresis=0.4):
     cdef double span = logic[1] - logic[0]
@@ -63,6 +111,7 @@ def find_edges(sample_chunks, logic, hysteresis=0.4):
         edges = _cy_find_edges(chunk, t, sample_period, hyst_top, hyst_bot, &state, &prev_stable)
         for e in edges:
             yield e
+            #yield Edge(e.time, e.state)
 
 
 @cython.boundscheck(False)
@@ -103,6 +152,12 @@ cdef _cy_find_edges(double[:] chunk, double t, double sample_period, double hyst
                 if zone != state:
                     state = zone
                     edges.append((t, zone // 2))
+                    #edges.append(Edge(t, zone // 2))
+                    #e.time = t
+                    #e.state = zone // 2
+                    #edge_list[el_ix] = e
+                    #el_ix += 1
+                    
             else:
                 prev_stable = state
                 state = zone
@@ -112,6 +167,12 @@ cdef _cy_find_edges(double[:] chunk, double t, double sample_period, double hyst
             if zone_is_stable:
                 if zone != prev_stable: # This wasn't just noise
                     edges.append((t, zone // 2))
+                    #edges.append(Edge(t, zone // 2))
+                    #e.time = t
+                    #e.state = zone // 2
+                    #edge_list[el_ix] = e
+                    #el_ix += 1
+
 
             state = zone
 
@@ -121,6 +182,8 @@ cdef _cy_find_edges(double[:] chunk, double t, double sample_period, double hyst
     p_prev_stable[0] = prev_stable
 
     return edges
+
+
 
 def find_multi_edges(samples, hyst_thresholds):
     cdef int zone_offset
