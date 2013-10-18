@@ -73,6 +73,7 @@ class ConfigSettings(object):
     def __init__(self):
         self.use_cython = False       # Indicates Cython should be used
         self.cython_prebuild = False  # Tracks whether Cython code was compiled during library installation
+        self.python_fallback = True   # Silently ignore any failed cython import
         self.patched_objs = []        # List of PatchObject to control monkeypatching
 
     @property

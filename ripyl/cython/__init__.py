@@ -29,7 +29,10 @@ def find_files(pattern, path):
 
 
 def find_cy_modules():
-    '''Find Cython modules'''
+    '''Find Cython modules
+
+    Returns a list of Cython module names.
+    '''
     # Strip extensions from module names
     cy_root = os.path.dirname(__file__)
     cy_files = [os.path.splitext(fn)[0] for fn in find_files('*.pyx', cy_root)]
@@ -46,8 +49,16 @@ def find_cy_modules():
 
 
 def monkeypatch_modules(modules, lib_base):
-    '''Replace pure python functions and classes with cython equivalents'''
+    '''Replace pure Python functions and classes with Cython equivalents
 
+    modules (dict of modules)
+        A dict of module objects keyed by their module name.
+
+    lib_base (string)
+        The base path of the library (ex: 'ripyl').
+
+    Returns a list of PatchObject.
+    '''
     patched_objs = []
     for mname, module in modules.iteritems():
         py_mname = '.'.join((lib_base, mname))
@@ -58,7 +69,7 @@ def monkeypatch_modules(modules, lib_base):
             # Monkeypatch the cython functions and classes over the original python implementation
             for obj_name, obj in objs:
                 # Cython releases before 0.19.1 include extraneous internal classes in the extension modules.
-                # We need to catch any attempts to acces these classes that don't exist in the
+                # We need to catch any attempts to access these classes that don't exist in the
                 # Python implementations
                 try:
                     orig_obj = sys.modules[py_mname].__dict__[obj_name]
@@ -82,7 +93,12 @@ for mname in cy_module_names:
     try:
         cy_modules[mname] = importlib.import_module(full_mname)
     except ImportError, KeyError:
-        print 'Error: could not import Cython module:', full_mname
+        msg = 'Could not import Cython module: {}'.format(full_mname)
+        if ripyl.config.settings.python_fallback == True:
+            print 'Error:', msg
+        else:
+            #print '@@@@@@@@@@ CYTHON ABORT'
+            raise ImportError(msg)
 
 #print 'cython modules:', cy_modules
 
