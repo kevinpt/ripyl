@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>util Package &mdash; Ripyl 1.1 documentation</title>
+    <title>util Package &mdash; Ripyl 1.2 documentation</title>
     
     <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.1',
+        VERSION:     '1.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="Ripyl 1.1 documentation" href="../index.html" />
+    <link rel="top" title="Ripyl 1.2 documentation" href="../index.html" />
     <link rel="up" title="ripyl Package" href="ripyl.html" />
     <link rel="prev" title="infrared Package" href="ripyl.protocol.infrared.html" /> 
   </head>
@@ -42,7 +42,7 @@
         <li class="right" >
           <a href="ripyl.protocol.infrared.html" title="infrared Package"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.1 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li>
           <li><a href="modules.html" >ripyl</a> &raquo;</li>
           <li><a href="ripyl.html" accesskey="U">ripyl Package</a> &raquo;</li> 
       </ul>
@@ -82,17 +82,18 @@
 <dt id="ripyl.util.bitops.split_bits">
 <tt class="descclassname">ripyl.util.bitops.</tt><tt class="descname">split_bits</tt><big>(</big><em>n</em>, <em>num_bits</em><big>)</big><a class="headerlink" href="#ripyl.util.bitops.split_bits" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert integer to a list of bits (MSB-first)</p>
-<dl class="docutils">
-<dt>n (int)</dt>
-<dd>The number to convert to bits.</dd>
-</dl>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>num_bits</strong> (<em>int</em>) &#8211; The number of bits in the result.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>n</strong> (<em>int</em>) &#8211; The number to convert to bits.</li>
+<li><strong>num_bits</strong> (<em>int</em>) &#8211; The number of bits in the result.</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A list of ints representing each bit in n.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A list of ints representing each bit in n.</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -157,9 +158,8 @@ attribute name for an encoded enumeration value.</p>
 <span class="gp">... </span>    <span class="n">blue</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="gp">... </span>    <span class="n">red</span> <span class="o">=</span> <span class="mi">2</span>
 <span class="gp">... </span>    <span class="n">green</span> <span class="o">=</span> <span class="mi">3</span>
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Colors</span><span class="o">.</span><span class="n">name</span><span class="p">(</span><span class="n">Colors</span><span class="o">.</span><span class="n">red</span><span class="p">)</span>
+<span class="go">:param  :</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Colors</span><span class="o">.</span><span class="n">name</span><span class="p">(</span><span class="n">Colors</span><span class="o">.</span><span class="n">red</span><span class="p">)</span>
 <span class="go">&#39;red&#39;</span>
 </pre></div>
 </div>
@@ -176,9 +176,8 @@ attribute name for an encoded enumeration value.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">MathConst</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="n">pi</span> <span class="o">=</span> <span class="mf">3.2</span>     <span class="c"># in certain US states :)</span>
 <span class="gp">... </span>    <span class="n">e</span> <span class="o">=</span> <span class="mf">2.71828</span>
-</pre></div>
-</div>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">MathConst</span><span class="o">.</span><span class="n">pi</span>
+<span class="go">:param  :</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">MathConst</span><span class="o">.</span><span class="n">pi</span>
 <span class="go">3.2</span>
 </pre></div>
 </div>
@@ -206,6 +205,57 @@ attribute name for an encoded enumeration value.</p>
 </dd></dl>
 
 </div>
+<div class="section" id="equality-module">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">equality</span></tt> Module<a class="headerlink" href="#equality-module" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-ripyl.util.equality"></span><p>Ripyl protocol decode library
+Equality functions</p>
+<dl class="function">
+<dt id="ripyl.util.equality.min_relative_epsilon">
+<tt class="descclassname">ripyl.util.equality.</tt><tt class="descname">min_relative_epsilon</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#ripyl.util.equality.min_relative_epsilon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the minimum epsilon value for relatively_equal()</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>a</strong> (<em>float</em>) &#8211; First number to compare</li>
+<li><strong>b</strong> (<em>float</em>) &#8211; Second number to compare</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A float representing the minimum epsilon.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.util.equality.relatively_equal">
+<tt class="descclassname">ripyl.util.equality.</tt><tt class="descname">relatively_equal</tt><big>(</big><em>a</em>, <em>b</em>, <em>epsilon</em><big>)</big><a class="headerlink" href="#ripyl.util.equality.relatively_equal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate the relative equality of two floats</p>
+<p>The epsilon parameter controls how close the relatve magnitudes need to be
+for equality to be determined.</p>
+<p>Adapted from: <a class="reference external" href="http://floating-point-gui.de/errors/comparison/">http://floating-point-gui.de/errors/comparison/</a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>a</strong> (<em>float</em>) &#8211; First number to compare</li>
+<li><strong>b</strong> (<em>float</em>) &#8211; Second number to compare</li>
+<li><strong>epsilon</strong> (<em>float</em>) &#8211; Relative epsilon for comparison</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">True when a and b are nearly equal</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
 <div class="section" id="module-ripyl.util.plot">
 <span id="plot-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">plot</span></tt> Module<a class="headerlink" href="#module-ripyl.util.plot" title="Permalink to this headline">¶</a></h2>
 <p>Annotated protocol plotting</p>
@@ -230,7 +280,7 @@ attribute name for an encoded enumeration value.</p>
 <p>Manage annotated waveform plotting</p>
 <dl class="method">
 <dt id="ripyl.util.plot.Plotter.plot">
-<tt class="descname">plot</tt><big>(</big><em>channels</em>, <em>annotations</em>, <em>title=''</em>, <em>label_format=5</em>, <em>show_names=False</em><big>)</big><a class="headerlink" href="#ripyl.util.plot.Plotter.plot" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">plot</tt><big>(</big><em>channels</em>, <em>annotations</em>, <em>title=''</em>, <em>label_format=5</em>, <em>show_names=False</em>, <em>ylim=None</em><big>)</big><a class="headerlink" href="#ripyl.util.plot.Plotter.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot annotated waveform data</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -243,7 +293,8 @@ used for each channel&#8217;s vertical axis.</li>
 <li><strong>title</strong> (<em>string</em>) &#8211; Title for the plot</li>
 <li><strong>label_format</strong> (<em>AnnotationFormat</em>) &#8211; data format to apply for annotation records with a data_format attribute
 equal to AnnotationFormat.General</li>
-<li><strong>show_names</strong> (<em>bool</em>) &#8211; </li>
+<li><strong>show_names</strong> (<em>bool</em>) &#8211; Show the field names for each annotation value</li>
+<li><strong>ylim</strong> (<em>pair of float or None</em>) &#8211; Set lower and upper bound for the y-axes</li>
 </ul>
 </td>
 </tr>
@@ -287,6 +338,95 @@ equal to AnnotationFormat.General</li>
 <div class="section" id="module-ripyl.util.stats">
 <span id="stats-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">stats</span></tt> Module<a class="headerlink" href="#module-ripyl.util.stats" title="Permalink to this headline">¶</a></h2>
 <p>Statistical operations</p>
+<dl class="class">
+<dt id="ripyl.util.stats.OnlineStats">
+<em class="property">class </em><tt class="descclassname">ripyl.util.stats.</tt><tt class="descname">OnlineStats</tt><a class="headerlink" href="#ripyl.util.stats.OnlineStats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Generate statistics from a data set.
+Computes mean, variance and standard deviation in a single pass through a data set.</p>
+<dl class="method">
+<dt id="ripyl.util.stats.OnlineStats.accumulate">
+<tt class="descname">accumulate</tt><big>(</big><em>data</em><big>)</big><a class="headerlink" href="#ripyl.util.stats.OnlineStats.accumulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a new data value to the set of accumulated statistics</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>number</em>) &#8211; New data to accumulate statistics on</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ripyl.util.stats.OnlineStats.accumulate_array">
+<tt class="descname">accumulate_array</tt><big>(</big><em>data</em><big>)</big><a class="headerlink" href="#ripyl.util.stats.OnlineStats.accumulate_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a new data value to the set of accumulated statistics</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>sequence of numbers</em>) &#8211; New data to accumulate statistics on</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ripyl.util.stats.OnlineStats.mean">
+<tt class="descname">mean</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.util.stats.OnlineStats.mean" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The mean of the values previously accumulated</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ripyl.util.stats.OnlineStats.reset">
+<tt class="descname">reset</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.util.stats.OnlineStats.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset accumulated statistics to initial conditions</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ripyl.util.stats.OnlineStats.std">
+<tt class="descname">std</tt><big>(</big><em>ddof=0</em><big>)</big><a class="headerlink" href="#ripyl.util.stats.OnlineStats.std" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the standard deviation of the values previously accumulated</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ddof</strong> (<em>int</em>) &#8211; [See variance()]</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A float for the standard deviation.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ripyl.util.stats.OnlineStats.variance">
+<tt class="descname">variance</tt><big>(</big><em>ddof=0</em><big>)</big><a class="headerlink" href="#ripyl.util.stats.OnlineStats.variance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the variance of the data values previously accumulated</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ddof</strong> (<em>int</em>) &#8211; Delta Degrees of Freedom. Divisor for variance is N - ddof.
+Use 0 for a data set which repsresents an entire population.
+Use 1 for a data set representing a population sample.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A float for the variance</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 </div>
 
@@ -306,6 +446,7 @@ equal to AnnotationFormat.General</li>
 <li><a class="reference internal" href="#module-ripyl.util.bitops"><tt class="docutils literal"><span class="pre">bitops</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.util.eng"><tt class="docutils literal"><span class="pre">eng</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.util.enum"><tt class="docutils literal"><span class="pre">enum</span></tt> Module</a></li>
+<li><a class="reference internal" href="#equality-module"><tt class="docutils literal"><span class="pre">equality</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.util.plot"><tt class="docutils literal"><span class="pre">plot</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.util.stats"><tt class="docutils literal"><span class="pre">stats</span></tt> Module</a></li>
 </ul>
@@ -349,7 +490,7 @@ equal to AnnotationFormat.General</li>
         <li class="right" >
           <a href="ripyl.protocol.infrared.html" title="infrared Package"
              >previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.1 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li>
           <li><a href="modules.html" >ripyl</a> &raquo;</li>
           <li><a href="ripyl.html" >ripyl Package</a> &raquo;</li> 
       </ul>

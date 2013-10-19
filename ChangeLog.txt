@@ -2,13 +2,16 @@
 Ripyl change log
 ================
 
-next version
+v1.2 / 2013-10-18
 ============
 
   Changes
   -------
-
+  * Added CAN and LIN protocols
   * Tested sucessfully with Cython 0.17. Required version has been reduced.
+  * The capacify() function is numerically stable and is included in the wave_synth() function.
+  * Default chunk size is increased to 10000 to improve performance
+  * New generic multi-level edge finder find_multi_edges() replaces find_differential_edges().
 
   Bug fixes
   ---------
@@ -16,6 +19,7 @@ next version
   * Fixed bug in Cython implementation of find_edges()
   * Fix bugs in the sigproc.py filter functions that resulted in overwriting
     chunk samples rather than properly allocating new StreamChunk objects.
+  * Fix bug in find_symbol_rate() caused by including the initial state in set of edge spans.
 
 
 v1.1 / 2013-9-21

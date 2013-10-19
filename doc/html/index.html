@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Ripyl library documentation &mdash; Ripyl 1.1 documentation</title>
+    <title>Ripyl library documentation &mdash; Ripyl 1.2 documentation</title>
     
     <link rel="stylesheet" href="_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.1',
+        VERSION:     '1.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Ripyl 1.1 documentation" href="#" />
+    <link rel="top" title="Ripyl 1.2 documentation" href="#" />
     <link rel="next" title="Installing Ripyl" href="rst/installation.html" /> 
   </head>
   <body>
@@ -41,7 +41,7 @@
         <li class="right" >
           <a href="rst/installation.html" title="Installing Ripyl"
              accesskey="N">next</a> |</li>
-        <li><a href="#">Ripyl 1.1 documentation</a> &raquo;</li> 
+        <li><a href="#">Ripyl 1.2 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -61,7 +61,7 @@ advanced protocols.</p>
 <img alt="_images/uart_plain.png" src="_images/uart_plain.png" />
 <p>... and produce an annotated result like this:</p>
 <img alt="_images/uart_hello_small.png" src="_images/uart_hello_small.png" />
-<p>The library provides decoded information in an easily traversed tree detailing the time and data for each sub-element of a protocol transmission.</p>
+<p>The library provides decoded information in an easily traversed tree detailing the time and data for each sub-element of a protocol transmission. In the example above you can see the individual frames along with the highlighted data and parity bits within each frame. The status of parity is verified as are checksums and CRCs used in other protocols.</p>
 <dl class="docutils">
 <dt>Features include:</dt>
 <dd><ul class="first last">
@@ -69,38 +69,45 @@ advanced protocols.</p>
 <dt>Multi-protocol support:</dt>
 <dd><table border="1" class="first last docutils">
 <colgroup>
-<col width="22%" />
-<col width="20%" />
 <col width="28%" />
-<col width="30%" />
+<col width="29%" />
+<col width="22%" />
+<col width="21%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><p class="first last"><a class="reference internal" href="rst/protocols.html#hsic"><em>HSIC</em></a></p>
+<tr class="row-odd"><td><p class="first last"><a class="reference internal" href="rst/protocols.html#can"><em>CAN</em></a></p>
+</td>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#hsic"><em>HSIC</em></a></p>
 </td>
 <td><p class="first last"><a class="reference internal" href="rst/protocols.html#i2c"><em>I2C</em></a></p>
 </td>
-<td><p class="first last"><a class="reference internal" href="rst/protocols.html#kline"><em>ISO 9141</em></a></p>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#lin"><em>LIN</em></a></p>
+</td>
+</tr>
+<tr class="row-even"><td><p class="first last"><a class="reference internal" href="rst/protocols.html#kline"><em>ISO 9141</em></a></p>
 </td>
 <td><p class="first last"><a class="reference internal" href="rst/protocols.html#kline"><em>ISO 14230</em></a></p>
 </td>
-</tr>
-<tr class="row-even"><td><p class="first last"><a class="reference internal" href="rst/protocols.html#ps2"><em>PS/2</em></a></p>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#nec"><em>NEC</em></a></p>
 </td>
-<td><p class="first last"><a class="reference internal" href="rst/protocols.html#spi"><em>SPI</em></a></p>
-</td>
-<td><p class="first last"><a class="reference internal" href="rst/protocols.html#uart"><em>UART</em></a></p>
-</td>
-<td><p class="first last"><a class="reference internal" href="rst/protocols.html#usb"><em>USB 2.0</em></a></p>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#ps2"><em>PS/2</em></a></p>
 </td>
 </tr>
 <tr class="row-odd"><td><p class="first last"><a class="reference internal" href="rst/protocols.html#rc5"><em>RC5</em></a></p>
 </td>
 <td><p class="first last"><a class="reference internal" href="rst/protocols.html#rc6"><em>RC6</em></a></p>
 </td>
-<td><p class="first last"><a class="reference internal" href="rst/protocols.html#nec"><em>NEC</em></a></p>
-</td>
 <td><p class="first last"><a class="reference internal" href="rst/protocols.html#sirc"><em>SIRC</em></a></p>
 </td>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#spi"><em>SPI</em></a></p>
+</td>
+</tr>
+<tr class="row-even"><td><p class="first last"><a class="reference internal" href="rst/protocols.html#uart"><em>UART</em></a></p>
+</td>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#usb"><em>USB 2.0</em></a></p>
+</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
 </tr>
 </tbody>
 </table>
@@ -156,8 +163,10 @@ advanced protocols.</p>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="rst/protocols.html">Ripyl protocols</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#can">CAN</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#i2c">I<sup>2</sup>C</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#iso-k-line-iso-9141-and-iso-14230">ISO K-line (ISO 9141 and ISO 14230)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#lin">LIN</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#lm73">LM73</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#nec-infrared">NEC Infrared</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#obd-2">OBD-2</a></li>
@@ -168,6 +177,10 @@ advanced protocols.</p>
 <li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#spi">SPI</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#uart">UART</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#usb-2-0">USB 2.0</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rst/simulation.html">Simulation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rst/simulation.html#signal-processing">Signal Processing</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="apidoc/modules.html">ripyl</a><ul>
@@ -242,7 +255,7 @@ advanced protocols.</p>
         <li class="right" >
           <a href="rst/installation.html" title="Installing Ripyl"
              >next</a> |</li>
-        <li><a href="#">Ripyl 1.1 documentation</a> &raquo;</li> 
+        <li><a href="#">Ripyl 1.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

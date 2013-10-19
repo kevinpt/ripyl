@@ -122,7 +122,7 @@ You can also use the built-in `itertools.tee() <http://docs.python.org/2/library
     for t,s in clk_ss_it:
         pass
 
-The functions in the :mod:`.sigproc` module have been designed to take an iterable stream as input and yield a stream as output. This allows them to be chained without generating intermediate lists of data.
+The functions in the :mod:`.sigproc` module have been designed to take an iterable stream as input and yield a stream as output. This allows them to be chained without generating intermediate lists of data. See the section on :ref:`signal processing <signal-processing>` for more information.
 
 .. code-block:: python
 

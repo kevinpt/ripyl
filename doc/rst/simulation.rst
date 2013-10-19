@@ -4,6 +4,7 @@ Simulation
 
 In addition to decoding protocols, Ripyl provides functions for simulating realistic waveforms. All of the protocols come with a synthesis function that generates edge streams. Such streams can be fed into the corresponding decoder to retrieve the original data. These edge streams can be further enhanced by converting them to sample streams and applying transformations that replicate real world effects such as noise and band-limited edges. This capability is used in Ripyl's own test suite to generate arbitrary randomized test data for validating the decoders.
 
+.. _signal-processing:
 
 Signal Processing
 -----------------

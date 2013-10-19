@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Common data structures &mdash; Ripyl 1.1 documentation</title>
+    <title>Common data structures &mdash; Ripyl 1.2 documentation</title>
     
     <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.1',
+        VERSION:     '1.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="Ripyl 1.1 documentation" href="../index.html" />
+    <link rel="top" title="Ripyl 1.2 documentation" href="../index.html" />
     <link rel="next" title="Ripyl protocols" href="protocols.html" />
     <link rel="prev" title="Reading oscilloscope data" href="reading_data.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="reading_data.html" title="Reading oscilloscope data"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.1 documentation</a> &raquo;</li> 
+        <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -59,15 +59,16 @@
 <p>The Ripyl library makes use of a few common data structures that will be discussed below.</p>
 <div class="section" id="streams">
 <span id="id1"></span><h2>Streams<a class="headerlink" href="#streams" title="Permalink to this headline">¶</a></h2>
-<p>Throughout the Ripyl documentation there is reference to &#8220;streams&#8221; of data. This is a term used to describe an informally defined sequence of sample or edge data that is used as input and output of many library functions. A stream is a sequence of data that may be produced on demand by an iterator or generator function. Sample streams and edge streams are the two types of stream data structures used in Ripyl. Internally, all of the decode functions convert their input streams to edge streams before proceding to decode their content.</p>
+<p>Throughout the Ripyl documentation there is reference to &#8220;streams&#8221; of data. This is a term used to describe a sequence of sample or edge data that is used as input and output of many library functions. A stream is a sequence of data that may be produced on demand by an iterator or generator function. Sample streams and edge streams are the two types of stream data structures used in Ripyl. Internally, all of the decode functions convert their input streams to edge streams before proceding to decode their content.</p>
 <div class="section" id="sample-streams">
 <h3>Sample streams<a class="headerlink" href="#sample-streams" title="Permalink to this headline">¶</a></h3>
-<p>Sample streams are farily self explanatory. They are a time series of sampled data points. For efficiency purposes, a group of samples is aggregated into a <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.SampleChunk" title="ripyl.streaming.SampleChunk"><tt class="xref py py-class docutils literal"><span class="pre">SampleChunk</span></tt></a> object containing a NumPy array of samples and attributes identifying the start time and sample period of each chunk. The number of samples in a chunk may vary but it defaults to 1000. Raw sample data can be converted to a sample stream with the <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.samples_to_sample_stream" title="ripyl.streaming.samples_to_sample_stream"><tt class="xref py py-func docutils literal"><span class="pre">samples_to_sample_stream()</span></tt></a> function.</p>
+<p>Sample streams are farily self explanatory. They are a time series of sampled data points. For efficiency purposes, a group of samples is aggregated into a <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.SampleChunk" title="ripyl.streaming.SampleChunk"><tt class="xref py py-class docutils literal"><span class="pre">SampleChunk</span></tt></a> object containing a NumPy array of samples and attributes identifying the start time and sample period of each chunk. The number of samples in a chunk may vary but it defaults to 10000. Raw sample data can be converted to a sample stream with the <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.samples_to_sample_stream" title="ripyl.streaming.samples_to_sample_stream"><tt class="xref py py-func docutils literal"><span class="pre">samples_to_sample_stream()</span></tt></a> function. A sample stream can be converted back into a raw array of samples with <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.sample_stream_to_samples" title="ripyl.streaming.sample_stream_to_samples"><tt class="xref py py-func docutils literal"><span class="pre">sample_stream_to_samples()</span></tt></a>. The <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.extract_all_samples" title="ripyl.streaming.extract_all_samples"><tt class="xref py py-func docutils literal"><span class="pre">extract_all_samples()</span></tt></a> function will produce a raw array along with information about the start time and sample period.</p>
 </div>
 <div class="section" id="edge-streams">
 <h3>Edge streams<a class="headerlink" href="#edge-streams" title="Permalink to this headline">¶</a></h3>
 <p>Edge streams are different from sample streams in that they represent the logical levels of edge transitions. An edge stream consists of a sequence (list, tuple, etc.) or iterable (iterator or generator function object) that contains/yields a series of tuple pairs of numbers. The first number is a float representing the time that the second element of the pair occurs at. The second number is an int that represents the logical edge state (high, low, middle, etc.).</p>
 <p>The time value in each pair is an arbitrary time in seconds relative to whatever point is desired. Negative values are acceptable. The only firm requirement is that time increases monotonically. The time intervals between edges are not fixed. The logical state of each edge represents a transition at the current time that is maintained until the next edge in the sequence. Logical states are encoded as an integer value. For waveforms with binary states these will be 0 for low and 1 for high. For differential signals the states are -1 for low, 0 for differential-0, and 1 for high. The first element of an edge stream establishes the initial state of the stream and does not represent an edge.</p>
+<p>Edge streams can be manually created when necessary. They can also be created from a sample stream using the <a class="reference internal" href="../apidoc/ripyl.html#ripyl.decode.find_edges" title="ripyl.decode.find_edges"><tt class="xref py py-func docutils literal"><span class="pre">find_edges()</span></tt></a> and <a class="reference internal" href="../apidoc/ripyl.html#ripyl.decode.find_multi_edges" title="ripyl.decode.find_multi_edges"><tt class="xref py py-func docutils literal"><span class="pre">find_multi_edges()</span></tt></a> functions. An edge stream can be converted back to a sample stream using <a class="reference internal" href="../apidoc/ripyl.html#ripyl.sigproc.edges_to_sample_stream" title="ripyl.sigproc.edges_to_sample_stream"><tt class="xref py py-func docutils literal"><span class="pre">edges_to_sample_stream()</span></tt></a> and <a class="reference internal" href="../apidoc/ripyl.html#ripyl.sigproc.synth_wave" title="ripyl.sigproc.synth_wave"><tt class="xref py py-func docutils literal"><span class="pre">synth_wave()</span></tt></a>.</p>
 </div>
 </div>
 <div class="section" id="streamrecords">
@@ -141,7 +142,7 @@
     <span class="k">pass</span>
 </pre></div>
 </div>
-<p>The functions in the <a class="reference internal" href="../apidoc/ripyl.html#module-ripyl.sigproc" title="ripyl.sigproc"><tt class="xref py py-mod docutils literal"><span class="pre">sigproc</span></tt></a> module have been designed to take an iterable stream as input and yield a stream as output. This allows them to be chained without generating intermediate lists of data.</p>
+<p>The functions in the <a class="reference internal" href="../apidoc/ripyl.html#module-ripyl.sigproc" title="ripyl.sigproc"><tt class="xref py py-mod docutils literal"><span class="pre">sigproc</span></tt></a> module have been designed to take an iterable stream as input and yield a stream as output. This allows them to be chained without generating intermediate lists of data. See the section on <a class="reference internal" href="simulation.html#signal-processing"><em>signal processing</em></a> for more information.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">ripyl.sigproc</span> <span class="kn">as</span> <span class="nn">sp</span>
 <span class="o">...</span>
 
@@ -238,7 +239,7 @@
         <li class="right" >
           <a href="reading_data.html" title="Reading oscilloscope data"
              >previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.1 documentation</a> &raquo;</li> 
+        <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

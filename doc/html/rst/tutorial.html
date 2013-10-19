@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Ripyl tutorial &mdash; Ripyl 1.1 documentation</title>
+    <title>Ripyl tutorial &mdash; Ripyl 1.2 documentation</title>
     
     <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.1',
+        VERSION:     '1.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="Ripyl 1.1 documentation" href="../index.html" />
+    <link rel="top" title="Ripyl 1.2 documentation" href="../index.html" />
     <link rel="next" title="Reading oscilloscope data" href="reading_data.html" />
     <link rel="prev" title="Getting started with Ripyl" href="intro.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="intro.html" title="Getting started with Ripyl"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.1 documentation</a> &raquo;</li> 
+        <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -68,18 +68,18 @@
 <p>Getting your sampled data ready for use by Ripyl is the most significant hurdle you will face. The Ripyl library needs to work on a sequence of samples or edge transitions to perform its decode. In most cases you will have sampled data from an oscilloscope or a logic analyzer to process. It is beyond the scope of the Ripyl library to provide device specific support. You will have to figure out how to get the raw data from these devices into an array that can be passed to Ripyl. Many devices support some form of CSV output that can be processed with the <a class="reference external" href="http://docs.python.org/2/library/csv.html">csv module</a> from the Python standard library. If your device supports binary output, however, you will be able to read large data sets more rapidly.</p>
 <p>Ripyl&#8217;s processing is performed through a pipeline of <a class="reference external" href="http://docs.python.org/2/tutorial/classes.html#generators">generator functions</a> that minimize the amount of data passed around in arrays. To support this system, the raw samples have to be converted to a <a class="reference internal" href="data_structures.html#streams"><em>sample stream</em></a>.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">ripyl</span>
-<span class="kn">import</span> <span class="nn">ripyl.sigproc</span> <span class="kn">as</span> <span class="nn">sigp</span>
+<span class="kn">import</span> <span class="nn">ripyl.streaming</span> <span class="kn">as</span> <span class="nn">stream</span>
 <span class="kn">import</span> <span class="nn">ripyl.protocol.uart</span> <span class="kn">as</span> <span class="nn">uart</span>
 
 <span class="n">raw_samples</span><span class="p">,</span> <span class="n">sample_period</span> <span class="o">=</span> <span class="n">read_samples_from_your_oscilloscope</span><span class="p">()</span>
-<span class="n">txd</span> <span class="o">=</span> <span class="n">sigp</span><span class="o">.</span><span class="n">samples_to_sample_stream</span><span class="p">(</span><span class="n">raw_samples</span><span class="p">,</span> <span class="n">sample_period</span><span class="p">)</span>
+<span class="n">txd</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">samples_to_sample_stream</span><span class="p">(</span><span class="n">raw_samples</span><span class="p">,</span> <span class="n">sample_period</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">You will need to figure out how to populate the raw_samples and sample_period variables on your own. read_samples_from_your_oscilloscope() is just a placeholder that does not exist in Ripyl. See the section on <a class="reference internal" href="reading_data.html"><em>reading data</em></a> for some examples for various devices.</p>
 </div>
-<p>The <tt class="docutils literal"><span class="pre">txd</span></tt> variable is an iterable object that will extract data from <tt class="docutils literal"><span class="pre">raw_samples</span></tt> as needed and yield a series of sample stream tuples with time markers for each sample. If you need accurate time correlation you can pass an additional <tt class="docutils literal"><span class="pre">start_time</span></tt> parameter to the <tt class="xref py py-func docutils literal"><span class="pre">samples_to_sample_stream()</span></tt> function.</p>
+<p>The <tt class="docutils literal"><span class="pre">txd</span></tt> variable is an iterable object that will extract data from <tt class="docutils literal"><span class="pre">raw_samples</span></tt> as needed and yield a series of sample stream tuples with time markers for each sample. If you need accurate time correlation you can pass an additional <tt class="docutils literal"><span class="pre">start_time</span></tt> parameter to the <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.samples_to_sample_stream" title="ripyl.streaming.samples_to_sample_stream"><tt class="xref py py-func docutils literal"><span class="pre">samples_to_sample_stream()</span></tt></a> function.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Some logic analyzers may store edge transitions rather than sampled data. You can either work to convert these data sets into periodic samples or convert them directly into an <tt class="docutils literal"><span class="pre">edge</span> <span class="pre">stream</span></tt> prior to decode.</p>
@@ -151,10 +151,10 @@
 </div>
 <div class="section" id="what-could-go-wrong">
 <span id="problems"></span><h2>What could go wrong?<a class="headerlink" href="#what-could-go-wrong" title="Permalink to this headline">¶</a></h2>
-<p>The protocol decoders perform some automatic parametric analysis to simplify the library interface. By default all decoders will attempt to perform automatic logic level analysis on the sample stream. The UART and USB decoders also provide automatic baud and bus speed detection. In some cases these automatic actions will fail or produce the wrong results.</p>
+<p>The protocol decoders perform some automatic parametric analysis to simplify the library interface. By default all decoders will attempt to perform automatic logic level analysis on the sample stream. The <a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.uart" title="ripyl.protocol.uart"><tt class="xref py py-mod docutils literal"><span class="pre">UART</span></tt></a> <a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.usb" title="ripyl.protocol.usb"><tt class="xref py py-mod docutils literal"><span class="pre">USB</span></tt></a>, and <a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.can" title="ripyl.protocol.can"><tt class="xref py py-mod docutils literal"><span class="pre">CAN</span></tt></a> decoders also provide automatic baud and bus speed detection. In some cases these automatic actions will fail or produce the wrong results.</p>
 <div class="section" id="logic-level-detection">
 <h3>Logic level detection<a class="headerlink" href="#logic-level-detection" title="Permalink to this headline">¶</a></h3>
-<p>The protocol decoders need to do some statistical analysis of the sample stream(s) before they can start decoding. Internally each decoder works on an edge stream rather than directly on the sample stream. The samples need to be converted to edges by first discovering what the logic levels are, removing the need to manually specify logic thresholds. This requires consuming a portion of the input samples for analysis. By default the Ripyl library is limited to consuming 20000 samples for its logic level analysis. If the input has no identifiable edge transitions in this period the AutoLevelError exception will be raised. The analyzed samples are buffered and will still be used if they contain useful data for decode.</p>
+<p>The protocol decoders need to do some statistical analysis of the sample stream(s) before they can start decoding. Internally each decoder works on an edge stream rather than directly on the sample stream. The samples need to be converted to edges by first discovering what the logic levels are, removing the need to manually specify logic thresholds. This requires consuming a portion of the input samples for analysis. By default the Ripyl library is limited to consuming 20000 samples for its logic level analysis. If the input has no identifiable edge transitions in this period the <cite>AutoLevelError</cite> exception will be raised. The analyzed samples are buffered and will still be used if they contain useful data for decode.</p>
 <p>The logic level analysis may produce incorrect results if you have an unusual input signal that contains more than two identifiable logic levels (or three for differential USB). Consider the case of HighSpeed (480 Mb/s) USB devices where normal single-ended signaling levels are 0V and 0.4V but 3.3V may also be present during the initial connection phase and during any suspend period. This could interfere with the logic level detection process.</p>
 <p>To remedy this problem you have two options. The simplest is to pass known logic levels to a decoder using the optional <tt class="docutils literal"><span class="pre">logic_levels</span></tt> parameter. This is a pair of floats (low, high) defining the upper and lower voltage levels of the signal. These levels should correspond to the actual high and low voltages of the waveform (ignoring unwanted peaks and noise) rather than the min and max input levels for the receiver (Vil and Vih).</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">logic</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">)</span> <span class="c"># Logic low and high for your signal</span>
@@ -164,12 +164,11 @@
 <p>For protocols that use more than one sample stream, the logic level analysis is only performed on one stream. This is generally the one with the most activity such as a clock signal. It is assumed that the logic levels detected or specified for this stream are appropriate for all other streams fed to the decoder.</p>
 <p>The other option is to manually generate an edge stream on a set of sampled data. This is a little more involved but offers more flexibility as you can set different logic levels for each sample stream and control the amount of hysteresis.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">ripyl</span>
-<span class="kn">import</span> <span class="nn">ripyl.sigproc</span> <span class="kn">as</span> <span class="nn">sigp</span>
+<span class="kn">import</span> <span class="nn">ripyl.streaming</span> <span class="kn">as</span> <span class="nn">stream</span>
 <span class="kn">from</span> <span class="nn">ripyl.decode</span> <span class="kn">import</span> <span class="n">find_edges</span>
-<span class="kn">from</span> <span class="nn">ripyl.streaming</span> <span class="kn">import</span> <span class="n">StreamType</span>
 
 <span class="c"># Prepare your raw samples</span>
-<span class="n">sample_stream</span> <span class="o">=</span> <span class="n">sigp</span><span class="o">.</span><span class="n">samples_to_sample_stream</span><span class="p">(</span><span class="n">raw_samples</span><span class="p">,</span> <span class="n">sample_period</span><span class="p">)</span>
+<span class="n">sample_stream</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">samples_to_sample_stream</span><span class="p">(</span><span class="n">raw_samples</span><span class="p">,</span> <span class="n">sample_period</span><span class="p">)</span>
 
 <span class="n">logic</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">)</span> <span class="c"># Logic low and high for your signal</span>
 <span class="n">hysteresis</span> <span class="o">=</span> <span class="mf">0.4</span> <span class="c"># 40% of the transition band between low and high</span>
@@ -178,7 +177,7 @@
 <span class="n">edges_it</span> <span class="o">=</span> <span class="n">find_edges</span><span class="p">(</span><span class="n">sample_stream</span><span class="p">,</span> <span class="n">logic</span><span class="p">,</span> <span class="n">hysteresis</span><span class="p">)</span>
 
 <span class="c"># Tell the decoder the input is an edge stream</span>
-<span class="n">records_it</span> <span class="o">=</span> <span class="n">XXX</span><span class="o">.</span><span class="n">XXX_decode</span><span class="p">(</span><span class="n">edges_it</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="n">stream_type</span> <span class="o">=</span> <span class="n">StreamType</span><span class="o">.</span><span class="n">Edges</span><span class="p">)</span>
+<span class="n">records_it</span> <span class="o">=</span> <span class="n">XXX</span><span class="o">.</span><span class="n">XXX_decode</span><span class="p">(</span><span class="n">edges_it</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="n">stream_type</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">StreamType</span><span class="o">.</span><span class="n">Edges</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -261,7 +260,7 @@
         <li class="right" >
           <a href="intro.html" title="Getting started with Ripyl"
              >previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.1 documentation</a> &raquo;</li> 
+        <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

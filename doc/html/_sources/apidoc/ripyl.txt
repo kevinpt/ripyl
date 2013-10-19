@@ -54,7 +54,6 @@ Subpackages
 
 .. toctree::
 
-    ripyl.cython
     ripyl.protocol
     ripyl.util
 

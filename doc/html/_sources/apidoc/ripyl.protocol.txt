@@ -9,6 +9,15 @@ protocol Package
     :undoc-members:
     :show-inheritance:
 
+
+:mod:`can` Module
+-----------------
+
+.. automodule:: ripyl.protocol.can
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`i2c` Module
 -----------------
 
@@ -21,6 +30,14 @@ protocol Package
 ------------------------
 
 .. automodule:: ripyl.protocol.iso_k_line
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`lin` Module
+-----------------
+
+.. automodule:: ripyl.protocol.lin
     :members:
     :undoc-members:
     :show-inheritance:

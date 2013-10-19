@@ -25,11 +25,12 @@ Optional libraries
 Features
 --------
 * Multi-protocol support:
-    ==== === ======== ==========
-    HSIC I2C ISO 9141 ISO 14230
-    PS/2 SPI UART     USB 2.0  
-    RC5  RC6 NEC      SIRC
-    ==== === ======== ==========
+    ======== ========= ==== ===
+    CAN      HSIC      I2C  LIN
+    ISO 9141 ISO 14230 NEC  PS/2
+    RC5      RC6       SIRC SPI
+    UART     USB 2.0
+    ======== ========= ==== ===
 * Protocol simulation
 * Annotated plotting
 * Layering of protocols
@@ -66,6 +67,16 @@ The Ripyl library has been designed with optional Cython support. By default
 the installation script will detect and enable Cython if it is present. You
 can force Cython support off by passing the ``--without-cython`` argument to
 setup.py.
+
+The Ripyl library has been designed with optional Cython support. By default
+the installation script will detect and enable Cython if it is present. You
+can force Cython support off by passing the ``--without-cython`` argument to
+setup.py. The status of the Cython configuration is written into a ripyl.cfg
+file at build time. You can enable or disable the use of Cython after Ripyl
+is installed by setting the `RIPYL_CYTHON` environment variable to a true or
+false value as desired:
+
+  ``> export RIPYL_CYTHON=1``
 
 
 Licensing

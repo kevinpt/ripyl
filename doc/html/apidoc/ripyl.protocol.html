@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>protocol Package &mdash; Ripyl 1.1 documentation</title>
+    <title>protocol Package &mdash; Ripyl 1.2 documentation</title>
     
     <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.1',
+        VERSION:     '1.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,10 +25,10 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="Ripyl 1.1 documentation" href="../index.html" />
+    <link rel="top" title="Ripyl 1.2 documentation" href="../index.html" />
     <link rel="up" title="ripyl Package" href="ripyl.html" />
     <link rel="next" title="infrared Package" href="ripyl.protocol.infrared.html" />
-    <link rel="prev" title="cython Package" href="ripyl.cython.html" /> 
+    <link rel="prev" title="ripyl Package" href="ripyl.html" /> 
   </head>
   <body>
     <div class="related">
@@ -44,9 +44,9 @@
           <a href="ripyl.protocol.infrared.html" title="infrared Package"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="ripyl.cython.html" title="cython Package"
+          <a href="ripyl.html" title="ripyl Package"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.1 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li>
           <li><a href="modules.html" >ripyl</a> &raquo;</li>
           <li><a href="ripyl.html" accesskey="U">ripyl Package</a> &raquo;</li> 
       </ul>
@@ -62,6 +62,365 @@
 <div class="section" id="id1">
 <h2><tt class="xref py py-mod docutils literal"><span class="pre">protocol</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <span class="target" id="module-ripyl.protocol"></span><p>Protocol package</p>
+</div>
+<div class="section" id="module-ripyl.protocol.can">
+<span id="can-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">can</span></tt> Module<a class="headerlink" href="#module-ripyl.protocol.can" title="Permalink to this headline">¶</a></h2>
+<p>CAN protocol decoder</p>
+<dl class="exception">
+<dt id="ripyl.protocol.can.AutoRateError">
+<em class="property">exception </em><tt class="descclassname">ripyl.protocol.can.</tt><tt class="descname">AutoRateError</tt><a class="headerlink" href="#ripyl.protocol.can.AutoRateError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ripyl.html#ripyl.streaming.StreamError" title="ripyl.streaming.StreamError"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamError</span></tt></a></p>
+<p>Error for failed bit rate detection</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="ripyl.protocol.can.CANConfig">
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.can.</tt><tt class="descname">CANConfig</tt><a class="headerlink" href="#ripyl.protocol.can.CANConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ripyl.util.html#ripyl.util.enum.Enum" title="ripyl.util.enum.Enum"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.util.enum.Enum</span></tt></a></p>
+<p>Enumeration of configuration settings</p>
+<dl class="attribute">
+<dt id="ripyl.protocol.can.CANConfig.IdleHigh">
+<tt class="descname">IdleHigh</tt><em class="property"> = 1</em><a class="headerlink" href="#ripyl.protocol.can.CANConfig.IdleHigh" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.protocol.can.CANConfig.IdleLow">
+<tt class="descname">IdleLow</tt><em class="property"> = 2</em><a class="headerlink" href="#ripyl.protocol.can.CANConfig.IdleLow" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ripyl.protocol.can.CANErrorFrame">
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.can.</tt><tt class="descname">CANErrorFrame</tt><big>(</big><em>flag_bits=6</em>, <em>ifs_bits=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.can.CANErrorFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>CAN Error frame</p>
+<dl class="method">
+<dt id="ripyl.protocol.can.CANErrorFrame.get_edges">
+<tt class="descname">get_edges</tt><big>(</big><em>t</em>, <em>bit_period</em><big>)</big><a class="headerlink" href="#ripyl.protocol.can.CANErrorFrame.get_edges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate an edge sequence for this frame</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>t</strong> (<em>float</em>) &#8211; Start time for the edges</li>
+<li><strong>bit_period</strong> (<em>float</em>) &#8211; The period for each bit of the frame</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>:param  :
+:returns: A list of 2-tuples representing each edge.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ripyl.protocol.can.CANExtendedFrame">
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.can.</tt><tt class="descname">CANExtendedFrame</tt><big>(</big><em>full_id</em>, <em>data</em>, <em>dlc=None</em>, <em>crc=None</em>, <em>ack=True</em>, <em>trim_bits=0</em>, <em>ifs_bits=3</em><big>)</big><a class="headerlink" href="#ripyl.protocol.can.CANExtendedFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ripyl.protocol.can.CANFrame" title="ripyl.protocol.can.CANFrame"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.protocol.can.CANFrame</span></tt></a></p>
+<p>CAN frame format for 29-bit ID</p>
+<dl class="attribute">
+<dt id="ripyl.protocol.can.CANExtendedFrame.full_id">
+<tt class="descname">full_id</tt><a class="headerlink" href="#ripyl.protocol.can.CANExtendedFrame.full_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>The full 29-bit ID for this frame</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ripyl.protocol.can.CANExtendedFrame.get_bits">
+<tt class="descname">get_bits</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.protocol.can.CANExtendedFrame.get_bits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate extended frame bits</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ripyl.protocol.can.CANFrame">
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.can.</tt><tt class="descname">CANFrame</tt><big>(</big><em>id</em>, <em>data</em>, <em>dlc=None</em>, <em>crc=None</em>, <em>ack=True</em>, <em>trim_bits=0</em>, <em>ifs_bits=3</em><big>)</big><a class="headerlink" href="#ripyl.protocol.can.CANFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Base class for CAN Data and Remote frames</p>
+<dl class="attribute">
+<dt id="ripyl.protocol.can.CANFrame.crc">
+<tt class="descname">crc</tt><a class="headerlink" href="#ripyl.protocol.can.CANFrame.crc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ripyl.protocol.can.CANFrame.crc_is_valid">
+<tt class="descname">crc_is_valid</tt><big>(</big><em>recv_crc=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.can.CANFrame.crc_is_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if a decoded CRC is valid.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>recv_crc</strong> (<em>int or None</em>) &#8211; The decoded CRC to check against. If None, the CRC passed in the constructor is used.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True when the crc is correct.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.protocol.can.CANFrame.dlc">
+<tt class="descname">dlc</tt><a class="headerlink" href="#ripyl.protocol.can.CANFrame.dlc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.protocol.can.CANFrame.full_id">
+<tt class="descname">full_id</tt><a class="headerlink" href="#ripyl.protocol.can.CANFrame.full_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>The full 11-bit ID for this frame</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ripyl.protocol.can.CANFrame.get_bits">
+<tt class="descname">get_bits</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.protocol.can.CANFrame.get_bits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the raw bits for this frame</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ripyl.protocol.can.CANFrame.get_edges">
+<tt class="descname">get_edges</tt><big>(</big><em>t</em>, <em>bit_period</em><big>)</big><a class="headerlink" href="#ripyl.protocol.can.CANFrame.get_edges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate an edge sequence for this frame</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>t</strong> (<em>float</em>) &#8211; Start time for the edges</li>
+<li><strong>bit_period</strong> (<em>float</em>) &#8211; The period for each bit of the frame</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>:param  :
+:returns: A list of 2-tuples representing each edge.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.protocol.can.CANFrame.rtr">
+<tt class="descname">rtr</tt><a class="headerlink" href="#ripyl.protocol.can.CANFrame.rtr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ripyl.protocol.can.CANOverloadFrame">
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.can.</tt><tt class="descname">CANOverloadFrame</tt><big>(</big><em>flag_bits=6</em>, <em>ifs_bits=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.can.CANOverloadFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ripyl.protocol.can.CANErrorFrame" title="ripyl.protocol.can.CANErrorFrame"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.protocol.can.CANErrorFrame</span></tt></a></p>
+<p>CAN Overload frame</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="ripyl.protocol.can.CANStandardFrame">
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.can.</tt><tt class="descname">CANStandardFrame</tt><big>(</big><em>id</em>, <em>data</em>, <em>dlc=None</em>, <em>crc=None</em>, <em>ack=True</em>, <em>trim_bits=0</em>, <em>ifs_bits=3</em><big>)</big><a class="headerlink" href="#ripyl.protocol.can.CANStandardFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ripyl.protocol.can.CANFrame" title="ripyl.protocol.can.CANFrame"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.protocol.can.CANFrame</span></tt></a></p>
+<p>CAN frame format for 11-bit ID</p>
+<dl class="method">
+<dt id="ripyl.protocol.can.CANStandardFrame.get_bits">
+<tt class="descname">get_bits</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.protocol.can.CANStandardFrame.get_bits" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate standard frame bits</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ripyl.protocol.can.CANStreamFrame">
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.can.</tt><tt class="descname">CANStreamFrame</tt><big>(</big><em>bounds</em>, <em>frame</em>, <em>field_info=None</em>, <em>stuffed_bits=None</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.can.CANStreamFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ripyl.html#ripyl.streaming.StreamSegment" title="ripyl.streaming.StreamSegment"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamSegment</span></tt></a></p>
+<p>Encapsulates a CANFrame object into a StreamSegment</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="ripyl.protocol.can.CANStreamStatus">
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.can.</tt><tt class="descname">CANStreamStatus</tt><a class="headerlink" href="#ripyl.protocol.can.CANStreamStatus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ripyl.util.html#ripyl.util.enum.Enum" title="ripyl.util.enum.Enum"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.util.enum.Enum</span></tt></a></p>
+<p>Enumeration for CANStreamFrame status codes</p>
+<dl class="attribute">
+<dt id="ripyl.protocol.can.CANStreamStatus.AckError">
+<tt class="descname">AckError</tt><em class="property"> = 204</em><a class="headerlink" href="#ripyl.protocol.can.CANStreamStatus.AckError" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.protocol.can.CANStreamStatus.BitStuffingError">
+<tt class="descname">BitStuffingError</tt><em class="property"> = 202</em><a class="headerlink" href="#ripyl.protocol.can.CANStreamStatus.BitStuffingError" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.protocol.can.CANStreamStatus.CRCError">
+<tt class="descname">CRCError</tt><em class="property"> = 203</em><a class="headerlink" href="#ripyl.protocol.can.CANStreamStatus.CRCError" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.protocol.can.CANStreamStatus.ShortFrameError">
+<tt class="descname">ShortFrameError</tt><em class="property"> = 201</em><a class="headerlink" href="#ripyl.protocol.can.CANStreamStatus.ShortFrameError" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ripyl.protocol.can.CANTiming">
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.can.</tt><tt class="descname">CANTiming</tt><big>(</big><em>prop</em>, <em>p1</em>, <em>ipt=2</em>, <em>resync_jump=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.can.CANTiming" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Represent CAN bit timing and adaptive sampling point info</p>
+<dl class="attribute">
+<dt id="ripyl.protocol.can.CANTiming.bit_period">
+<tt class="descname">bit_period</tt><a class="headerlink" href="#ripyl.protocol.can.CANTiming.bit_period" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total time covered by this timing specification</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.protocol.can.CANTiming.post_sample_delay">
+<tt class="descname">post_sample_delay</tt><a class="headerlink" href="#ripyl.protocol.can.CANTiming.post_sample_delay" title="Permalink to this definition">¶</a></dt>
+<dd><p>The delay from the sample point to the of the bit</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.protocol.can.CANTiming.resync_jump">
+<tt class="descname">resync_jump</tt><a class="headerlink" href="#ripyl.protocol.can.CANTiming.resync_jump" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of quanta to jump for resync</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.protocol.can.CANTiming.sample_point_delay">
+<tt class="descname">sample_point_delay</tt><a class="headerlink" href="#ripyl.protocol.can.CANTiming.sample_point_delay" title="Permalink to this definition">¶</a></dt>
+<dd><p>The delay from the start of the bit to the sample point</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ripyl.protocol.can.CANTiming.set_quantum_period">
+<tt class="descname">set_quantum_period</tt><big>(</big><em>nominal_bit_period</em><big>)</big><a class="headerlink" href="#ripyl.protocol.can.CANTiming.set_quantum_period" title="Permalink to this definition">¶</a></dt>
+<dd><p>Establish the time period for one quantum</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.protocol.can.CANTiming.total_quanta">
+<tt class="descname">total_quanta</tt><a class="headerlink" href="#ripyl.protocol.can.CANTiming.total_quanta" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of quanta in this timing specification</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.protocol.can.can_crc15">
+<tt class="descclassname">ripyl.protocol.can.</tt><tt class="descname">can_crc15</tt><big>(</big><em>d</em><big>)</big><a class="headerlink" href="#ripyl.protocol.can.can_crc15" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate CAN CRC-15 on data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>d</strong> (<em>sequence of int</em>) &#8211; Array of integers representing 0 or 1 bits in transmission order</td>
+</tr>
+</tbody>
+</table>
+<p>:param  :
+:returns: Array of integers for each bit in the crc with msb first</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.protocol.can.can_decode">
+<tt class="descclassname">ripyl.protocol.can.</tt><tt class="descname">can_decode</tt><big>(</big><em>can</em>, <em>polarity=1</em>, <em>bit_rate=None</em>, <em>coerce_rates=None</em>, <em>logic_levels=None</em>, <em>stream_type=1</em><big>)</big><a class="headerlink" href="#ripyl.protocol.can.can_decode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decode a CAN data stream</p>
+<p>This is a generator function that can be used in a pipeline of waveform
+procesing operations.</p>
+<p>Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
+of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
+parameter. Sample streams will be analyzed to find edge transitions representing
+0 and 1 logic states of the waveforms. With sample streams, an initial block of data
+is consumed to determine the most likely logic levels in the signal.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>can</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream representing a CAN data signal.
+This can be one of CAN-High, CAN-Low, or the differential voltage between
+them.</li>
+<li><strong>polarity</strong> (<em>CANConfig</em>) &#8211; Set the polarity (idle state high or low). This will be low when the can
+parameter is from CAN-Low, high when CAN-High, and dependent on probe orientation
+when using a differential input.</li>
+<li><strong>bit_rate</strong> (<em>number or None</em>) &#8211; The bit rate of the stream. If None, the first 50 edges will be analyzed to
+automatically determine the most likely bit rate for the stream. On average
+50 edges will occur after 11 bytes have been captured.</li>
+<li><strong>coerce_rates</strong> (<em>sequence of number or None</em>) &#8211; An optional list of standard bit rates to coerce the automatically detected
+bit rate to.</li>
+<li><strong>logic_levels</strong> (<em>(float, float) or None</em>) &#8211; Optional pair that indicates (low, high) logic levels of the sample
+stream. When present, auto level detection is disabled. This has no effect on
+edge streams.</li>
+<li><strong>stream_type</strong> (<em>streaming.StreamType</em>) &#8211; A StreamType value indicating that the can parameter represents either Samples
+or Edges</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>:param  :
+:returns: An iterator yielding  a series of CANStreamFrame objects. Each frame contains subrecords marking the location</p>
+<blockquote>
+<div>of sub-elements within the frame. CRC and Ack errors are recorded as an error status in their
+respective subrecords.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body">AutoLevelError if stream_type = Samples and the logic levels cannot
+be determined.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises :</th><td class="field-body">AutoRateError if auto-rate detection is active and the bit rate cannot
+be determined.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.protocol.can.can_id">
+<tt class="descclassname">ripyl.protocol.can.</tt><tt class="descname">can_id</tt><big>(</big><em>variant</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#ripyl.protocol.can.can_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a CAN ID for a protocol variant from separate fields</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>variant</strong> (<em>string</em>) &#8211; Name of the variant to take field definitions from.</li>
+<li><strong>kwargs</strong> (<em>dict of string:int</em>) &#8211; Each additional keyword argument names a field for the selected variant.
+The value is applied to the range of bits specified for the field.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An int representing an 11-bit or 29-bit can id composed from the values in kwargs.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.protocol.can.can_synth">
+<tt class="descclassname">ripyl.protocol.can.</tt><tt class="descname">can_synth</tt><big>(</big><em>frames</em>, <em>bit_rate</em>, <em>idle_start=0.0</em>, <em>idle_end=0.0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.can.can_synth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate synthesized CAN data streams</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>frames</strong> (<em>sequence of CANFrame compatible objects</em>) &#8211; Frames to be synthesized.</li>
+<li><strong>bit_rate</strong> (<em>number</em>) &#8211; The frequency of the clock generator</li>
+<li><strong>idle_start</strong> (<em>float</em>) &#8211; The amount of idle time before the transmission of framesbegins.</li>
+<li><strong>idle_end</strong> (<em>float</em>) &#8211; The amount of idle time after the last frame.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  an edge stream of (float, int) pairs. The first element in the iterator
+is the initial state of the stream.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 <div class="section" id="module-ripyl.protocol.i2c">
 <span id="i2c-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">i2c</span></tt> Module<a class="headerlink" href="#module-ripyl.protocol.i2c" title="Permalink to this headline">¶</a></h2>
@@ -155,28 +514,36 @@ on the scl stream is consumed to determine the most likely logic levels in the s
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>scl</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream representing the I2C serial clock</li>
 <li><strong>sda</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream representing the I2C serial data</li>
 <li><strong>logic_levels</strong> (<em>(float, float) or None</em>) &#8211; Optional pair that indicates (low, high) logic levels of the sample
 stream. When present, auto level detection is disabled. This has no effect on
 edge streams.</li>
-<li><strong>stream_type</strong> (<em>streaming.StreamType</em>) &#8211; <p>Indicates the type of stream used for scl and sda.</p>
-<p>When StreamType.Samples, the iterators represent a sequence of samples.
-Each sample is a 2-tuple representing the time of the sample and the sample&#8217;s
-value. When this type is used, the scl stream is analyzed to determine the
-logic levels of the two streams.</p>
-<p>When StreamType.Edges, the iterators represent a series of edges.
-scl and sda are iterables of 2-tuples representing each edge transition.
-The 2-tuples <em>must</em> be in the absolute time form (time, logic level).</p>
-</li>
+<li><strong>stream_type</strong> (<em>streaming.StreamType</em>) &#8211; Indicates the type of stream used for scl and sda.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>An iterator yielding  a series of StreamRecord-based objects. These will be one of three event types
+</tbody>
+</table>
+<dl class="docutils">
+<dt>:param  :</dt>
+<dd>When StreamType.Samples, the iterators represent a sequence of samples.
+Each sample is a 2-tuple representing the time of the sample and the sample&#8217;s
+value. When this type is used, the scl stream is analyzed to determine the
+logic levels of the two streams.</dd>
+<dt>:param  :</dt>
+<dd>When StreamType.Edges, the iterators represent a series of edges.
+scl and sda are iterables of 2-tuples representing each edge transition.
+The 2-tuples <em>must</em> be in the absolute time form (time, logic level).</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">An iterator yielding  a series of StreamRecord-based objects. These will be one of three event types
 or two data types. The three events are represented by StreamEvent object with these
-obj.kind attribute values:</p>
-<blockquote>
+obj.kind attribute values:<blockquote>
 <div><ul class="simple">
 <li>&#8216;I2C start&#8217;   The start of an I2C transfer</li>
 <li>&#8216;I2C restart&#8217; A start condition during a transfer</li>
@@ -189,12 +556,10 @@ the data read or written during the transfer. I2CByte has an attribute ack_bit t
 records the value of the ACK for that byte. I2CAddress has a r_wn attribute that indicates
 if the transfer is a read or write. The subrecords attribute contains the I2CByte object
 or objects that composed the address.</p>
-</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first last">AutoLevelError when the stream_type is Samples and the logic levels cannot
-be determined automatically.</p>
-</td>
+<tr class="field-even field"><th class="field-name">Raises :</th><td class="field-body">AutoLevelError when the stream_type is Samples and the logic levels cannot
+be determined automatically.</td>
 </tr>
 </tbody>
 </table>
@@ -242,11 +607,12 @@ processing operations.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>records</strong> (<em>sequence of I2CByte and I2CAddress</em>) &#8211; An iterable of records produced by i2c_decode().
 All StreamEvent records are discarded.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">An iterator yielding  a stream of I2CTransfer objects containing aggregated address and data
-from the input records.</td>
-</tr>
 </tbody>
 </table>
+<p>:param  :
+:returns: An iterator yielding  a stream of I2CTransfer objects containing aggregated address and data</p>
+<blockquote>
+<div>from the input records.</div></blockquote>
 </dd></dl>
 
 </div>
@@ -288,14 +654,21 @@ Header byte 3(4): source address</p>
 <p>ISO9141 header object</p>
 <p>Header byte 1: option</p>
 <div class="line-block">
-<div class="line-block">
 <div class="line">7-5 priority: 000 = high, 111 = low</div>
 <div class="line">4   header type: 0 = 3-byte; 1 = 1-byte</div>
 <div class="line">3   in frame response: 0 = required (Ford); 1 = not allowed (GM)</div>
 <div class="line">2   addressing mode: 1 = physical; 0 = functional</div>
 <div class="line">1-0 message type</div>
-<div class="line"><br /></div>
 </div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>|</strong> &#8211; </td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
 <div class="line">message type:</div>
 <div class="line">bit: 3 2 1 0</div>
 <div class="line-block">
@@ -308,9 +681,16 @@ Header byte 3(4): source address</p>
 <div class="line">1 1 0 1 reserved</div>
 <div class="line">1 1 1 0 reserved</div>
 <div class="line">1 1 1 1 reserved</div>
-<div class="line"><br /></div>
 </div>
 </div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>|</strong> &#8211; </td>
+</tr>
+</tbody>
+</table>
 <p>Header byte 2: target address
 Header byte 3: source address</p>
 <dl class="method">
@@ -472,7 +852,7 @@ is consumed to determine the most likely logic levels in the signal.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>stream_data</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream of K-line messages.</li>
 <li><strong>min_message_interval</strong> (<em>float</em>) &#8211; The minimum time between bytes for identifying the end and start
 of messages. For ISO14230 this is used in addition to the message length encoded
@@ -485,12 +865,17 @@ or Edges</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An iterator yielding  a series of KLineStreamMessage objects.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first last">AutoLevelError if stream_type = Samples and the logic levels cannot
-be determined.</p>
-</td>
+</tbody>
+</table>
+<p>:param  :
+:param  :
+:returns: An iterator yielding  a series of KLineStreamMessage objects.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body">AutoLevelError if stream_type = Samples and the logic levels cannot
+be determined.</td>
 </tr>
 </tbody>
 </table>
@@ -511,6 +896,226 @@ for each message.</li>
 <li><strong>message_interval</strong> (<em>float</em>) &#8211; The amount of time between messages.</li>
 <li><strong>idle_end</strong> (<em>float</em>) &#8211; The amount of idle time after the last message.</li>
 <li><strong>word_interval</strong> (<em>float</em>) &#8211; The amount of time between message bytes.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  an edge stream of (float, int) pairs. The first element in the iterator
+is the initial state of the stream.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ripyl.protocol.lin">
+<span id="lin-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">lin</span></tt> Module<a class="headerlink" href="#module-ripyl.protocol.lin" title="Permalink to this headline">¶</a></h2>
+<p>LIN protocol decoder</p>
+<dl class="class">
+<dt id="ripyl.protocol.lin.LINChecksum">
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.lin.</tt><tt class="descname">LINChecksum</tt><a class="headerlink" href="#ripyl.protocol.lin.LINChecksum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ripyl.util.html#ripyl.util.enum.Enum" title="ripyl.util.enum.Enum"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.util.enum.Enum</span></tt></a></p>
+<p>Enumeration for LIN checksum type</p>
+<dl class="attribute">
+<dt id="ripyl.protocol.lin.LINChecksum.Classic">
+<tt class="descname">Classic</tt><em class="property"> = 0</em><a class="headerlink" href="#ripyl.protocol.lin.LINChecksum.Classic" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.protocol.lin.LINChecksum.Enhanced">
+<tt class="descname">Enhanced</tt><em class="property"> = 1</em><a class="headerlink" href="#ripyl.protocol.lin.LINChecksum.Enhanced" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ripyl.protocol.lin.LINFrame">
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.lin.</tt><tt class="descname">LINFrame</tt><big>(</big><em>id</em>, <em>data=None</em>, <em>checksum=None</em>, <em>pid_parity=None</em>, <em>cs_type=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.lin.LINFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>LIN frame object</p>
+<dl class="method">
+<dt id="ripyl.protocol.lin.LINFrame.bytes">
+<tt class="descname">bytes</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.protocol.lin.LINFrame.bytes" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A sequence of raw frame bytes including the sync field</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.protocol.lin.LINFrame.checksum">
+<tt class="descname">checksum</tt><a class="headerlink" href="#ripyl.protocol.lin.LINFrame.checksum" title="Permalink to this definition">¶</a></dt>
+<dd><p>The frame checksum</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ripyl.protocol.lin.LINFrame.checksum_is_valid">
+<tt class="descname">checksum_is_valid</tt><big>(</big><em>recv_cs=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.lin.LINFrame.checksum_is_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if the checksum is valid</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>recv_cs</strong> (<em>int or None</em>) &#8211; Optional received checksum value. If None, the stored checksum
+for the frame is used instead.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.protocol.lin.LINFrame.data_checksum">
+<tt class="descname">data_checksum</tt><a class="headerlink" href="#ripyl.protocol.lin.LINFrame.data_checksum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the checksum over the data bytes without reference to any existing _checksum value</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.protocol.lin.LINFrame.pid">
+<tt class="descname">pid</tt><a class="headerlink" href="#ripyl.protocol.lin.LINFrame.pid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the frame PID</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ripyl.protocol.lin.LINFrame.pid_is_valid">
+<tt class="descname">pid_is_valid</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.protocol.lin.LINFrame.pid_is_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine if the PID parity bits are correct</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.protocol.lin.LINFrame.pid_parity">
+<tt class="descname">pid_parity</tt><a class="headerlink" href="#ripyl.protocol.lin.LINFrame.pid_parity" title="Permalink to this definition">¶</a></dt>
+<dd><p>The parity bits from the PID</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ripyl.protocol.lin.LINStreamFrame">
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.lin.</tt><tt class="descname">LINStreamFrame</tt><big>(</big><em>bounds</em>, <em>frame</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.lin.LINStreamFrame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ripyl.html#ripyl.streaming.StreamSegment" title="ripyl.streaming.StreamSegment"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamSegment</span></tt></a></p>
+<p>Encapsulates a LINFrame object into a StreamSegment</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="ripyl.protocol.lin.LINStreamStatus">
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.lin.</tt><tt class="descname">LINStreamStatus</tt><a class="headerlink" href="#ripyl.protocol.lin.LINStreamStatus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ripyl.util.html#ripyl.util.enum.Enum" title="ripyl.util.enum.Enum"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.util.enum.Enum</span></tt></a></p>
+<p>Enumeration for LINStreamFrame status codes</p>
+<dl class="attribute">
+<dt id="ripyl.protocol.lin.LINStreamStatus.ChecksumError">
+<tt class="descname">ChecksumError</tt><em class="property"> = 202</em><a class="headerlink" href="#ripyl.protocol.lin.LINStreamStatus.ChecksumError" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.protocol.lin.LINStreamStatus.PIDError">
+<tt class="descname">PIDError</tt><em class="property"> = 201</em><a class="headerlink" href="#ripyl.protocol.lin.LINStreamStatus.PIDError" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.protocol.lin.lin_checksum">
+<tt class="descclassname">ripyl.protocol.lin.</tt><tt class="descname">lin_checksum</tt><big>(</big><em>data</em><big>)</big><a class="headerlink" href="#ripyl.protocol.lin.lin_checksum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the LIN checksum</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>sequence of int</em>) &#8211; The bytes (including ID if enhanced format) to compute the checksum over</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The checksum as an int.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.protocol.lin.lin_decode">
+<tt class="descclassname">ripyl.protocol.lin.</tt><tt class="descname">lin_decode</tt><big>(</big><em>stream_data</em>, <em>enhanced_ids=None</em>, <em>baud_rate=None</em>, <em>logic_levels=None</em>, <em>stream_type=1</em>, <em>param_info=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.lin.lin_decode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decode a LIN data stream</p>
+<p>This is a generator function that can be used in a pipeline of waveform
+procesing operations.</p>
+<p>Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
+of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
+parameter. Sample streams will be analyzed to find edge transitions representing
+0 and 1 logic states of the waveforms. With sample streams, an initial block of data
+is consumed to determine the most likely logic levels in the signal.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>stream_data</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream representing a LIN signal.</li>
+<li><strong>enhanced_ids</strong> (<em>sequence of int or None</em>) &#8211; An optional sequence of frame IDs that are to use LIN 2.x enhanced checksums.
+If None, the checksum type is guessed by trying both methods to see if one matches
+decoded checksum.</li>
+<li><strong>baud_rate</strong> (<em>int or None</em>) &#8211; The baud rate of the stream. If None, the first 50 edges will be analyzed to
+automatically determine the most likely baud rate for the stream. On average
+50 edges will occur after 11 bytes have been captured.</li>
+<li><strong>logic_levels</strong> (<em>(float, float) or None</em>) &#8211; Optional pair that indicates (low, high) logic levels of the sample
+stream. When present, auto level detection is disabled. This has no effect on
+edge streams.</li>
+<li><strong>stream_type</strong> (<em>streaming.StreamType</em>) &#8211; A StreamType value indicating that the stream parameter represents either Samples
+or Edges</li>
+<li><strong>param_info</strong> (<em>dict or None</em>) &#8211; An optional dictionary object that is used to monitor the results of
+automatic baud detection.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>:param  :
+:param  :
+:returns: An iterator yielding  a series of LINStreamFrame objects.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body">AutoLevelError if stream_type = Samples and the logic levels cannot
+be determined.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises :</th><td class="field-body">AutoBaudError if auto-baud is active and the baud rate cannot
+be determined.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.protocol.lin.lin_pid">
+<tt class="descclassname">ripyl.protocol.lin.</tt><tt class="descname">lin_pid</tt><big>(</big><em>id</em><big>)</big><a class="headerlink" href="#ripyl.protocol.lin.lin_pid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a LIN PID from an ID</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>id</strong> (<em>int</em>) &#8211; The ID to generate parity for</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The pid as an int.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.protocol.lin.lin_synth">
+<tt class="descclassname">ripyl.protocol.lin.</tt><tt class="descname">lin_synth</tt><big>(</big><em>frames</em>, <em>baud</em>, <em>idle_start=0.0</em>, <em>frame_interval=0.008</em>, <em>idle_end=0.0</em>, <em>byte_interval=0.001</em><big>)</big><a class="headerlink" href="#ripyl.protocol.lin.lin_synth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate synthesized LIN data streams</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>frames</strong> (<em>sequence of LINFrame</em>) &#8211; Frames to be synthesized.</li>
+<li><strong>baud</strong> (<em>int</em>) &#8211; The baud rate.</li>
+<li><strong>idle_start</strong> (<em>float</em>) &#8211; The amount of idle time before the transmission of messages begins.</li>
+<li><strong>frame_interval</strong> (<em>float</em>) &#8211; The amount of time between frames.</li>
+<li><strong>idle_end</strong> (<em>float</em>) &#8211; The amount of idle time after the last message.</li>
+<li><strong>byte_interval</strong> (<em>float</em>) &#8211; The amount of time between message bytes.</li>
 </ul>
 </td>
 </tr>
@@ -626,18 +1231,17 @@ is the initial state of the stream.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>stream</strong> (<em>sequence of StreamRecord or I2CTransfer</em>) &#8211; An iterable representing either a stream of I2C StreamRecord objects or
 I2CTransfer objects produced by i2c_decode() or reconstruct_i2c_transfers() respectively.</li>
 <li><strong>addresses</strong> (<em>set of ints</em>) &#8211; A collection identifying the valid LM73 addresses to decode. All others are ignored.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  a series of LM73Transfer objects and any unrelated I2CTransfer objects.</p>
-</td>
-</tr>
 </tbody>
 </table>
+<p>:param  :
+:returns: An iterator yielding  a series of LM73Transfer objects and any unrelated I2CTransfer objects.</p>
 </dd></dl>
 
 </div>
@@ -1161,7 +1765,7 @@ yielded is the initial state of the waveforms.</p>
 
 <dl class="function">
 <dt id="ripyl.protocol.uart.uart_decode">
-<tt class="descclassname">ripyl.protocol.uart.</tt><tt class="descname">uart_decode</tt><big>(</big><em>stream_data</em>, <em>bits=8</em>, <em>parity=None</em>, <em>stop_bits=1.0</em>, <em>lsb_first=True</em>, <em>polarity=1</em>, <em>baud_rate=None</em>, <em>use_std_baud=True</em>, <em>logic_levels=None</em>, <em>stream_type=1</em>, <em>baud_deque=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.uart.uart_decode" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ripyl.protocol.uart.</tt><tt class="descname">uart_decode</tt><big>(</big><em>stream_data</em>, <em>bits=8</em>, <em>parity=None</em>, <em>stop_bits=1.0</em>, <em>lsb_first=True</em>, <em>polarity=1</em>, <em>baud_rate=None</em>, <em>use_std_baud=True</em>, <em>logic_levels=None</em>, <em>stream_type=1</em>, <em>param_info=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.uart.uart_decode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Decode a UART data stream</p>
 <p>This is a generator function that can be used in a pipeline of waveform
 procesing operations.</p>
@@ -1174,7 +1778,7 @@ is consumed to determine the most likely logic levels in the signal.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>stream_data</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream representing a serial data signal.</li>
 <li><strong>bits</strong> (<em>int</em>) &#8211; The number of bits in each word. Typically 5, 7, 8, or 9.</li>
 <li><strong>parity</strong> (<em>string or None</em>) &#8211; The type of parity to use. One of None, &#8216;even&#8217;, or &#8216;odd&#8217;</li>
@@ -1189,33 +1793,50 @@ automatically determine the most likely baud rate for the stream. On average
 50 edges will occur after 11 frames have been captured.</li>
 <li><strong>use_std_baud</strong> (<em>bool</em>) &#8211; Flag that forces coercion of automatically detected baud rate to the set of
 standard rates</li>
-<li><strong>logic_levels</strong> (<em>(float, float) or None</em>) &#8211; Optional pair that indicates (low, high) logic levels of the sample
-stream. When present, auto level detection is disabled. This has no effect on
-edge streams.</li>
-<li><strong>stream_type</strong> (<em>streaming.StreamType</em>) &#8211; A StreamType value indicating that the stream parameter represents either Samples
-or Edges</li>
-<li><strong>baud_deque</strong> (<em>collections.deque or None</em>) &#8211; An optional collections.deque object that is used to monitor the results of
-automatic baud detection. A dict containing the internal variables baud_rate
-and raw_symbol_rate is placed on the deque when uart_decode() is called.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An iterator yielding  a series of UARTFrame objects. Each frame contains subrecords marking the location
-of sub-elements within the frame (start, data, parity, stop). Parity errors are recorded
+</tbody>
+</table>
+<p>:param  :
+:type logic_levels: (float, float) or None
+:param logic_levels:</p>
+<blockquote>
+<div>Optional pair that indicates (low, high) logic levels of the sample
+stream. When present, auto level detection is disabled. This has no effect on
+edge streams.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>stream_type</strong> (<em>streaming.StreamType</em>) &#8211; A StreamType value indicating that the stream parameter represents either Samples
+or Edges</td>
+</tr>
+</tbody>
+</table>
+<p>:param  :
+:type param_info: dict or None
+:param param_info:</p>
+<blockquote>
+<div>An optional dictionary object that is used to monitor the results of
+automatic baud detection.</div></blockquote>
+<p>:param  :
+:returns: An iterator yielding  a series of UARTFrame objects. Each frame contains subrecords marking the location</p>
+<blockquote>
+<div>of sub-elements within the frame (start, data, parity, stop). Parity errors are recorded
 as an error status in the parity subrecord. BRK conditions are reported as a data value
-0x00 with a framing error in the status code.</p>
-</td>
+0x00 with a framing error in the status code.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body">AutoLevelError if stream_type = Samples and the logic levels cannot
+be determined.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first">AutoLevelError if stream_type = Samples and the logic levels cannot
-be determined.</p>
-</td>
+<tr class="field-even field"><th class="field-name">Raises :</th><td class="field-body">AutoBaudError if auto-baud is active and the baud rate cannot
+be determined.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises :</th><td class="field-body"><p class="first">AutoBaudError if auto-baud is active and the baud rate cannot
-be determined.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first last">ValueError if the parity argument is invalid.</p>
-</td>
+<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body">ValueError if the parity argument is invalid.</td>
 </tr>
 </tbody>
 </table>
@@ -1234,11 +1855,25 @@ procesing operations.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>data</strong> (<em>sequence of int</em>) &#8211; A sequence of words that will be transmitted serially</li>
 <li><strong>bits</strong> (<em>int</em>) &#8211; The number of bits in each word. Typically 5, 7, 8, or 9.</li>
 <li><strong>baud</strong> (<em>int</em>) &#8211; The baud rate</li>
-<li><strong>parity</strong> (<em>string or None</em>) &#8211; The type of parity to use. One of None, &#8216;even&#8217;, or &#8216;odd&#8217;</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>:param  :
+:type parity: string or None
+:param parity:</p>
+<blockquote>
+<div>The type of parity to use. One of None, &#8216;even&#8217;, or &#8216;odd&#8217;</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>stop_bits</strong> (<em>number</em>) &#8211; The number of stop bits. Typically 1, 1.5, or 2</li>
 <li><strong>idle_start</strong> (<em>float</em>) &#8211; The amount of idle time before the transmission of data begins</li>
 <li><strong>idle_end</strong> (<em>float</em>) &#8211; The amount of idle time after the transmission of data ends</li>
@@ -1770,54 +2405,48 @@ relative to the end of SOP.</td>
 <tt class="descclassname">ripyl.protocol.usb.</tt><tt class="descname">table_usb_crc16</tt><big>(</big><em>d</em><big>)</big><a class="headerlink" href="#ripyl.protocol.usb.table_usb_crc16" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate USB CRC-16 on data</p>
 <p>This is a table-based byte-wise implementation</p>
-<dl class="docutils">
-<dt>d (sequence of int)</dt>
-<dd>Array of integers representing bytes</dd>
-</dl>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Array of integers for each bit in the crc with lsb first</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>d</strong> (<em>sequence of int</em>) &#8211; Array of integers representing bytes</td>
 </tr>
 </tbody>
 </table>
+<p>:param  :
+:returns: Array of integers for each bit in the crc with lsb first</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="ripyl.protocol.usb.usb_crc16">
 <tt class="descclassname">ripyl.protocol.usb.</tt><tt class="descname">usb_crc16</tt><big>(</big><em>d</em><big>)</big><a class="headerlink" href="#ripyl.protocol.usb.usb_crc16" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate USB CRC-16 on data</p>
-<dl class="docutils">
-<dt>d (sequence of int)</dt>
-<dd>Array of integers representing 0 or 1 bits in transmission order</dd>
-</dl>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Array of integers for each bit in the crc with lsb first</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>d</strong> (<em>sequence of int</em>) &#8211; Array of integers representing 0 or 1 bits in transmission order</td>
 </tr>
 </tbody>
 </table>
+<p>:param  :
+:returns: Array of integers for each bit in the crc with lsb first</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="ripyl.protocol.usb.usb_crc5">
 <tt class="descclassname">ripyl.protocol.usb.</tt><tt class="descname">usb_crc5</tt><big>(</big><em>d</em><big>)</big><a class="headerlink" href="#ripyl.protocol.usb.usb_crc5" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate USB CRC-5 on data</p>
-<dl class="docutils">
-<dt>d (sequence of int)</dt>
-<dd>Array of integers representing 0 or 1 bits in transmission order</dd>
-</dl>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Array of integers for each bit in the crc with lsb first</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>d</strong> (<em>sequence of int</em>) &#8211; Array of integers representing 0 or 1 bits in transmission order</td>
 </tr>
 </tbody>
 </table>
+<p>:param  :
+:returns: Array of integers for each bit in the crc with lsb first</p>
 </dd></dl>
 
 <dl class="function">
@@ -1840,7 +2469,7 @@ and the bus speed.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>dp</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream representing a USB D+ signal</li>
 <li><strong>dm</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream representing a USB D- signal</li>
 <li><strong>logic_levels</strong> (<em>(float, float) or None</em>) &#8211; Optional pair that indicates (low, high) logic levels of the sample
@@ -1851,15 +2480,18 @@ or Edges</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An iterator yielding  a series of USBStreamPacket and USBStreamError objects</p>
-</td>
+</tbody>
+</table>
+<p>:param  :
+:returns: An iterator yielding  a series of USBStreamPacket and USBStreamError objects</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body">AutoLevelError if stream_type = Samples and the logic levels cannot
+be determined.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first">AutoLevelError if stream_type = Samples and the logic levels cannot
-be determined.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Raises :</th><td class="field-body"><p class="first last">StreamError if the bus speed cannot be determined.</p>
-</td>
+<tr class="field-even field"><th class="field-name">Raises :</th><td class="field-body">StreamError if the bus speed cannot be determined.</td>
 </tr>
 </tbody>
 </table>
@@ -1884,7 +2516,7 @@ is consumed to determine the most likely logic levels in the signal and the bus 
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>d_diff</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream representing a USB differential (D+ - D-) signal.</li>
 <li><strong>logic_levels</strong> (<em>(float, float) or None</em>) &#8211; Optional pair that indicates (low, high) logic levels of the sample
 stream. When present, auto level detection is disabled. This has no effect on
@@ -1894,15 +2526,18 @@ or Edges</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An iterator yielding  a series of USBStreamPacket and USBStreamError objects</p>
-</td>
+</tbody>
+</table>
+<p>:param  :
+:returns: An iterator yielding  a series of USBStreamPacket and USBStreamError objects</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body">AutoLevelError if stream_type = Samples and the logic levels cannot
+be determined.</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first">AutoLevelError if stream_type = Samples and the logic levels cannot
-be determined.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Raises :</th><td class="field-body"><p class="first last">StreamError if the bus speed cannot be determined.</p>
-</td>
+<tr class="field-even field"><th class="field-name">Raises :</th><td class="field-body">StreamError if the bus speed cannot be determined.</td>
 </tr>
 </tbody>
 </table>
@@ -1955,7 +2590,7 @@ on the strobe stream is consumed to determine the most likely logic levels in th
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>strobe</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream representing an HSIC strobe signal</li>
 <li><strong>data</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream representing an HSIC data signal</li>
 <li><strong>logic_levels</strong> (<em>(float, float) or None</em>) &#8211; Optional pair that indicates (low, high) logic levels of the sample
@@ -1966,12 +2601,16 @@ or Edges</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An iterator yielding  a series of USBStreamPacket and USBStreamError objects</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first last">AutoLevelError if stream_type = Samples and the logic levels cannot
-be determined.</p>
-</td>
+</tbody>
+</table>
+<p>:param  :
+:returns: An iterator yielding  a series of USBStreamPacket and USBStreamError objects</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body">AutoLevelError if stream_type = Samples and the logic levels cannot
+be determined.</td>
 </tr>
 </tbody>
 </table>
@@ -2042,7 +2681,8 @@ edges where the state changes.</p>
 <dd><p>Bases: <a class="reference internal" href="ripyl.html#ripyl.streaming.StreamRecord" title="ripyl.streaming.StreamRecord"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamRecord</span></tt></a></p>
 <p>Collection of packets forming a USB transaction</p>
 <p>The &#8216;subrecords&#8217; attribute is aliased to the &#8216;packets&#8217; attribute.
-These &#8220;packets&#8221; are USBStreamPacket objects.</p>
+These &#8220;packets&#8221; are USBStreamPacket objects rather than unadorned
+USBPacket objects.</p>
 <dl class="attribute">
 <dt id="ripyl.protocol.usb_transact.USBTransaction.end_time">
 <tt class="descname">end_time</tt><a class="headerlink" href="#ripyl.protocol.usb_transact.USBTransaction.end_time" title="Permalink to this definition">¶</a></dt>
@@ -2073,10 +2713,10 @@ These &#8220;packets&#8221; are USBStreamPacket objects.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>records</strong> (<em>sequence of USBTransaction</em>) &#8211; Iterator of USBTransaction objects</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">An iterator yielding  a stream of USBPacket objects</td>
-</tr>
 </tbody>
 </table>
+<p>:param  :
+:returns: An iterator yielding  a stream of USBPacket objects</p>
 </dd></dl>
 
 <dl class="function">
@@ -2089,12 +2729,13 @@ These &#8220;packets&#8221; are USBStreamPacket objects.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>records</strong> (<em>sequence of USBPacket</em>) &#8211; An iterator containing USBPacket objects as produced by usb.usb_decode()</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">An iterator yielding  a stream of USBTransaction objects containing packets merged into identifiable
-transactions. Any non-USBPacket objects in the input stream will also be present as
-will SOF packets.</td>
-</tr>
 </tbody>
 </table>
+<p>:param  :
+:returns: An iterator yielding  a stream of USBTransaction objects containing packets merged into identifiable</p>
+<blockquote>
+<div>transactions. Any non-USBPacket objects in the input stream will also be present as
+will SOF packets.</div></blockquote>
 </dd></dl>
 
 </div>
@@ -2129,8 +2770,10 @@ will SOF packets.</td>
   <ul>
 <li><a class="reference internal" href="#">protocol Package</a><ul>
 <li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">protocol</span></tt> Package</a></li>
+<li><a class="reference internal" href="#module-ripyl.protocol.can"><tt class="docutils literal"><span class="pre">can</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.protocol.i2c"><tt class="docutils literal"><span class="pre">i2c</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.protocol.iso_k_line"><tt class="docutils literal"><span class="pre">iso_k_line</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-ripyl.protocol.lin"><tt class="docutils literal"><span class="pre">lin</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.protocol.lm73"><tt class="docutils literal"><span class="pre">lm73</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.protocol.obd2"><tt class="docutils literal"><span class="pre">obd2</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.protocol.ps2"><tt class="docutils literal"><span class="pre">ps2</span></tt> Module</a></li>
@@ -2147,8 +2790,8 @@ will SOF packets.</td>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="ripyl.cython.html"
-                        title="previous chapter">cython Package</a></p>
+  <p class="topless"><a href="ripyl.html"
+                        title="previous chapter">ripyl Package</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="ripyl.protocol.infrared.html"
                         title="next chapter">infrared Package</a></p>
@@ -2187,9 +2830,9 @@ will SOF packets.</td>
           <a href="ripyl.protocol.infrared.html" title="infrared Package"
              >next</a> |</li>
         <li class="right" >
-          <a href="ripyl.cython.html" title="cython Package"
+          <a href="ripyl.html" title="ripyl Package"
              >previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.1 documentation</a> &raquo;</li>
+        <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li>
           <li><a href="modules.html" >ripyl</a> &raquo;</li>
           <li><a href="ripyl.html" >ripyl Package</a> &raquo;</li> 
       </ul>

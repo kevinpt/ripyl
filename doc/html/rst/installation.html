@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Installing Ripyl &mdash; Ripyl 1.1 documentation</title>
+    <title>Installing Ripyl &mdash; Ripyl 1.2 documentation</title>
     
     <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.1',
+        VERSION:     '1.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="Ripyl 1.1 documentation" href="../index.html" />
+    <link rel="top" title="Ripyl 1.2 documentation" href="../index.html" />
     <link rel="next" title="Getting started with Ripyl" href="intro.html" />
     <link rel="prev" title="Ripyl library documentation" href="../index.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="../index.html" title="Ripyl library documentation"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.1 documentation</a> &raquo;</li> 
+        <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -69,7 +69,7 @@
 <dt>Optional libraries are:</dt>
 <dd><ul class="first last simple">
 <li><a class="reference external" href="http://matplotlib.org/">matplotlib</a> for plotting support</li>
-<li><a class="reference external" href="http://cython.org/">cython</a> &gt;= 0.19 for improved performance</li>
+<li><a class="reference external" href="http://cython.org/">cython</a> &gt;= 0.17 for improved performance</li>
 </ul>
 </dd>
 </dl>
@@ -94,7 +94,10 @@
 </div>
 <div class="section" id="id1">
 <h2>Cython<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
-<p>The Ripyl library has been designed with optional Cython support. By default the installation script will detect and enable Cython if it is present. You can force Cython support off by passing the <tt class="docutils literal"><span class="pre">--without-cython</span></tt> argument to setup.py.</p>
+<p>The Ripyl library has been designed with optional Cython support. By default the installation script will detect and enable Cython if it is present. You can force Cython support off by passing the <tt class="docutils literal"><span class="pre">--without-cython</span></tt> argument to setup.py. The status of the Cython configuration is written into a ripyl.cfg file at build time. You can enable or disable the use of Cython after Ripyl is installed by setting the <cite>RIPYL_CYTHON</cite> environment variable to a true or false value as desired:</p>
+<div class="highlight-sh"><div class="highlight"><pre>&gt; <span class="nb">export </span><span class="nv">RIPYL_CYTHON</span><span class="o">=</span>1
+</pre></div>
+</div>
 </div>
 <div class="section" id="testing">
 <h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
@@ -169,7 +172,7 @@
         <li class="right" >
           <a href="../index.html" title="Ripyl library documentation"
              >previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.1 documentation</a> &raquo;</li> 
+        <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
