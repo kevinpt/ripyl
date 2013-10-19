@@ -87,6 +87,7 @@ class LINFrame(object):
 
     @property
     def pid_parity(self):
+        '''The parity bits from the PID'''
         if self._pid_parity is None:
             return lin_pid(self.id) >> 6
         else:
@@ -99,6 +100,7 @@ class LINFrame(object):
 
     @property
     def checksum(self):
+        '''The frame checksum'''
         if self._checksum is None:
             return self.data_checksum
         else:
@@ -227,7 +229,8 @@ def lin_pid(id):
     return join_bits([p1, p0] + split_bits(id, 6))
 
 
-def lin_decode(stream_data, enhanced_ids=None, baud_rate=None, logic_levels=None, stream_type=stream.StreamType.Samples, param_info=None):
+def lin_decode(stream_data, enhanced_ids=None, baud_rate=None, logic_levels=None,\
+                stream_type=stream.StreamType.Samples, param_info=None):
     '''Decode a LIN data stream
 
     This is a generator function that can be used in a pipeline of waveform
@@ -348,7 +351,8 @@ def lin_decode(stream_data, enhanced_ids=None, baud_rate=None, logic_levels=None
 def _make_lin_frame(raw_bytes, frame_start, enhanced_ids):
     '''Generate a LINStreamFrame from raw bytes'''
     if len(raw_bytes) >= 2:
-        lf = LINFrame(raw_bytes[0].data & 0x3F, [b.data for b in raw_bytes[1:-1]], raw_bytes[-1].data, pid_parity=raw_bytes[0].data >> 6)
+        lf = LINFrame(raw_bytes[0].data & 0x3F, [b.data for b in raw_bytes[1:-1]],\
+                raw_bytes[-1].data, pid_parity=raw_bytes[0].data >> 6)
     else:
         lf = LINFrame(raw_bytes[0].data & 0x3F, pid_parity=raw_bytes[0].data >> 6)
 
@@ -387,7 +391,8 @@ def _make_lin_frame(raw_bytes, frame_start, enhanced_ids):
         # Add checksum annotation
         cs_info = raw_bytes[-1].subrecords[1]
         status = stream.StreamStatus.Ok if lf.checksum_is_valid() else LINStreamStatus.ChecksumError
-        sf.subrecords.append(stream.StreamSegment((cs_info.start_time, cs_info.end_time), lf.checksum, kind='checksum', status=status))
+        sf.subrecords.append(stream.StreamSegment((cs_info.start_time, cs_info.end_time),\
+                            lf.checksum, kind='checksum', status=status))
         sf.subrecords[-1].annotate('check', {'_bits':8}, stream.AnnotationFormat.Hex)
 
 
@@ -423,6 +428,7 @@ def lin_synth(frames, baud, idle_start=0.0, frame_interval=8.0e-3, idle_end=0.0,
     return sigp.remove_excess_edges(_lin_synth(frames, baud, idle_start, frame_interval, idle_end, byte_interval))
 
 def _lin_synth(frames, baud, idle_start=0.0, frame_interval=8.0e-3, idle_end=0.0, byte_interval=1.0e-3):
+    '''The LIN core synthesizer'''
 
     bit_period = 1.0 / baud
 

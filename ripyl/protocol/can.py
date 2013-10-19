@@ -59,31 +59,38 @@ class CANTiming(object):
 
     @property
     def resync_jump(self):
+        '''Number of quanta to jump for resync'''
         return self._resync_jump
 
     @resync_jump.setter
     def resync_jump(self, value):
+        '''Number of quanta to jump for resync'''
         # Jump is bounded between 1 and min(4, p1)
         upper_bound = min(4, self.p1)
         self._resync_jump = max(1, min(value, upper_bound))
 
     @property
     def total_quanta(self):
+        '''Number of quanta in this timing specification'''
         return self.sync + self.prop + self.p1 + self.p2
 
     @property
     def bit_period(self):
+        '''Total time covered by this timing specification'''
         return self.total_quanta * self.quantum_period
 
     @property
     def sample_point_delay(self):
+        '''The delay from the start of the bit to the sample point'''
         return (self.sync + self.prop + self.p1) * self.quantum_period
 
     @property
     def post_sample_delay(self):
+        '''The delay from the sample point to the of the bit'''
         return self.p2 * self.quantum_period
 
     def set_quantum_period(self, nominal_bit_period):
+        '''Establish the time period for one quantum'''
         self.quantum_period = nominal_bit_period / self.total_quanta
         return self.quantum_period
 
@@ -182,7 +189,7 @@ class CANFrame(object):
         self._crc = crc
         self.ack = ack
         self.trim_bits = trim_bits
-        self.ifs_bits=ifs_bits
+        self.ifs_bits = ifs_bits
 
 
     @property
@@ -282,7 +289,6 @@ class CANFrame(object):
         frame_bits = stuffed_bits + crc_and_ack_bits + [1, 1, 1, 1, 1, 1, 1]
 
         if self.trim_bits > 0:
-            trimmed_bits = frame_bits[:-self.trim_bits]
             frame_bits = frame_bits[:-self.trim_bits]
 
         edges = []
@@ -322,6 +328,7 @@ class CANFrame(object):
 
     @property
     def full_id(self):
+        '''The full 11-bit ID for this frame'''
         return self.id & 0x7FF
 
 
@@ -444,6 +451,7 @@ class CANExtendedFrame(CANFrame):
 
     @property
     def full_id(self):
+        '''The full 29-bit ID for this frame'''
         return ((self.id & 0x7FF) << 18) + (self.id_ext & 0x3FFFF)
 
 
@@ -662,7 +670,8 @@ class _BitExtractor(object):
 can_std_bit_rates = (10e3, 20e3, 50e3, 125e3, 250e3, 500e3, 800e3, 1e6)
 
 
-def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=None, logic_levels=None, stream_type=stream.StreamType.Samples):
+def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=None, logic_levels=None,\
+                stream_type=stream.StreamType.Samples):
     '''Decode a CAN data stream
 
     This is a generator function that can be used in a pipeline of waveform
@@ -804,7 +813,7 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=Non
             found_data_rmt_frame = True
             header_bits = std_header_bits
             # Extract fields from unstuffed bits
-            id_bits = unstuffed_bits[1:12]; field_info.append(('id', (1,11)))
+            id_bits = unstuffed_bits[1:12]; field_info.append(('id', (1, 11)))
             rtr = unstuffed_bits[12]; field_info.append(('rtr', (12, 12)))
             ide = unstuffed_bits[13]; field_info.append(('ide', (13, 13)))
 
@@ -815,7 +824,8 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=Non
                 if len(unstuffed_bits) >= ext_header_bits:
                     header_bits = ext_header_bits
                     srr = rtr
-                    id_ext_bits = unstuffed_bits[field_ix:field_ix + 18]; field_info.append(('id_ext', (field_ix, field_ix+17)))
+                    id_ext_bits = unstuffed_bits[field_ix:field_ix + 18]
+                    field_info.append(('id_ext', (field_ix, field_ix+17)))
                     field_ix += 18
                     rtr = unstuffed_bits[field_ix]; field_info.append(('rtr', (field_ix, field_ix)))
                     field_info[1] = ('srr', (12, 12))
@@ -853,7 +863,7 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=Non
                     # ERROR: short frame
                     short_frame = True
                 else: # Get data bytes
-                    for b in xrange(dlc):
+                    for _ in xrange(dlc):
                         data.append(join_bits(unstuffed_bits[field_ix:field_ix + 8]))
                         field_info.append(('data', (field_ix, field_ix+7)))
                         field_ix += 8
