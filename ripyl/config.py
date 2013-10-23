@@ -85,6 +85,15 @@ class ConfigSettings(object):
         Returns True if any patches have been applied'''
         return any(po.active for po in self.patched_objs)
 
+    @cython_active.setter
+    def cython_active(self, value):
+        for po in self.patched_objs:
+            if value:
+                po.activate()
+            else:
+                po.revert()
+
+
     def find_patch_obj(self, obj_path):
         '''Search for a PatchObject by name
 

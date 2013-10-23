@@ -40,8 +40,14 @@ class TestPerformance(unittest.TestCase):
     #@unittest.skip('debug')
     @tsup.timedtest
     def test_edge_finding(self):
-        cy_status = 'enabled' if ripyl.config.settings.cython_active else 'disabled'
-        print('\nDetermining edge processing rate (Cython is {})...'.format(cy_status))
+        if ripyl.config.settings.cython_active:
+            iterations = 100
+            cy_status = 'enabled'
+        else:
+            iterations = 10
+            cy_status = 'disabled'
+
+        print('\nDetermining edge processing rate (Cython is {}, {} iterations)...'.format(cy_status, iterations))
 
         edge_count = 1000
         states = [0, 1] * (edge_count // 2)
@@ -59,8 +65,6 @@ class TestPerformance(unittest.TestCase):
         sample_rate = 20 / period
         samples = list(sigp.synth_wave(iter(edges), sample_rate, sigp.min_rise_time(sample_rate) * 6.0, chunk_size=10000))
 
-        iterations = 100
-
         self._t_start = time.time()
         for _ in xrange(iterations):
             d_edges = list(decode.find_edges(iter(samples), (0.0, 1.0)))
@@ -74,8 +78,14 @@ class TestPerformance(unittest.TestCase):
     #@unittest.skip('debug')
     @tsup.timedtest
     def test_multi_edge_finding(self):
-        cy_status = 'enabled' if ripyl.config.settings.cython_active else 'disabled'
-        print('\nDetermining multi-level edge processing rate (Cython is {})...'.format(cy_status))
+        if ripyl.config.settings.cython_active:
+            iterations = 100
+            cy_status = 'enabled'
+        else:
+            iterations = 10
+            cy_status = 'disabled'
+
+        print('\nDetermining multi-level edge processing rate (Cython is {}, {} iterations)...'.format(cy_status, iterations))
 
         edge_count = 1000
         states = [-1, 0, 1] * (edge_count // 2)
@@ -97,7 +107,6 @@ class TestPerformance(unittest.TestCase):
 
         hyst_thresh = decode.gen_hyst_thresholds((0.0, 0.5, 1.0), 0.4)
 
-        iterations = 100
 
         self._t_start = time.time()
         for _ in xrange(iterations):
