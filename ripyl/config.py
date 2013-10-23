@@ -119,7 +119,7 @@ def _parse_config():
     config_path = os.path.join(ripyl_dir, 'ripyl.cfg')
     config.read(config_path)
 
-    settings.dbg_config_path = config_path
+    settings.config_path = config_path
 
     if 'setup' in config.sections():
         settings.use_cython = config.getboolean('setup', 'use_cython')

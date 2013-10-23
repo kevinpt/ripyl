@@ -133,7 +133,7 @@ class build_py(_build_py):
 
         # Write additional config file into source directory to support
         # in place testing from Jenkins.
-        self.write_config(os.path.join('ripyl', 'ripyl.cfg'), use_cython, cython_prebuild)
+        #self.write_config(os.path.join('ripyl', 'ripyl.cfg'), use_cython, cython_prebuild)
 
         return _build_py.run(self)
 
