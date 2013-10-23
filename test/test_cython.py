@@ -37,7 +37,8 @@ class TestCython(unittest.TestCase):
         print('  Cython prebuild:', cfg.settings.cython_prebuild)
         print('  Python fallback:', cfg.settings.python_fallback)
         print('  Config source:', cfg.settings.config_source)
+        print('  Config path:', cfg.settings.dbg_config_path)
 
         print('\nCython patched objects:')
         for po in cfg.settings.patched_objs:
-            print('  {}.{}   active={}'.format(po.py_mname, po.obj_name, po.active))
+            print('  {}.{}\t{}'.format(po.py_mname, po.obj_name, 'ACTIVE' if po.active else 'inactive'))

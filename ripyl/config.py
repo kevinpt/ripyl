@@ -76,6 +76,7 @@ class ConfigSettings(object):
         self.python_fallback = True   # Silently ignore any failed cython import
         self.patched_objs = []        # List of PatchObject to control monkeypatching
         self.config_source = 'unknown'
+        self.dbg_config_path = 'unknown'
 
     @property
     def cython_active(self):
@@ -106,6 +107,7 @@ class ConfigSettings(object):
 
 def _parse_config():
     '''Read the library configuration file if it exists'''
+    global settings
 
     default_setup = {
         'use_cython': 'False',
@@ -117,8 +119,9 @@ def _parse_config():
     config_path = os.path.join(ripyl_dir, 'ripyl.cfg')
     config.read(config_path)
 
+    settings.dbg_config_path = config_path
+
     if 'setup' in config.sections():
-        global settings
         settings.use_cython = config.getboolean('setup', 'use_cython')
         settings.cython_prebuild = config.getboolean('setup', 'cython_prebuild')
         settings.config_source = config_path
