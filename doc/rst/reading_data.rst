@@ -36,3 +36,71 @@ Most LeCroy oscilloscopes support the same binary and CSV formats. Here is an ex
                 raw_samples.append(float(row[4]))
 
         return raw_samples, sample_period
+
+Rigol
+-----
+
+.. code-block:: python
+
+    import csv
+
+    def read_rigol_csv(fname, channel=1):
+        sample_period = 0.0
+        raw_samples = []
+        sample_count = 0
+
+        with open(fname, 'rb') as csvfile:
+            c = csv.reader(csvfile)
+
+            for row_num, row in enumerate(c):
+                if row_num == 1:
+                    sample_period = float(row[1].split(':')[1])
+                    sample_count = int(row[3].split(':')[1])
+                
+                if len(row) > 0 and row[0] == 'X':
+                    break
+
+            for row in c:
+                if sample_count > 0:
+                    raw_samples.append(float(row[(channel-1)*2 + 1]))
+
+                sample_count -= 1
+
+        return raw_samples, sample_period
+
+
+Tektronix
+---------
+
+Tektronix hasn't maintained a consistent CSV format across its product lines. Here is an example for the TDS2000 series.
+
+.. code-block:: python
+
+    import csv
+
+    def read_tek_tds2000_csv(fname):
+        sample_period = 0.0
+        raw_samples = []
+
+        with open(fname, 'rb') as csvfile:
+            c = csv.reader(csvfile)
+
+            # Sample period is in cell B2 (1,1)
+
+            for row_num, row in enumerate(c):
+                if row_num == 1: # get the sample period
+                    sample_period = float(row[1])
+                    break
+
+            # Sample data starts after the last header line
+            # containing the firmware version.
+            in_header = True
+            for row in c:
+                if in_header:
+                    if row[0] == 'Firmware Version':
+                        in_header = False
+                else:
+                    raw_samples.append(float(row[4]))
+
+        return raw_samples, sample_period
+
