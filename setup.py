@@ -131,6 +131,10 @@ class build_py(_build_py):
             for line in f:
                 print('  >', line.rstrip())
 
+        # Write additional config file into source directory to support
+        # in place testing from Jenkins.
+        self.write_config(os.path.join('ripyl', 'ripyl.cfg'), use_cython, cython_prebuild)
+
         return _build_py.run(self)
 
     #def get_module_outfile(self, build_dir, package, module):
