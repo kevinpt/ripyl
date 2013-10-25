@@ -45,7 +45,7 @@ class CANConfig(Enum):
 
 class CANTiming(object):
     '''Represent CAN bit timing and adaptive sampling point info'''
-    def __init__(self, prop, p1, ipt=2, resync_jump=None):
+    def __init__(self, prop, p1, ipt=2, resync_jump_quanta=None):
         self.sync = 1
         self.prop = prop # 1-8 quanta
         self.p1 = p1 # 1-8 quanta
@@ -55,19 +55,24 @@ class CANTiming(object):
         self.quantum_period = 0.0 # Must call set_quantum_period() later
 
 
-        self._resync_jump = resync_jump if resync_jump else min(4, self.p1)
+        self._resync_jump_quanta = resync_jump_quanta if resync_jump_quanta else min(4, self.p1)
 
     @property
-    def resync_jump(self):
+    def resync_jump_quanta(self):
         '''Number of quanta to jump for resync'''
-        return self._resync_jump
+        return self._resync_jump_quanta
 
-    @resync_jump.setter
-    def resync_jump(self, value):
+    @resync_jump_quanta.setter
+    def resync_jump_quanta(self, value):
         '''Number of quanta to jump for resync'''
         # Jump is bounded between 1 and min(4, p1)
         upper_bound = min(4, self.p1)
-        self._resync_jump = max(1, min(value, upper_bound))
+        self._resync_jump_quanta = max(1, min(value, upper_bound))
+
+    @property
+    def resync_jump(self):
+        '''Time span for resync jump'''
+        return self._resync_jump_quanta * self.quantum_period
 
     @property
     def total_quanta(self):
@@ -86,7 +91,7 @@ class CANTiming(object):
 
     @property
     def post_sample_delay(self):
-        '''The delay from the sample point to the of the bit'''
+        '''The delay from the sample point to the end of the bit'''
         return self.p2 * self.quantum_period
 
     def set_quantum_period(self, nominal_bit_period):
@@ -508,11 +513,10 @@ def can_id(variant, **kwargs):
 class CANStreamStatus(Enum):
     '''Enumeration for CANStreamFrame status codes'''
     ShortFrameError  = stream.StreamStatus.Error + 1
-    BitStuffingError = stream.StreamStatus.Error + 2 #FIX: not used anywhere
+    FormError        = stream.StreamStatus.Error + 2
     CRCError         = stream.StreamStatus.Error + 3
     AckError         = stream.StreamStatus.Error + 4
 
-#FIX: include form error?
 
 class CANStreamFrame(stream.StreamSegment):
     '''Encapsulates a CANFrame object into a StreamSegment'''
@@ -549,16 +553,16 @@ ext_header_bits = 1 + 32 + 6
 
 class _BitExtractor(object):
     '''Utility class to manage progressive bit retrieval with unstuffing'''
-    def __init__(self, es, bit_period):
+    def __init__(self, es, bit_timing, sample_points=None):
         '''
         es (EdgeSequence)
             An EdgeSequence object for the edge stream that is being processed.
 
-        bit_period (float)
-            The period of a single bit.
+        bit_timing (CANTiming)
+            A CANTiming object that specifies the time quanta for each bit phase.
         '''
         self.es = es
-        self.bit_period = bit_period
+        self.bit_timing = bit_timing
         self.dom_count = 0
         self.rec_count = 0
         self.expect_stuffing = False
@@ -566,6 +570,8 @@ class _BitExtractor(object):
         self.raw_bit_count = 0
         self.stuffed_bits = []
         self.prev_bit = 0
+
+        self.sample_points = sample_points
 
     def advance_to_falling(self):
         '''Position edge sequence at next falling edge'''
@@ -613,9 +619,49 @@ class _BitExtractor(object):
         while len(extract_bits) < num_bits:
             edge_span = self.es.next_states[0] - self.es.cur_states[0]
                 
-            if self.es.cur_state() == 0 and edge_span >= 5.5 * self.bit_period:
+            if self.es.cur_state() == 0 and edge_span >= 5 * self.bit_timing.bit_period + self.bit_timing.post_sample_delay:
                 # 6 dominant bits lay ahead: An error or overload frame is next
                 break
+
+            advance_time = self.bit_timing.bit_period
+            bit_start_time = self.es.cur_time - self.bit_timing.sample_point_delay
+
+            # Resynchronization logic as described in CAN Part B section 10 - Bit Timing
+            if self.es.cur_time - self.es.cur_states[0] < self.bit_timing.bit_period:
+                # There was an edge transition for this bit
+
+                phase_error = 0.0
+                sync_seg_end_time = self.es.cur_states[0] + self.bit_timing.quantum_period
+
+                # Determine phase error
+                if bit_start_time < self.es.cur_states[0] or bit_start_time > sync_seg_end_time:
+                    # Edge was before or after sync_seg
+                    # Before -> negative error; After -> positive error
+                    phase_error = sync_seg_end_time - bit_start_time
+
+                if abs(phase_error) < self.bit_timing.resync_jump:
+                    # Hard synchronization
+                    #if abs(phase_error) > 0.0:
+                        #print('### hard sync: t={}, pe={} adv.={} new adv.={}'.format(self.es.cur_time, \
+                        #    phase_error, advance_time, advance_time + phase_error))
+                    # Technically we should move the sample point but we can't do a
+                    # negative advance in the edge sequence
+                    advance_time += phase_error
+                else: # Resynchronization
+                    if phase_error > 0.0: # Positive error
+                        # Lengthen PS1 by 1 jump
+                        #print('### resync >: t={} pe={} adv.={} new adv.={}'.format(self.es.cur_time, \
+                        #    phase_error, advance_time, advance_time + self.bit_timing.resync_jump))
+                        self.es.advance(self.bit_timing.resync_jump)
+
+                    else: # Negative error
+                        # Shorten PS2 by 1 jump
+                        #print('### resync <: t={} pe={} adv.={} new adv.={}'.format(self.es.cur_time, \
+                        #    phase_error, advance_time, advance_time - self.bit_timing.resync_jump))
+                        advance_time -= self.bit_timing.resync_jump
+
+            if self.sample_points is not None:
+                self.sample_points.append((bit_start_time, self.es.cur_time))
 
             if unstuff:
                 if not self.expect_stuffing:
@@ -637,12 +683,6 @@ class _BitExtractor(object):
                 extract_bits.append(self.es.cur_state())
 
 
-            if self.es.next_states[0] < self.es.cur_time + self.bit_period: # Adjust for timing drift
-                half_bit_err = self.es.cur_time - (self.es.next_states[0] - (self.bit_period / 2)) #FIX
-                advance_time = self.bit_period - half_bit_err
-            else:
-                advance_time = self.bit_period
-
             self.prev_bit = self.es.cur_state()
             self.es.advance(advance_time)
             self.raw_bit_count += 1
@@ -655,7 +695,7 @@ class _BitExtractor(object):
                 self.rec_count = 0
 
                 if self.dom_count == 1:
-                    self.dom_start_time = self.es.cur_time - self.bit_period / 2 #FIX bit timing
+                    self.dom_start_time = bit_start_time
 
             if last_bit:
                 break
@@ -670,8 +710,8 @@ class _BitExtractor(object):
 can_std_bit_rates = (10e3, 20e3, 50e3, 125e3, 250e3, 500e3, 800e3, 1e6)
 
 
-def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=None, logic_levels=None,\
-                stream_type=stream.StreamType.Samples):
+def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, bit_timing=None, coerce_rates=None, logic_levels=None,\
+                stream_type=stream.StreamType.Samples, decode_info=None):
     '''Decode a CAN data stream
 
     This is a generator function that can be used in a pipeline of waveform
@@ -698,6 +738,10 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=Non
         automatically determine the most likely bit rate for the stream. On average
         50 edges will occur after 11 bytes have been captured.
 
+    bit_timing (CANTiming or None)
+        An optional CANTiming object that specifies the time quanta for each bit phase.
+        If None, a default timing object is used with prop. delay = 1q and p1 & p2 = 4q.
+
     coerce_rates (sequence of number or None)
         An optional list of standard bit rates to coerce the automatically detected
         bit rate to.
@@ -710,6 +754,10 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=Non
     stream_type (streaming.StreamType)
         A StreamType value indicating that the can parameter represents either Samples
         or Edges
+
+    decode_info (dict or None)
+        An optional dictionary object that is used to monitor the results of
+        automatic parameter analysis and retrieve bit timing.
         
     Yields a series of CANStreamFrame objects. Each frame contains subrecords marking the location
       of sub-elements within the frame. CRC and Ack errors are recorded as an error status in their
@@ -770,12 +818,28 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=Non
     # Invert edge polarity if idle-low
     if polarity == CANConfig.IdleLow:
         edges_it = ((t, 1 - e) for t, e in edges_it)
-        
-    
+
     bit_period = 1.0 / float(bit_rate)
     es = EdgeSequence(edges_it, bit_period)
 
-    be = _BitExtractor(es, bit_period)
+    if bit_timing is None:
+        # Use default timing: prop delay = 1q, p1 & p2 = 4q
+        bit_timing = CANTiming(1, 4)
+
+    bit_timing.set_quantum_period(bit_period)
+    #print('### resync jump:', bit_timing.resync_jump)
+
+    sample_points = []
+    be = _BitExtractor(es, bit_timing, sample_points)
+
+
+    if decode_info is not None:
+        decode_info['bit_rate'] = bit_rate
+        if stream_type == stream.StreamType.Samples:
+            decode_info['logic_levels'] = logic_levels
+
+        decode_info['sample_points'] = sample_points
+
 
     # initialize to point where state is high --> idle time before first SOF
     while es.cur_state() == 0 and not es.at_end():
@@ -795,7 +859,8 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=Non
 
 
         start_time = es.cur_time
-        es.advance(bit_period * 0.5) # Move to middle of SOF bit #FIX
+        start_sample = len(sample_points)
+        es.advance(bit_timing.sample_point_delay) # Move to sample point of SOF bit
 
         unstuffed_bits = be.get_bits(std_header_bits)
 
@@ -874,6 +939,7 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=Non
                     #print('### short remote frame', len(unstuffed_bits), min_frame_bits, unstuffed_bits, stuffed_bits)
                     short_frame = True
 
+            form_error = False
             check_bits = []
             ack = 1
             if not short_frame:
@@ -885,8 +951,11 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=Non
                 end_bits = be.get_bits(3, unstuff=False)
                 if len(end_bits) == 3:
                     ack = True if end_bits[1] == 0 else False
+                    if end_bits[0] != 1 or end_bits[2] != 1:
+                        form_error = True
                 else:
                     ack = False
+                    form_error = True
 
                     # The last frame of the stream requires special treatment
                     # To position ourselves after the ack delim.
@@ -914,9 +983,9 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=Non
             if es.cur_state() == 1:
                 if es.cur_time > es.next_states[0]:
                     # Special case for last frame in stream
-                    end_time = es.cur_time + 5.5 * bit_period
-                elif es.next_states[0] > es.cur_time + 5 * bit_period: #FIX
-                    end_time = es.cur_time + 5.5 * bit_period
+                    end_time = es.cur_time + 5 * bit_period + bit_timing.post_sample_delay
+                elif es.next_states[0] > es.cur_time + 5 * bit_period:
+                    end_time = es.cur_time + 5 * bit_period + bit_timing.post_sample_delay
                 else:
                     end_time = es.next_states[0]
                     stuffing_error = True
@@ -926,6 +995,8 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=Non
             else: # Aready in dominant state
                 end_time = be.dom_start_time
                 stuffing_error = True
+
+            status = CANStreamStatus.FormError if form_error else stream.StreamStatus.Ok
 
             sf = CANStreamFrame((start_time, end_time), cf, field_info, be.stuffed_bits)
 
@@ -940,7 +1011,7 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=Non
 
             data_ix = 0
             for (field, bit_bounds), field_size in zip(adj_info, field_sizes):
-                bounds = (start_time + bit_bounds[0] * bit_period, start_time + (bit_bounds[1] + 1) * bit_period)
+                bounds = (sample_points[start_sample + bit_bounds[0]][0], sample_points[start_sample + bit_bounds[1] + 1][0])
 
 
                 if field in _can_field_formats:
@@ -988,7 +1059,7 @@ def can_decode(can, polarity=CANConfig.IdleHigh, bit_rate=None, coerce_rates=Non
                     cf = CANErrorFrame()
                 else:
                     cf = CANOverloadFrame()
-                end_time = es.cur_time + 0.5 * bit_period # FIX
+                end_time = es.cur_time + bit_timing.post_sample_delay
                 sf = CANStreamFrame((be.dom_start_time, end_time), cf)
                 sf.annotate('frame', {'name':''}, stream.AnnotationFormat.String)
                 yield sf

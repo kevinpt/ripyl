@@ -920,8 +920,9 @@ def demo_can(options):
 
     # Decode the samples
     decode_success = True
+    bit_timing = can.CANTiming(1, 4, resync_jump_quanta=2)
     try:
-        records = list(can.can_decode(iter(nsy_cl)))
+        records = list(can.can_decode(iter(nsy_cl), bit_timing=bit_timing))
         
     except stream.StreamError as e:
         print('Decode failed:\n  {}'.format(e))
@@ -1030,7 +1031,7 @@ def edges_to_waveform(edges, options, sample_rate, rise_time, gain, offset=0.0, 
 
     return noisy_samples
 
-def plot_channels(channels, annotations, options, plot_params, ylim=None):
+def plot_channels(channels, annotations, options, plot_params, ylim=None, sample_points=None):
     if not options.no_plot:
         if options.title is not None:
             title = options.title
@@ -1042,6 +1043,20 @@ def plot_channels(channels, annotations, options, plot_params, ylim=None):
         annotations = None if options.no_annotation else annotations
         plotter.plot(channels, annotations, title, label_format=plot_params['label_format'], show_names=options.show_names, \
             ylim=ylim)
+
+        if sample_points is not None:
+            # Each sample point is a pair with the first element being the start of the bit
+            # and the second is the sample point
+            #print('### plotting sample points', len(sample_points))
+            sp_height = [2.0] * len(sample_points)
+            sample_times = [sp[1] for sp in sample_points]
+            plotter.axes[-1].plot(sample_times, sp_height, color='r', marker='o')
+
+            sp_height = [1.7] * len(sample_points)
+            sample_times = [sp[0] for sp in sample_points]
+            plotter.axes[-1].plot(sample_times, sp_height, color='b', marker='o')
+
+
         if options.save_file is None:
             plotter.show()
         else:
