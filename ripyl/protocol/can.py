@@ -267,7 +267,7 @@ class CANFrame(object):
                 same_count = 1
                 prev_bit = b
 
-            if same_count == 5 and i < len(bits)-1: #FIX: verify that a final stuffed bit should be suppressed
+            if same_count == 5:
                 # Stuff an opposite bit in the bit stream
                 sbits.append(1 - b)
                 same_count = 1
@@ -663,7 +663,7 @@ class _BitExtractor(object):
             if self.sample_points is not None:
                 self.sample_points.append((bit_start_time, self.es.cur_time))
 
-            if unstuff:
+            if unstuff or self.expect_stuffing:
                 if not self.expect_stuffing:
                     extract_bits.append(self.es.cur_state())
 
