@@ -37,26 +37,30 @@ We can make changes to the synthesized waveform to explore the effect it has on 
 
 The dropout option (-d) forces the synthesized waveform to a fixed level between the specified start and end times. This causes errors in the decode process which show up in the plotted results. You can see that dropout introduces parity and framing errors that force the decoder out of sync with the correct data. The decoder may or may not recover on its own. This is an inherent issue with the decoding of corrupt UART signals and not a failure specific to Ripyl.
 
-You can examine all of the protocols supported by Ripyl with ``ripyl_demo``. The available protocols are:
+You can examine all of the protocols supported by Ripyl with ``ripyl_demo -h``. The available protocols are:
 
-uart
-  Asynchronous serial
+can
+  Component Area Network
 i2c
   Inter-IC (I\ :sup:`2`\ C) bus
-spi
-  Serial Peripheral Interface
-ps2
-  PS/2 and AT keyboard protocol
-usb, usb-diff, hsic
-  USB 2.0 with support for differentially probed input and the High Speed IC variant
 kline
   ISO9141 and ISO14230 "K-line" automotive interfaces
-rc5, rc6
-  Philips RC-5 and RC-6 infrared protocols
+lin
+  Local Interconnect Network
 nec
   NEC infrared protocol
+ps2
+  PS/2 and AT keyboard protocol
+rc5, rc6
+  Philips RC-5 and RC-6 infrared protocols
 sirc
   Sony SIRC infrared protocol
+spi
+  Serial Peripheral Interface
+uart
+  Asynchronous serial
+usb, usb-diff, hsic
+  USB 2.0 with support for differentially probed input and the High Speed IC variant
 
 
 Here is the test message encoded as a USB data packet:

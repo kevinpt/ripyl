@@ -2,8 +2,17 @@
 Ripyl change log
 ================
 
+
+vNext
+========
+
+  Changes
+  -------
+  * Added VCD file output for saving synthesized waveforms
+  * Improved CAN support with spec. accurate resynchronization
+
 v1.2 / 2013-10-18
-============
+=================
 
   Changes
   -------

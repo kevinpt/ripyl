@@ -20,6 +20,17 @@ It can process a waveform like this:
 
 .. image:: image/uart_hello_small.png
 
+Using Ripyl is as simple as:
+
+.. code-block:: python
+
+    import ripyl
+    import ripyl.protocol.uart as uart
+    
+    raw_samples, sample_period = read_samples_from_your_oscilloscope()
+    txd = ripyl.streaming.samples_to_sample_stream(raw_samples, sample_period)
+    records = list(uart.uart_decode(txd, bits=8, parity='even', stop_bits=1))
+
 The library provides decoded information in an easily traversed tree detailing the time and data for each sub-element of a protocol transmission. In the example above you can see the individual frames along with the highlighted data and parity bits within each frame. The status of parity is verified as are checksums and CRCs used in other protocols.
 
 Features include:
@@ -38,7 +49,7 @@ Features include:
 Getting started
 ===============
 
-If you are new to Ripyl you can get started by reviewing the :doc:`introductory guide <rst/intro>` and following the :doc:`tutorial <rst/tutorial>`.
+If you are new to Ripyl you can get started by reviewing the :doc:`introductory guide <rst/intro>` and following the :doc:`beginner's tutorial <rst/tut_beginner>`.
 
 
 Contents
