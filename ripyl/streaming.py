@@ -75,6 +75,7 @@ class AnnotationFormat(Enum):
     Hex = 6
     Bin = 7
     Enum = 8        # The data attribute is an enumeration value
+    Small = 9       # Small plain text
 
 
     
@@ -126,8 +127,8 @@ class StreamRecord(object):
         '''
         self.style = style
         self.data_format = data_format
-        if fields is None: fields = {}
-        self.fields = fields
+        if fields is not None:
+            self.fields = fields
 
         return self
 
@@ -363,11 +364,12 @@ def save_stream(records, fh):
     except TypeError:
         # fh isn't a string. Assume to be an already open handle
         pass
-        
-    pickle.dump(records, fh, -1)
-    
-    if opened_file:
-        fh.close()
+
+    try:
+        pickle.dump(records, fh, -1)
+    finally:
+        if opened_file:
+            fh.close()
 
 
 def load_stream(fh):
@@ -388,11 +390,12 @@ def load_stream(fh):
     except TypeError:
         # fh isn't a string assume to be an already open handle
         pass
-        
-    records = pickle.load(fh)
-    
-    if opened_file:
-        fh.close()
+
+    try:
+        records = pickle.load(fh)
+    finally:
+        if opened_file:
+            fh.close()
         
     return records
     

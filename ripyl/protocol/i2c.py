@@ -326,11 +326,19 @@ class I2CTransfer(stream.StreamRecord):
             Array of bytes sent in the transfer
         '''
         stream.StreamRecord.__init__(self, kind='I2C transfer')
+        #stream.StreamSegment.__init__(self, bounds, data, kind='I2C transfer')
 
         self.r_wn = r_wn
         self.address = address
         self.data = data
-        self.subrecords = []
+
+    @property
+    def start_time(self):
+        return self.subrecords[0].start_time
+
+    @property
+    def end_time(self):
+        return self.subrecords[-1].end_time
         
     def bytes(self):
         '''Get a list of raw bytes for the transfer including the formatted address
@@ -372,7 +380,7 @@ class I2CTransfer(stream.StreamRecord):
         return ack
         
     def __repr__(self):
-        return 'I2CTransfer({0}, {1}, {2})'.format(self.r_wn, hex(self.address), self.data)
+        return 'I2CTransfer({}, {}, {})'.format(self.r_wn, hex(self.address), self.data)
         
     def __eq__(self, other):
         match = True
@@ -429,7 +437,10 @@ def reconstruct_i2c_transfers(records):
             if r.kind == 'I2C address':
                 # reconstruct previous transfer
                 tfer = I2CTransfer(cur_addr.r_wn, cur_addr.address, [b.data for b in cur_data])
-                tfer.subrecords = subrecords
+                tfer.annotate('frame', {}, stream.AnnotationFormat.Hidden)
+                for sr in subrecords: # Strip the enclosing frame from the bytes
+                    tfer.subrecords.extend(sr.subrecords)
+
                 yield tfer
                 
                 cur_addr = r
@@ -439,7 +450,10 @@ def reconstruct_i2c_transfers(records):
     if cur_addr is not None:
         # reconstruct last transfer
         tfer = I2CTransfer(cur_addr.r_wn, cur_addr.address, [b.data for b in cur_data])
-        tfer.subrecords = subrecords
+        tfer.annotate('frame', {}, stream.AnnotationFormat.Hidden)
+        for sr in subrecords: # Strip the enclosing frame from the bytes
+            tfer.subrecords.extend(sr.subrecords)
+
         yield tfer
 
 

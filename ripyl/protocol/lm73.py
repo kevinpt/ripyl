@@ -25,13 +25,14 @@ from __future__ import print_function, division
 
 import itertools
 
-from ripyl.streaming import *
+#from ripyl.streaming import *
+import ripyl.streaming as stream
 from ripyl.util.enum import Enum
 import ripyl.protocol.i2c as i2c
 
 class LM73StreamStatus(Enum):
     '''Enumeration of LM73 status codes'''
-    MissingDataError = StreamStatus.Error + 1
+    MissingDataError = stream.StreamStatus.Error + 1
 
 
 class LM73Register(Enum):
@@ -51,8 +52,13 @@ class LM73Operation(Enum):
     SetPointer = 0
     WriteData = 1
     ReadData = 2
+
+def convert_temp(temperature):
+    '''Convert a temperature to the LM73 encoding''' 
+    itemp = int(temperature * 32 * 4)
+    return [itemp >> 8 & 0xFF, itemp & 0xFF]
     
-class LM73Transfer(StreamRecord):
+class LM73Transfer(stream.StreamRecord):
     '''Represent a transaction for the LM73'''
     def __init__(self, address, op, reg=LM73Register.Temperature, data=None):
         '''
@@ -68,13 +74,13 @@ class LM73Transfer(StreamRecord):
         data (sequence of ints)
             List of bytes read/written in the transfer
         '''
-        StreamRecord.__init__(self, kind='LM73 transfer')
+        stream.StreamRecord.__init__(self, kind='LM73 transfer')
 
         self.address = address
         self.op = op
         self.data = data
         self.reg = reg
-        self.i2c_tfer = None
+        self._i2c_tfer = None
         
     def __repr__(self):
         if self.data is not None:
@@ -96,11 +102,39 @@ class LM73Transfer(StreamRecord):
             return float((self.data[0] << 8) + self.data[1]) * 0.25 / 32.0
         else:
             return None
+
+    @property
+    def i2c_tfer(self):
+        if self._i2c_tfer is not None:
+            return self._i2c_tfer
+        else:
+            # Generate an I2C transfer object
+            if self.op == LM73Operation.SetPointer:
+                return i2c.I2CTransfer(i2c.I2C.Write, self.address, [self.reg])
+            elif self.op == LM73Operation.WriteData:
+                return i2c.I2CTransfer(i2c.I2C.Write, self.address, [self.reg] + self.data)
+            elif self.op == LM73Operation.ReadData:
+                return i2c.I2CTransfer(i2c.I2C.Read, self.address, self.data)
+
+
+    @i2c_tfer.setter
+    def i2c_tfer(self, value):
+        self._i2c_tfer = value
+
+
+    @property
+    def start_time(self):
+        return self.i2c_tfer.start_time
+
+    @property
+    def end_time(self):
+        return self.i2c_tfer.end_time
+
             
     def __eq__(self, other):
         match = True
         
-        if self.address != other.addres: match = False
+        if self.address != other.address: match = False
         if self.op != other.op: match = False
         if self.data != other.data: match = False
         if self.reg != other.reg: match = False
@@ -111,10 +145,10 @@ class LM73Transfer(StreamRecord):
         return not self == other       
 
 
-def lm73_decode(stream, addresses=LM73Addresses):
+def lm73_decode(i2c_stream, addresses=LM73Addresses):
     '''Decode an LM73 data stream
     
-    stream (sequence of StreamRecord or I2CTransfer)
+    i2c_stream (sequence of StreamRecord or I2CTransfer)
         An iterable representing either a stream of I2C StreamRecord objects or
         I2CTransfer objects produced by i2c_decode() or reconstruct_i2c_transfers() respectively.
     
@@ -126,25 +160,26 @@ def lm73_decode(stream, addresses=LM73Addresses):
     cur_reg = LM73Register.Temperature
     
     # check type of stream
-    stream_it, check_it = itertools.tee(stream)
+    stream_it, check_it = itertools.tee(i2c_stream)
     try:
         rec0 = next(check_it)
     except StopIteration:
         # Stream is empty
         rec0 = None
-        
+
     if rec0 is not None:
-        if isinstance(rec0, StreamRecord):
+        if not isinstance(rec0, i2c.I2CTransfer):
             # Convert the stream to a set of I2C transfers
             stream_it = i2c.reconstruct_i2c_transfers(stream_it)
             
     del check_it
+
     
     for tfer in stream_it:
         if tfer.address not in addresses:
             yield tfer
             continue
-        
+
         if tfer.r_wn == i2c.I2C.Write:
             if len(tfer.data) == 0: # Error condition
                 # This should only happen if the data portion of a write is missing
@@ -155,14 +190,43 @@ def lm73_decode(stream, addresses=LM73Addresses):
             elif len(tfer.data) == 1: # Set pointer op
                 cur_reg = tfer.data[0]
                 lm_tfer = LM73Transfer(tfer.address, LM73Operation.SetPointer, cur_reg, None)
+                lm_tfer.annotate('frame', {}, stream.AnnotationFormat.Hidden)
+                lm_tfer.subrecords = tfer.subrecords
+                lm_tfer.subrecords[0].data_format = stream.AnnotationFormat.Small
+                address = lm_tfer.subrecords[0].data >> 1
+                lm_tfer.subrecords[0].fields['value'] = 'set ptr\n{}'.format(hex(address))
+                lm_tfer.subrecords[2].annotate('ctrl', None, stream.AnnotationFormat.Enum)
+                lm_tfer.subrecords[2].fields['value'] = LM73Register(lm_tfer.subrecords[2].data)
 
             else: # Write data
                 cur_reg = tfer.data[0]
                 lm_tfer = LM73Transfer(tfer.address, LM73Operation.WriteData, \
                     cur_reg, tfer.data[1:])
+                lm_tfer.annotate('frame', {}, stream.AnnotationFormat.Hidden)
+                lm_tfer.subrecords = tfer.subrecords
 
         else: # Read data
             lm_tfer = LM73Transfer(tfer.address, LM73Operation.ReadData, cur_reg, tfer.data)
+            lm_tfer.annotate('frame', {}, stream.AnnotationFormat.Hidden)
+            lm_tfer.subrecords = tfer.subrecords
+            lm_tfer.subrecords[0].data_format = stream.AnnotationFormat.Small
+            address = lm_tfer.subrecords[0].data >> 1
+            lm_tfer.subrecords[0].fields['value'] = 'read\n{}'.format(hex(address))
+
+            for sr in lm_tfer.subrecords[2::2]:
+                sr.data_format = stream.AnnotationFormat.Hex
+
+            if cur_reg == LM73Register.Temperature and len(tfer.data) == 2:
+                temp_data = lm_tfer.subrecords[2:]
+                temp_sr = stream.StreamSegment((temp_data[0].start_time, temp_data[-1].end_time), kind='LM73 Temperature')
+                value = 'Temp. = {} C\n0x{:04X}'.format(lm_tfer.temperature, (tfer.data[0] << 8) + tfer.data[1])
+                temp_sr.annotate('data', {'value':value}, stream.AnnotationFormat.Small)
+                temp_sr.subrecords = temp_data
+                for sr in temp_sr.subrecords:
+                    sr.data_format = stream.AnnotationFormat.Hidden
+
+                lm_tfer.subrecords = lm_tfer.subrecords[0:2] + [temp_sr]
+            
 
         lm_tfer.i2c_tfer = tfer
         yield lm_tfer

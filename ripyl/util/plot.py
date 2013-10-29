@@ -67,6 +67,7 @@ label_styles = {
     'normal': LabelStyle(),
     'hex': LabelStyle('#006F00'),
     'bin': LabelStyle('#00006F'),
+    'small': LabelStyle(size='small'),
     'enum': LabelStyle('#00006F', size='small', italic=True),
     'nonprinting': LabelStyle('red', 45.0)
 }
@@ -174,7 +175,7 @@ class Plotter(object):
 
         if annotations is not None:
             for a in annotations:
-                if not isinstance(a, stream.StreamSegment):
+                if not isinstance(a, stream.StreamRecord):
                     continue
 
                 self.data_ix = 0
@@ -266,6 +267,8 @@ class Plotter(object):
 
             if a.data_format == stream.AnnotationFormat.Enum:
                 label_style_name = 'enum'
+            elif a.data_format == stream.AnnotationFormat.Small:
+                label_style_name = 'small'
             elif bl:
                 base = int(bl.groups()[0])
                 if base == 2:

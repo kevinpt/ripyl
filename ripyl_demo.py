@@ -49,7 +49,8 @@ if matplotlib_exists:
 def main():
     '''Entry point for script'''
 
-    protocols = ('uart', 'i2c', 'spi', 'usb', 'usb-diff', 'hsic', 'ps2', 'kline', 'rc5', 'rc6', 'nec', 'sirc', 'can', 'lin')
+    protocols = ('uart', 'i2c', 'lm73', 'spi', 'usb', 'usb-diff', 'hsic', 'ps2', \
+                'kline', 'rc5', 'rc6', 'nec', 'sirc', 'can', 'lin')
 
     usage = '''%prog [-p PROTOCOL] [-n] [-m MSG]
     
@@ -444,6 +445,80 @@ def demo_i2c(options):
     channels = OrderedDict([('SCL (V)', nsy_scl), ('SDA (V)', nsy_sda)])
     plot_channels(channels, records, options, plot_params)
 
+
+def demo_lm73(options):
+    import ripyl.protocol.i2c as i2c
+    import ripyl.protocol.lm73 as lm73
+
+    print('LM73 protocol\n')
+    
+    # I2C params
+    clock_freq = 100.0e3
+    
+    # Sampled waveform params
+    sample_rate = clock_freq * 100.0
+    rise_time = min_rise_time(sample_rate) * 10.0 # 10x min. rise time
+    noise_snr = options.snr_db
+    
+    lm73_transfers = [
+        lm73.LM73Transfer(0x48, lm73.LM73Operation.SetPointer, lm73.LM73Register.Identification),
+        lm73.LM73Transfer(0x48, lm73.LM73Operation.ReadData, lm73.LM73Register.Identification, [0x01, 0x90]),
+        lm73.LM73Transfer(0x48, lm73.LM73Operation.SetPointer, lm73.LM73Register.Temperature),
+        lm73.LM73Transfer(0x48, lm73.LM73Operation.ReadData, lm73.LM73Register.Temperature, lm73.convert_temp(42.0)),
+    ]
+
+    i2c_transfers = [lm.i2c_tfer for lm in lm73_transfers]
+    
+    # Synthesize the waveform edge stream
+    # This can be fed directly into i2c_decode() if an analog waveform is not needed
+    scl, sda = i2c.i2c_synth(i2c_transfers, clock_freq, idle_start=3.0e-5, idle_end=3.0e-5)
+    
+    # Convert to a sample stream with band-limited edges and noise
+    cln_scl_it = sigp.synth_wave(scl, sample_rate, rise_time, tau_factor=0.7)
+    cln_sda_it = sigp.synth_wave(sda, sample_rate, rise_time, tau_factor=1.5)
+    
+    nsy_scl_it = sigp.amplify(sigp.noisify(cln_scl_it, snr_db=noise_snr), gain=3.3, offset=0.0)
+    nsy_sda_it = sigp.amplify(sigp.noisify(cln_sda_it, snr_db=noise_snr), gain=3.3, offset=0.0)
+    
+    if options.dropout is not None:
+        nsy_sda_it = sigp.dropout(nsy_sda_it, options.dropout[0], options.dropout[1], options.dropout_level)
+    
+    # Capture the samples from the iterator
+    nsy_scl = list(nsy_scl_it)
+    nsy_sda = list(nsy_sda_it)
+    
+
+    # Decode the samples
+    decode_success = True
+    try:
+        records = list(i2c.i2c_decode(iter(nsy_scl), iter(nsy_sda)))
+        
+    except stream.StreamError as e:
+        print('Decode failed:\n  {}'.format(e))
+        decode_success = False
+        records = []
+
+    protocol_params = {
+        'clock frequency': eng.eng_si(clock_freq, 'Hz')
+    }
+
+    wave_params = {
+        'sample rate': eng.eng_si(sample_rate, 'Hz'),
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
+    }
+
+    plot_params = {
+        'default_title': 'LM73 Simulation',
+        'label_format': stream.AnnotationFormat.Text
+    }
+
+    i2c_records = list(i2c.reconstruct_i2c_transfers(records))
+    lm73_records = list(lm73.lm73_decode(iter(i2c_records)))
+
+    report_results(lm73_records, lm73_transfers, protocol_params, wave_params, decode_success, lambda d, o: (d, o))
+    channels = OrderedDict([('SCL (V)', nsy_scl), ('SDA (V)', nsy_sda)])
+    plot_channels(channels, lm73_records, options, plot_params)
 
 
 def demo_uart(options):
