@@ -193,7 +193,7 @@ def spi_decode(clk, data_io, cs=None, cpol=0, cpha=0, lsb_first=True, logic_leve
 
     
         
-def spi_synth(data, word_size, clock_freq, cpol=0, cpha=0, lsb_first=True, idle_start=0.0, word_interval=0.0):
+def spi_synth(data, word_size, clock_freq, cpol=0, cpha=0, lsb_first=True, idle_start=0.0, word_interval=0.0, idle_end=0.0):
     '''Generate synthesized SPI waveform
     
     This function simulates a transmission of data over SPI.
@@ -225,6 +225,9 @@ def spi_synth(data, word_size, clock_freq, cpol=0, cpha=0, lsb_first=True, idle_
     word_interval (float)
         The amount of time between data words
 
+    idle_end (float)
+        The amount of idle time after the last transmission
+
     Yields a triplet of pairs representing the three edge streams for clk, data_io, and cs
       respectively. Each edge stream pair is in (time, value) format representing the
       time and logic value (0 or 1) for each edge transition. The first set of pairs
@@ -233,13 +236,13 @@ def spi_synth(data, word_size, clock_freq, cpol=0, cpha=0, lsb_first=True, idle_
     # This is a wrapper around the actual synthesis code in _spi_synth()
     # It unzips the yielded tuple and removes unwanted artifact edges
     clk, data_io, cs = itertools.izip(*_spi_synth(data, word_size, clock_freq, cpol, cpha, \
-        lsb_first, idle_start, word_interval))
+        lsb_first, idle_start, word_interval, idle_end))
     clk = remove_excess_edges(clk)
     data_io = remove_excess_edges(data_io)
     cs = remove_excess_edges(cs)
     return clk, data_io, cs
     
-def _spi_synth(data, word_size, clock_freq, cpol=0, cpha=0, lsb_first=True, idle_start=0.0, word_interval=0.0):
+def _spi_synth(data, word_size, clock_freq, cpol=0, cpha=0, lsb_first=True, idle_start=0.0, word_interval=0.0, idle_end=0.0):
     '''Core SPI sunthesizer
     
     This is a generator function.
@@ -308,7 +311,7 @@ def _spi_synth(data, word_size, clock_freq, cpol=0, cpha=0, lsb_first=True, idle
             
         t += word_interval
         
-    t += half_bit_period
+    t += half_bit_period + idle_end
         
     yield ((t, clk),(t, data_io),(t, cs)) # final state
 
