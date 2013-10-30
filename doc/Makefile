@@ -157,5 +157,5 @@ doctest:
 	      "results in $(BUILDDIR)/doctest/output.txt."
 
 apidoc:
-	sphinx-apidoc -f -o apidoc ../ripyl
+	sphinx-apidoc -f -o apidoc $(shell pwd)/../ripyl cython
 

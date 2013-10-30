@@ -297,6 +297,14 @@ def process_docstring(app, what, name, obj, options, lines):
             lines.insert(i, ':type {}: {}'.format(param_type_lines[i][0], param_type_lines[i][1]))
 
 
+
+def skip(app, what, name, obj, skip, options):
+    if name == "__init__":
+        return False
+    return skip
+
+
 def setup(app):
     app.connect('autodoc-process-docstring', process_docstring)
+    app.connect("autodoc-skip-member", skip)
 
