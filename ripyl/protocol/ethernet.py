@@ -1,0 +1,524 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+'''Ethernet protocol decoder
+'''
+
+# Copyright © 2013 Kevin Thibedeau
+
+# This file is part of Ripyl.
+
+# Ripyl is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation, either version 3 of
+# the License, or (at your option) any later version.
+
+# Ripyl is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+
+# You should have received a copy of the GNU Lesser General Public
+# License along with Ripyl. If not, see <http://www.gnu.org/licenses/>.
+
+from __future__ import print_function, division
+
+import ripyl
+import ripyl.decode as decode
+import ripyl.sigproc as sigp
+import ripyl.streaming as stream
+from ripyl.util.enum import Enum
+from ripyl.util.bitops import split_bits, join_bits
+
+
+class EthernetTag(object):
+    def __init__(self, tpid, tci):
+        self.tpid = tpid
+        self.tci = tci
+
+    @property
+    def pcp(self):
+        return self.tci >> 13
+
+    @property
+    def dei(self):
+        return self.tci >> 12 & 0x01
+
+    @property
+    def vid(self):
+        return self.tci & 0xFFF
+
+    @property
+    def bytes(self):
+        return (self.tpid >> 8 & 0xFF, self.tpid & 0xFF, self.tci >> 8 & 0xFF, self.tci & 0xFF)
+
+
+class MACAddr(object):
+    def __init__(self, addr):
+        if isinstance(addr, str):
+            if ':' in addr:
+                self.bytes = [int(b, 16) for b in addr.split(':')]
+            else:
+                hex_bytes = [addr[i:i+2] for i in xrange(0, len(addr), 2)]
+                self.bytes = [int(b, 16) for b in hex_bytes]
+        else:
+            self.bytes = addr
+
+        if len(self.bytes) != 6:
+            raise ValueError('Wrong size for Ethernet MAC address')
+
+    def __getitem__(self, i):
+        return self.bytes[i]
+
+    def __len__(self):
+        return len(self.bytes)
+
+    def __str__(self):
+        return ':'.join('{:02X}'.format(b) for b in self.bytes)
+
+
+class EthernetFrame(object):
+
+    # Ethernet II frame: length_type field >= 0x600 (type code)
+    # 802.3 frame: length_type field < 0x600 (length code)
+    # 802.3 SNAP frame: 802.3 frame + LLC field = 0xaaaa03
+    
+    def __init__(self, dest, source, data, length_type=None, tags=None, crc=None):
+        if not isinstance(dest, MACAddr):
+            dest = MACAddr(dest)
+
+        if not isinstance(source, MACAddr):
+            source = MACAddr(source)
+
+        self.dest = dest
+        self.source = source
+        self.tags = tags # 802.1Q and 802.1ad header
+        self._length_type = length_type
+        self.data = data
+        self._crc = crc
+
+
+    @property
+    def length_type(self):
+        if self._length_type is None:
+            return len(self.data)
+        else:
+            return self._length_type
+
+    @length_type.setter
+    def length_type(self, value):
+        self._length_type = value & 0xFFFF
+
+
+    @property
+    def crc(self):
+        if self._crc is None:
+            crc_bytes = self.bytes[-4:]
+            crc = 0
+            for b in crc_bytes:
+                crc <<= 8
+                crc += b
+            return crc
+        else:
+            return self._crc
+
+    @crc.setter
+    def crc(self, value):
+        self._crc = value
+
+    @property
+    def bytes(self):
+
+        tag_bytes = []
+        if self.tags is not None:
+            for t in self.tags:
+                tag_bytes.extend(t.bytes)
+
+        len_type_bytes = [self.length_type >> 8 & 0xFF, self.length_type & 0xFF]
+
+        # Add padding for short payloads
+        pad_bytes = []
+        min_data_size = 42 if len(tag_bytes) >= 4 else 46
+        if len(self.data) < min_data_size:
+            pad_bytes = [0] * (min_data_size - len(self.data))
+
+        check_bytes = self.dest.bytes + self.source.bytes + tag_bytes + len_type_bytes + self.data + pad_bytes
+
+        crc = table_ethernet_crc32(check_bytes)
+        crc_bytes = [0] * 4
+
+        # FIX: verify byte order
+        for i in xrange(4):
+            crc_bytes[i] = crc & 0xFF
+            crc >>= 8
+
+        return check_bytes + crc_bytes
+
+
+class EthernetLinkCode(object):
+    def __init__(self, selector, tech_ability, rem_fault, ack, next_page):
+        self.selector = selector & 0x1F
+        self.tech_ability = tech_ability & 0xFF
+        self.rem_fault = rem_fault & 0x01
+        self.ack = ack & 0x01
+        self.next_page = next_page & 0x01
+
+    @property
+    def word(self):
+        code = self.selector
+        code = (code << 8) + self.tech_ability
+        code = (code << 1) + self.rem_fault
+        code = (code << 1) + self.ack
+        code = (code << 1) + self.next_page
+
+        return code
+        
+
+
+class EthernetLinkTest(object):
+    def __init__(self, link_code=None):
+        self.link_code = link_code
+
+    def edges(self, bit_period):
+        if self.link_code is None:
+            return [(0.0, 1), (bit_period, ManchesterStates.Idle), (2*bit_period, ManchesterStates.Idle)]
+
+        else:
+            #print('## code word:', '{:016b}'.format(self.link_code.word))
+            code_bits = reversed(split_bits(self.link_code.word, 16))
+
+            edges = []
+            t = 0.0
+            for b in code_bits:
+                edges.extend([(t, 1), (t + bit_period, ManchesterStates.Idle)])
+                if b == 1:
+                    t += 62.5e-6
+                    edges.extend([(t, 1), (t + bit_period, ManchesterStates.Idle)])
+                    t += 62.5e-6
+                else: # 0
+                    t += 125.0e-6
+
+            # Last framing pulse
+            edges.extend([(t, 1), (t + bit_period, ManchesterStates.Idle), (t + 2*bit_period, ManchesterStates.Idle)])
+
+
+            return edges
+
+
+class ManchesterStates(Enum):
+    Zero = 0 # 0 for 1 bit period
+    One =  1 # 1 for 1 bit period
+    Low =  2 # Low for half bit period
+    High = 3 # High for half bit period
+    Idle = 4 # Differential idle state
+
+
+def to_manchester(diff_state):
+    if diff_state == 1:
+        mstate = ManchesterStates.High
+    elif diff_state == -1:
+        mstate = ManchesterStates.Low
+    else:
+        mstate = ManchesterStates.Idle
+
+    return mstate
+
+def manchester_decode(edges, bit_period, falling=0):
+
+    es = decode.EdgeSequence(edges, bit_period)
+
+    # Initial state
+    yield (es.cur_time, to_manchester(es.cur_state()))
+
+    S_IDLE = 0
+    S_BITS = 1
+
+    state = S_IDLE
+
+    while not es.at_end():
+        if state == S_IDLE:
+            es.advance_to_edge()
+            print('## at edge 1:', es.cur_time, es.cur_state())
+            if es.next_states[0] - es.cur_time > bit_period * 0.75: # This is not the start of a bit
+                # Yield a half bit
+                yield (es.cur_time, to_manchester(es.cur_state()))
+                es.advance(bit_period * 0.75)
+                prev_bit = None
+                state = S_BITS
+                #es.advance(bit_period * 0.5)
+            elif es.cur_state() in (1, -1): # Next edge is for a bit transition
+                if es.next_states[1] == 1: # rising edge
+                    bit = 1 - falling
+                elif es.next_states[1] == -1: # falling edge
+                    bit = falling
+                else: # Unexpected transition to idle
+                    # Create a half bit for this segment
+                    yield (es.cur_time, to_manchester(es.cur_state()))
+                    #es.advance(bit_period * 0.75)
+                    continue
+
+                print('## got bit 1:', bit)
+
+                yield (es.cur_time, bit)
+                es.advance(bit_period * 1.25)
+                prev_bit = bit
+                state = S_BITS
+
+            else:
+                print('## final idle 1:', es.cur_state())
+                yield (es.cur_time, ManchesterStates.Idle)
+
+        else: # S_BITS
+            if es.cur_state() not in (1, -1): # Idle
+                yield (es.cur_time - bit_period*0.25, ManchesterStates.Idle)
+                state = S_IDLE
+
+            elif es.next_states[0] - es.cur_time < bit_period * 0.5: # This is a bit
+                if es.next_states[1] == 1: # rising edge
+                    bit = 1 - falling
+                elif es.next_states[1] == -1: # falling edge
+                    bit = falling
+                else: # Unexpected transition to idle
+                    # Create a half bit for this segment
+                    yield (es.cur_time - bit_period*0.25, to_manchester(es.cur_state()))
+                    es.advance(bit_period * 0.5)
+                    continue
+
+                #print('### got bit 2:', bit, prev_bit, es.cur_time - bit_period*0.25)
+                if bit != prev_bit:
+                    yield (es.cur_time - bit_period*0.25, bit)
+
+                prev_bit = bit
+                es.advance(es.next_states[0] - es.cur_time + bit_period*0.75) # Resync to next edge
+
+            else: # This is a half bit
+                #print('## half bit 2', es.cur_time - bit_period*0.25)
+                yield (es.cur_time - bit_period*0.25, to_manchester(es.cur_state()))
+                es.advance(bit_period * 0.5)
+                state = S_IDLE
+                
+
+
+
+
+def ethernet_decode(rxtx, logic_levels=None, stream_type=stream.StreamType.Samples):
+    if stream_type == stream.StreamType.Samples:
+        if logic_levels is None:
+            s_rxtx_it, logic_levels = decode.check_logic_levels(rxtx)
+        else:
+            s_rxtx_it = rxtx
+
+        print('## logic levels:', logic_levels)
+        
+        #hyst = 0.1
+        #rxtx_it = decode.find_edges(s_rxtx_it, logic_levels, hysteresis=hyst)
+        center_thresh = (logic_levels[0] + logic_levels[1]) / 2.0
+        hyst_thresholds = decode.gen_hyst_thresholds((logic_levels[0], center_thresh, logic_levels[1]), hysteresis=0.02)
+        rxtx_it = decode.find_multi_edges(s_rxtx_it, hyst_thresholds)
+
+
+    else: # the streams are already lists of edges
+        rxtx_it = rxtx
+
+    bit_period = 1.0 / 10.0e6 #FIX
+
+    if stream_type == stream.StreamType.Samples:
+        # We needed the bus speed before we could properly strip just
+        # the anomalous SE0s
+        min_se0 = bit_period * 0.2
+        rxtx_it = decode.remove_transitional_states(rxtx_it, min_se0)
+
+
+    #es = EdgeSequence(edges_it, bit_period)
+    
+    # Now we start the actual decode process
+        
+    # Initialize to point where state is not idle
+    #while es.cur_state() == 0 and not es.at_end():
+    #    es.advance_to_edge()
+
+
+    for e in manchester_decode(rxtx_it, bit_period):
+        yield e
+
+
+
+def manchester_encode(states, bit_period, falling=0, idle_start=0.0, idle_end=0.0):
+    
+    t = 0.0
+
+    if falling == 0:
+        zero = (1, 0)
+        one = (0, 1)
+    else:
+        zero = (0, 1)
+        one = (1, 0)
+
+    half_bit_period = bit_period / 2
+
+    yield (t, ManchesterStates.Idle) # Set initial conditions
+    t += idle_start
+
+
+    prev_state = ManchesterStates.Idle
+
+    for s in states:
+        if s <= 1: # 0 or 1
+            if s == 0:
+                if zero[0] != prev_state:
+                    yield (t, zero[0])
+                t += half_bit_period
+                yield (t, zero[1])
+                prev_state = zero[1]
+            else: # 1
+                if one[0] != prev_state:
+                    yield (t, one[0])
+                t += half_bit_period
+                yield (t, one[1])
+                prev_state = one[1]
+            t += half_bit_period
+
+        elif s <= 3: # Low or High
+            if s - 2 != prev_state:
+                yield (t, s - 2)
+            prev_state = s - 2
+            t += half_bit_period
+        else: # Idle
+            if ManchesterStates.Idle != prev_state:
+                yield (t, ManchesterStates.Idle)
+            prev_state = ManchesterStates.Idle
+            t += half_bit_period
+
+    if idle_end > 0.0:
+        yield (t + idle_end, prev_state)
+
+
+
+
+def diff_encode(bits):
+    for b in bits:
+        if b[1] == 1:
+            yield b
+        elif b[1] == 0:
+            yield (b[0], -1)
+        else: # Idle
+            yield (b[0], 0)
+        
+
+        
+def add_overshoot(bits, duration, overshoot=0.75, undershoot=0.8):
+
+    undershoot = undershoot * overshoot
+    overshoot = 1 + overshoot
+    prev_bit = None
+    prev_fall = False
+    for b in bits:
+        if prev_bit is not None:
+            if b[0] - prev_bit[0] > duration:
+                if prev_bit[1] != 0:
+                    yield (prev_bit[0], prev_bit[1] * overshoot)
+                    yield (prev_bit[0] + duration, prev_bit[1])
+
+                else: # 0, generate undershoot before idle state
+                    if prev_fall:
+                        yield (prev_bit[0], -undershoot)
+                        yield (prev_bit[0] + duration, prev_bit[1])
+                    else:
+                        yield prev_bit
+
+            else: # Bit time is shorter than overshoot duration
+                yield (prev_bit[0], prev_bit[1] * overshoot)
+
+            prev_fall = True if b[1] < prev_bit[1] else False
+
+        prev_bit = b
+
+    yield prev_bit
+
+
+#FIX make a method???
+def encode_frame(frame):
+    #FIX debug: remove
+    yield ManchesterStates.High
+    yield ManchesterStates.High
+    yield 0
+    yield ManchesterStates.Low
+    yield ManchesterStates.Idle
+
+    ##########
+
+    for b in [0x55] * 7 + [0xD5]: # SOF + SFD
+        for bit in reversed(split_bits(b, 8)):
+            yield bit
+    for b in frame.bytes:
+        for bit in reversed(split_bits(b, 8)):
+            yield bit
+    # IDL = high for 3 bit times -> 6 half-bit times
+    for bit in [ManchesterStates.High] * 6:
+        yield bit
+
+    yield ManchesterStates.Idle
+
+
+def ethernet_synth(frames, overshoot=None, idle_start=0.0, frame_interval=0.0, idle_end=0.0):
+
+    bit_period = 1.0 / 10.0e6
+
+    frame_its = []
+    for i, frame in enumerate(frames):
+        istart = idle_start if i == 0 else 0.0
+        iend = idle_end if i == len(frames)-1 else bit_period
+
+        if hasattr(frame, 'edges'): # Link pulse
+            edges = iter(frame.edges(bit_period))
+        else: # A proper frame
+            edges = manchester_encode(encode_frame(frame), bit_period, idle_start=istart, idle_end=iend)
+
+        if overshoot is not None and len(overshoot) == 2:
+            frame_its.append(add_overshoot(diff_encode(edges), bit_period * overshoot[1], overshoot[0]))
+        else:
+            frame_its.append(diff_encode(edges))
+
+    return sigp.chain_edges(frame_interval, *frame_its)
+
+
+
+
+
+
+
+def _crc32_table_gen():
+    poly = 0xedb88320
+    mask = 0xffffffff
+
+    tbl = [0] * 256
+
+    for i in xrange(len(tbl)):
+        sreg = i
+        for j in xrange(8):
+            if sreg & 0x01 != 0:
+                sreg = poly ^ (sreg >> 1)
+            else:
+                sreg >>= 1;
+
+        tbl[i] = sreg & mask
+
+    return tbl
+
+
+_crc32_table = _crc32_table_gen()
+
+
+def table_ethernet_crc32(d):
+    sreg = 0xffffffff
+    mask = 0xffffffff
+
+    tbl = _crc32_table
+
+    for byte in d:
+        tidx = (sreg ^ byte) & 0xff
+        sreg = (sreg >> 8) ^ tbl[tidx] & mask
+
+    return sreg ^ mask
+
+
