@@ -79,6 +79,9 @@ The :mod:`lin <.protocol.lin>` module decodes the LIN (Local Interconnect Networ
 LM73
 ----
 
+.. image:: ../image/example/lm73_example.png
+    :scale: 60%
+
 The :mod:`lm73 <.protocol.lm73>` module decodes the SMBus protocol for the LM73 temperature sensor.
 
 .. _nec:
