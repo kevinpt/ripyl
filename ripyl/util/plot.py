@@ -167,7 +167,7 @@ class Plotter(object):
         if ylim is None:
             self.axes[-1].set_ylim(ann_b['ovl_bot'] * 1.05, ann_b['ovl_top'] * 1.05)
         else:
-            self.axes[-1].set_ylim(1.0, 4.0)
+            self.axes[-1].set_ylim(ylim[0], ylim[1])
 
         self.axes[-1].set_xlim(vectors[ann_chan][1][0], vectors[ann_chan][1][-1])
 
