@@ -263,25 +263,30 @@ class Plotter(object):
 
         if len(label) > 0:
             # Get the label style
-            bl = based_literal.match(label)
+            label_fields = label.split()
+            bl_f = [based_literal.match(f) for f in label_fields]
 
             if a.data_format == stream.AnnotationFormat.Enum:
                 label_style_name = 'enum'
             elif a.data_format == stream.AnnotationFormat.Small:
                 label_style_name = 'small'
-            elif bl:
-                base = int(bl.groups()[0])
-                if base == 2:
-                    label_style_name = 'bin'
-                elif base == 16:
-                    if applied_format == stream.AnnotationFormat.Text:
-                        label_style_name = 'nonprinting'
+            elif all(bl_f):
+                label_fields = []
+                for bl in bl_f:
+                    base = int(bl.groups()[0])
+                    if base == 2:
+                        label_style_name = 'bin'
+                    elif base == 16:
+                        if applied_format == stream.AnnotationFormat.Text:
+                            label_style_name = 'nonprinting'
+                        else:
+                            label_style_name = 'hex'
                     else:
-                        label_style_name = 'hex'
-                else:
-                    label_style_name = 'hex' #default
+                        label_style_name = 'hex' #default
 
-                label = bl.groups()[1]
+                    label_fields.append(bl.groups()[1])
+
+                label = ' '.join(label_fields)
             else:
                 label_style_name = 'normal'
 
