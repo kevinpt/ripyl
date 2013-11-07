@@ -654,8 +654,29 @@ def find_edges(samples, logic, hysteresis=0.4):
             t += sample_period
 
 
+def expand_logic_levels(logic_levels, count):
+    '''Generate evenly spaced logic levels
 
-def gen_hyst_thresholds(logic_levels, hysteresis=0.1):
+    logic_levels ((float, float))
+        A 2-tuple (low, high) representing the min and max logic level to expand on
+
+    count (int)
+        The number of logic levels in the result. If the value is less than 3, the
+        result is the same as the sequence passed as logic_levels.
+    
+    Returns a list of logic levels with count length representing each logic level
+      evenly spaced between logic_levels[0] and logic_levels[1].
+    '''
+
+    if count >= 3:
+        step = (logic_levels[1] - logic_levels[0]) / (count - 1)
+
+        return [logic_levels[0]] + [logic_levels[0] + i * step for i in xrange(1, count-1)] + [logic_levels[1]]
+    else:
+        return logic_levels
+
+
+def gen_hyst_thresholds(logic_levels, expand=None, hysteresis=0.1):
     '''Generate hysteresis thresholds for find_multi_edges()
 
     This function computes the hysteresis thresholds for multi-level edge finding
@@ -663,7 +684,10 @@ def gen_hyst_thresholds(logic_levels, hysteresis=0.1):
 
     logic_levels (sequence of float)
         A sequence of the nominal voltage levels for each logic state sorted
-        in ascending order.
+        in ascending order or the (low, high) pair when expansion is used.
+
+    expand (int or None)
+        When not None, the number of logic levels to expand the provided logic_levels into.
 
     hysteresis (float)
         A value between 0.0 and 1.0 representing the amount of hysteresis the use for
@@ -671,6 +695,10 @@ def gen_hyst_thresholds(logic_levels, hysteresis=0.1):
 
     Returns a list of floats. Every pair of numbers represents a hysteresis band.
     '''
+
+    if expand:
+        assert len(logic_levels) == 2, 'Expansion requires exactly two logic levels.'
+        logic_levels = expand_logic_levels(logic_levels, expand)
 
     assert len(logic_levels) >= 2, 'There must be at least two logic levels'
     centers = []
@@ -1024,7 +1052,7 @@ def find_symbol_rate(edges, sample_rate=1.0, spectra=2, auto_span_limit=True, ma
     
     return symbol_rate
     
-
+#FIX: clean up use of cur_time, cur_state, cur_state(), next_states, etc.
 class EdgeSequence(object):
     '''Utility class to walk through an edge iterator in arbitrary time steps'''
 
