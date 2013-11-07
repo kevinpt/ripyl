@@ -49,7 +49,7 @@ if matplotlib_exists:
 def main():
     '''Entry point for script'''
 
-    protocols = ('uart', 'i2c', 'lm73', 'spi', 'usb', 'usb-diff', 'hsic', 'ps2', \
+    protocols = ('uart', 'ethernet', 'i2c', 'lm73', 'spi', 'usb', 'usb-diff', 'hsic', 'ps2', \
                 'kline', 'rc5', 'rc6', 'nec', 'sirc', 'can', 'lin')
 
     usage = '''%prog [-p PROTOCOL] [-n] [-m MSG]
@@ -510,7 +510,8 @@ def demo_lm73(options):
 
     plot_params = {
         'default_title': 'LM73 Simulation',
-        'label_format': stream.AnnotationFormat.Text
+        'label_format': stream.AnnotationFormat.Text,
+        'ylim': (-0.5, 4.7)
     }
 
     i2c_records = list(i2c.reconstruct_i2c_transfers(records))
@@ -1020,12 +1021,79 @@ def demo_can(options):
 
     plot_params = {
         'default_title': 'CAN Simulation',
-        'label_format': stream.AnnotationFormat.Text
+        'label_format': stream.AnnotationFormat.Text,
+        'ylim': (1.0, 4.0)
     }
 
     report_results(records, frames, protocol_params, wave_params, decode_success, lambda d, o: (d.data, o))
     channels = OrderedDict([('CH (V)', nsy_ch), ('CL (V)', nsy_cl)])
-    plot_channels(channels, records, options, plot_params, ylim=(1.0, 4.0))
+    plot_channels(channels, records, options, plot_params)
+
+
+def demo_ethernet(options):
+    import ripyl.protocol.ethernet as ether
+    print('Ethernet protocol\n')
+    
+    # Ethernet params
+    bit_rate = 10.0e6
+
+    # Sampled waveform params
+    sample_rate = bit_rate * 20.0
+    #rise_time = min_rise_time(sample_rate) * 10.0 # 10x min. rise time
+    rise_time = 1.0 / 80.0e6
+    noise_snr = options.snr_db
+
+    frames = [
+        ether.EthernetFrame('2:2:3:4:5:6', 'a:b:c:d:e:f', range(66), length_type=0x800 ),
+        #ether.EthernetLinkTest(ether.EthernetLinkCode(1,1,1,1,1)),
+        ether.EthernetFrame('1:2:3:4:5:6', 'a:b:c:d:e:f', range(67), tags=[ether.EthernetTag(1, 1)], length_type=0x8100)
+    ]
+
+    # Synthesize the waveform edge stream
+    edges_it = ether.ethernet_synth(frames, overshoot=(0.75, 0.25), idle_start=2.0e-6, \
+                                    frame_interval=(12 * 8 * 100.0e-9), idle_end=2.0e-6)
+
+    
+    # Convert to a sample stream with band-limited edges and noise
+    clean_samples_it = sigp.synth_wave(edges_it, sample_rate, rise_time, tau_factor=0.5)
+    
+    noisy_samples_it = sigp.quantize(sigp.amplify(sigp.noisify(clean_samples_it, snr_db=noise_snr), gain=1.0), 8.0)
+    if options.dropout is not None:
+        noisy_samples_it = sigp.dropout(noisy_samples_it, options.dropout[0], options.dropout[1], options.dropout_level)
+    
+    # Capture the samples from the iterator
+    noisy_samples = list(noisy_samples_it)
+    
+
+    # Decode the samples
+    decode_success = True
+    records = []
+    try:
+        records_it = ether.ethernet_decode(iter(noisy_samples), tag_num=1)
+        records = list(records_it)
+        
+    except stream.StreamError as e:
+        print('Decode failed:\n  {}'.format(e))
+        decode_success = False
+
+    protocol_params = {
+        'bit_rate': bit_rate
+    }
+
+    wave_params = {
+        'sample rate': eng.eng_si(sample_rate, 'Hz'),
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
+    }
+
+    plot_params = {
+        'default_title': 'Ethernet Simulation',
+        'label_format': stream.AnnotationFormat.Hex
+    }
+
+    report_results(records, frames, protocol_params, wave_params, decode_success, lambda d, o: (d.data, o) )
+    channels = OrderedDict([('Volts', noisy_samples)])
+    plot_channels(channels, records, options, plot_params)
 
 
 def demo_lin(options):
@@ -1093,7 +1161,6 @@ def demo_lin(options):
 
 
 
-
 def edges_to_waveform(edges, options, sample_rate, rise_time, gain, offset=0.0, quant_full_range=20.0):
     # Convert to a sample stream with band-limited edges and noise
     clean_samples = sigp.synth_wave(edges, sample_rate, rise_time)
@@ -1106,12 +1173,17 @@ def edges_to_waveform(edges, options, sample_rate, rise_time, gain, offset=0.0, 
 
     return noisy_samples
 
-def plot_channels(channels, annotations, options, plot_params, ylim=None, sample_points=None):
+def plot_channels(channels, annotations, options, plot_params, sample_points=None):
     if not options.no_plot:
         if options.title is not None:
             title = options.title
         else:
             title = plot_params['default_title']
+
+        if 'ylim' in plot_params:
+            ylim = plot_params['ylim']
+        else:
+            ylim = None
 
 
         plotter = rplot.Plotter()
