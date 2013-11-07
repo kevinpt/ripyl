@@ -1108,7 +1108,7 @@ def can_synth(frames, bit_rate, idle_start=0.0, idle_end=0.0):
         The frequency of the clock generator
 
     idle_start (float)
-        The amount of idle time before the transmission of framesbegins.
+        The amount of idle time before the transmission of frames begins.
 
     idle_end (float)
         The amount of idle time after the last frame.
