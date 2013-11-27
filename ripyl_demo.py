@@ -50,7 +50,7 @@ def main():
     '''Entry point for script'''
 
     protocols = ('uart', 'ethernet', 'i2c', 'lm73', 'spi', 'usb', 'usb-diff', 'hsic', 'ps2', \
-                'kline', 'rc5', 'rc6', 'nec', 'sirc', 'can', 'lin')
+                'kline', 'rc5', 'rc6', 'nec', 'sirc', 'can', 'lin', 'j1850', 'j1850_pwm')
 
     usage = '''%prog [-p PROTOCOL] [-n] [-m MSG]
     
@@ -1030,6 +1030,71 @@ def demo_can(options):
     plot_channels(channels, records, options, plot_params)
 
 
+def demo_lin(options):
+    import ripyl.protocol.lin as lin
+    print('ISO LIN protocol\n')
+    
+    # LIN params
+    baud = 10400
+
+    # Sampled waveform params
+    sample_rate = baud * 100.0
+    rise_time = min_rise_time(sample_rate) * 10.0 # 10x min. rise time
+    noise_snr = options.snr_db
+
+    frames = [
+        lin.LINFrame(0x3A, [0x8B, 0xAD, 0xF0, 0x0D], cs_type=lin.LINChecksum.Enhanced),
+        lin.LINFrame(0x29, []),
+        #lin.LINFrame(0x29, [6,7])
+    ]
+
+    # Synthesize the waveform edge stream
+    edges_it = lin.lin_synth(frames, baud, frame_interval=10.0 / baud, idle_start=4.0 / baud, \
+                            idle_end=8.0 / baud, byte_interval=3.0 / baud)
+    
+    # Convert to a sample stream with band-limited edges and noise
+    clean_samples_it = sigp.synth_wave(edges_it, sample_rate, rise_time, tau_factor=1.0)
+    
+    noisy_samples_it = sigp.quantize(sigp.amplify(sigp.noisify(clean_samples_it, snr_db=noise_snr), gain=12.0), 50.0)
+    if options.dropout is not None:
+        noisy_samples_it = sigp.dropout(noisy_samples_it, options.dropout[0], options.dropout[1], options.dropout_level)
+    
+    # Capture the samples from the iterator
+    noisy_samples = list(noisy_samples_it)
+    
+
+    # Decode the samples
+    decode_success = True
+    records = []
+    try:
+        records_it = lin.lin_decode(iter(noisy_samples))
+        records = list(records_it)
+        
+    except stream.StreamError as e:
+        print('Decode failed:\n  {}'.format(e))
+        decode_success = False
+
+    protocol_params = {
+        'baud': baud
+    }
+
+    wave_params = {
+        'sample rate': eng.eng_si(sample_rate, 'Hz'),
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
+    }
+
+    plot_params = {
+        'default_title': 'LIN Simulation',
+        'label_format': stream.AnnotationFormat.Hex
+    }
+
+    report_results(records, frames, protocol_params, wave_params, decode_success, lambda d, o: (d.data, o) )
+    channels = OrderedDict([('Volts', noisy_samples)])
+    plot_channels(channels, records, options, plot_params)
+
+
+
 def demo_ethernet(options):
     import ripyl.protocol.ethernet as ether
     print('Ethernet protocol\n')
@@ -1096,32 +1161,35 @@ def demo_ethernet(options):
     plot_channels(channels, records, options, plot_params)
 
 
-def demo_lin(options):
-    import ripyl.protocol.lin as lin
-    print('ISO LIN protocol\n')
-    
-    # LIN params
-    baud = 10400
+def demo_j1850(options):
+    import ripyl.protocol.j1850 as j1850
+    print('J1850 VPW protocol\n')
 
+    bit_rate = 10400
+    
     # Sampled waveform params
-    sample_rate = baud * 100.0
+    sample_rate = bit_rate * 40.0
     rise_time = min_rise_time(sample_rate) * 10.0 # 10x min. rise time
     noise_snr = options.snr_db
 
     frames = [
-        lin.LINFrame(0x3A, [0x8B, 0xAD, 0xF0, 0x0D], cs_type=lin.LINChecksum.Enhanced),
-        lin.LINFrame(0x29, []),
-        #lin.LINFrame(0x29, [6,7])
+        j1850.J1850Frame(0, j1850.J1850MT.FunctionRead, [0, 1, 0x55, 0xaa, 2, 3], 0x10, 0xf1, ifr_data=[4,5,6]),
+        j1850.J1850Frame(7, j1850.J1850MT.NodeToNode, [0, 1, 2, 3], 0x10, 0xf1),
+        j1850.J1850Frame(3, j1850.J1850MT.NodeToNode, None, 0x10, 0xf1),
+        j1850.J1850Break(),
+        j1850.J1850Frame(0, j1850.J1850MT.FunctionCmd, [0, 1, 0x55, 0xaa, 2, 3], 0x10, 0xf1, ifr_data=None)
     ]
 
+
     # Synthesize the waveform edge stream
-    edges_it = lin.lin_synth(frames, baud, frame_interval=10.0 / baud, idle_start=4.0 / baud, \
-                            idle_end=8.0 / baud, byte_interval=3.0 / baud)
+    edges_it = j1850.j1850_vpw_synth(frames, breaks=[(0, 0.2)], idle_start=2.0e-4, \
+                                    frame_interval=1.0e-3, idle_end=2.0e-4)
+
     
     # Convert to a sample stream with band-limited edges and noise
-    clean_samples_it = sigp.synth_wave(edges_it, sample_rate, rise_time, tau_factor=1.0)
+    clean_samples_it = sigp.synth_wave(edges_it, sample_rate, rise_time, tau_factor=0.5)
     
-    noisy_samples_it = sigp.quantize(sigp.amplify(sigp.noisify(clean_samples_it, snr_db=noise_snr), gain=12.0), 50.0)
+    noisy_samples_it = sigp.quantize(sigp.amplify(sigp.noisify(clean_samples_it, snr_db=noise_snr), gain=7.0), 16.0)
     if options.dropout is not None:
         noisy_samples_it = sigp.dropout(noisy_samples_it, options.dropout[0], options.dropout[1], options.dropout_level)
     
@@ -1133,15 +1201,17 @@ def demo_lin(options):
     decode_success = True
     records = []
     try:
-        records_it = lin.lin_decode(iter(noisy_samples))
+        records_it = j1850.j1850_vpw_decode(iter(noisy_samples))
         records = list(records_it)
+        #for r in records: print(r)
+        #records = []
         
     except stream.StreamError as e:
         print('Decode failed:\n  {}'.format(e))
         decode_success = False
 
     protocol_params = {
-        'baud': baud
+        'bit_rate': bit_rate
     }
 
     wave_params = {
@@ -1151,13 +1221,89 @@ def demo_lin(options):
     }
 
     plot_params = {
-        'default_title': 'LIN Simulation',
+        'default_title': 'J1850 VPW Simulation',
         'label_format': stream.AnnotationFormat.Hex
     }
 
     report_results(records, frames, protocol_params, wave_params, decode_success, lambda d, o: (d.data, o) )
     channels = OrderedDict([('Volts', noisy_samples)])
     plot_channels(channels, records, options, plot_params)
+
+
+def demo_j1850_pwm(options):
+    import ripyl.protocol.j1850 as j1850
+    print('J1850 PWM protocol\n')
+
+    bit_rate = 41600
+    
+    # Sampled waveform params
+    sample_rate = bit_rate * 40.0
+    rise_time = min_rise_time(sample_rate) * 5.0 # 10x min. rise time
+    noise_snr = options.snr_db
+
+    frames = [
+        j1850.J1850Frame(0, j1850.J1850MT.NodeToNode, [0, 1, 0x55, 0xaa, 2, 3], 0x10, 0xf1)
+    ]
+
+    print('## Frame bytes:', [hex(b) for b in frames[0].bytes])
+
+    # Synthesize the waveform edge stream
+    p, m = j1850.j1850_pwm_synth(frames, idle_start=2.0e-6, \
+                                    frame_interval=(12 * 8 * 100.0e-9), idle_end=2.0e-6)
+
+    #lp = list(p)
+    #lm = list(m)
+
+    #p = iter(lp)
+    #m = iter(lm)
+    
+    # Convert to a sample stream with band-limited edges and noise
+    clean_p_it = sigp.synth_wave(p, sample_rate, rise_time, tau_factor=0.1)
+    clean_m_it = sigp.synth_wave(m, sample_rate, rise_time, tau_factor=0.1)
+    
+    noisy_p_it = sigp.quantize(sigp.amplify(sigp.noisify(clean_p_it, snr_db=noise_snr), gain=5.0), 8.0)
+    noisy_m_it = sigp.quantize(sigp.amplify(sigp.noisify(clean_m_it, snr_db=noise_snr), gain=5.0), 8.0)
+    if options.dropout is not None:
+        noisy_p_it = sigp.dropout(noisy_p_it, options.dropout[0], options.dropout[1], options.dropout_level)
+        noisy_m_it = sigp.dropout(noisy_m_it, options.dropout[0], options.dropout[1], options.dropout_level)
+    
+    # Capture the samples from the iterator
+    noisy_p = list(noisy_p_it)
+    noisy_m = list(noisy_m_it)
+    #noisy_m = noisy_p
+    
+
+    # Decode the samples
+    decode_success = True
+    records = []
+    try:
+        #records_it = ether.ethernet_decode(iter(noisy_samples), tag_num=1)
+        #records = list(records_it)
+        records = []
+        
+    except stream.StreamError as e:
+        print('Decode failed:\n  {}'.format(e))
+        decode_success = False
+
+    protocol_params = {
+        'bit_rate': bit_rate
+    }
+
+    wave_params = {
+        'sample rate': eng.eng_si(sample_rate, 'Hz'),
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
+    }
+
+    plot_params = {
+        'default_title': 'J1850 VPW Simulation',
+        'label_format': stream.AnnotationFormat.Hex
+    }
+
+    report_results(records, frames, protocol_params, wave_params, decode_success, lambda d, o: (d.data, o) )
+    channels = OrderedDict([('P', noisy_p), ('M', noisy_m)])
+    plot_channels(channels, records, options, plot_params)
+
 
 
 
