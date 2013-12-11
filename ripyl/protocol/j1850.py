@@ -26,7 +26,7 @@ from __future__ import print_function, division
 from copy import copy
 
 import itertools
-import ripyl.util.eng as eng
+#import ripyl.util.eng as eng
 import ripyl.streaming as stream
 import ripyl.decode as decode
 import ripyl.sigproc as sigp
@@ -39,16 +39,14 @@ from ripyl.util.bitops import split_bits, join_bits
 #  consolidated 1-byte H-bit = 1
 #  consolidates 3-byte H-bit = 0
 
-# IFR -> PWM (required) VPW (not allowed)
-
-# Message types
 
 class J1850MT(Enum):
+    '''Enumeration of J1850 message types (last 4 bits of header byte)'''
 # K-bit = 0 (IFR required PWM/Ford)
     Function = 0
     Broadcast = 1
     FunctionQuery = 2
-    FunctionRead = 3
+    FunctionRead = 3    # Only message type with CRC on IFR
 
     # Physical addressing
     NodeToNodeIFR = 4
@@ -72,6 +70,7 @@ class J1850MT(Enum):
 
 
 class VPWNormBitStyle(Enum):
+    '''Enumeration of VPW normalization bit coding scheme'''
     SAE = 1  # short NB = No IFR CRC; long NB = IFR CRC
     GM =  2  # long NB = No IFR CRC; short NB = IFR CRC
 
@@ -79,6 +78,31 @@ class VPWNormBitStyle(Enum):
 class J1850Frame(object):
     '''Base class for J1850 frames'''
     def __init__(self, priority, msg_type, data, target=None, source=None, ifr_data=None, crc=None, ifr_crc=None):
+        '''
+        priority (int)
+            The 3-bit frame priority field. Lower values have higher priority.
+
+        msg_type (J1850MT)
+            Message type.
+
+        data (sequence of int or None)
+            Data bytes for the frame.
+
+        target (int)
+            Target address or function.
+
+        source (int)
+            Source address.
+
+        ifr_data (sequence of int or None)
+            Optional data for the In-Frame Response.
+
+        crc (int or None)
+            CRC for the data bytes and header.
+
+        ifr_crc (int or None)
+            CRC for the IFR (FunctionRead message type only)
+        '''
         self.priority = priority
         self.msg_type = msg_type
         self.data = data
@@ -149,11 +173,9 @@ class J1850Frame(object):
 
     @property
     def bytes(self):
-
+        '''Get the bytes for this frame. Does not include IFR.'''
         header_len = 0 if self.target is not None and self.source is not None else 0x10
         header = (self.msg_type & 0x0F) + header_len + ((self.priority & 0x7) << 5)
-
-        #print('### header:', hex(header), header_len)
         
         if header_len != 0: # 1-byte header
             header_bytes = [header]
@@ -186,7 +208,7 @@ class J1850Frame(object):
 
     @property
     def ifr_bytes(self):
-
+        '''Get the IFR bytes for this frame.'''
         check_bytes = []
         if self.ifr_data is not None: check_bytes += self.ifr_data
 
@@ -213,6 +235,7 @@ class J1850Frame(object):
 
 
 class J1850Break(object):
+    '''Representation of a J1850 break condition'''
     def __init__(self):
         pass
 
@@ -245,6 +268,43 @@ class J1850StreamFrame(stream.StreamSegment):
 
 
 def j1850_vpw_decode(vpw, norm_bit=VPWNormBitStyle.SAE, logic_levels=None, stream_type=stream.StreamType.Samples):
+    '''Decode a J1850 VPW data stream
+
+    This decodes the Variable Pulse Width version of J1850 (GM & Chrysler).
+
+    This is a generator function that can be used in a pipeline of waveform
+    procesing operations.
+
+    Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
+    of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
+    parameter. Sample streams will be analyzed to find edge transitions representing
+    0 and 1 logic states of the waveforms. With sample streams, an initial block of data
+    is consumed to determine the most likely logic levels in the signal.
+
+    vpw (iterable of SampleChunk objects or (float, int) pairs)
+        A sample stream or edge stream representing a VPW data signal.
+
+    norm_bit (VPWNormBitStyle)
+        How to interpret the normalization bit for In-Frame Response. Either standard SAE
+        style or the GM specific variant. This determines whether the IFR is expected to
+        have a CRC independently from the message type.
+
+    logic_levels ((float, float) or None)
+        Optional pair that indicates (low, high) logic levels of the sample
+        stream. When present, auto level detection is disabled. This has no effect on
+        edge streams.
+    
+    stream_type (streaming.StreamType)
+        A StreamType value indicating that the can parameter represents either Samples
+        or Edges
+
+    Yields a series of J1850StreamFrame objects. Each frame contains subrecords marking the location
+      of sub-elements within the frame. CRC errors are recorded as an error status in their
+      respective subrecords.
+      
+    Raises AutoLevelError if stream_type = Samples and the logic levels cannot
+      be determined.
+    '''
 
     if stream_type == stream.StreamType.Samples:
         if logic_levels is None:
@@ -271,7 +331,6 @@ def j1850_vpw_decode(vpw, norm_bit=VPWNormBitStyle.SAE, logic_levels=None, strea
         else:
             pulse_width = 500.0e-6
 
-        #print('## pulse width:', eng.eng_si(pulse_width, 's'))
         if 163.0e-6 < pulse_width <= 239.0e-6: # This is a valid SOF
             es.advance_to_edge() # Move to first bit
         else:
@@ -284,8 +343,8 @@ def j1850_vpw_decode(vpw, norm_bit=VPWNormBitStyle.SAE, logic_levels=None, strea
             continue
 
 
-
         def collect_bits(es):
+            '''Find frame and IFR bits'''
             frame_bits = []
             bit_starts = []
             is_passive = 1
@@ -322,7 +381,7 @@ def j1850_vpw_decode(vpw, norm_bit=VPWNormBitStyle.SAE, logic_levels=None, strea
 
             return (frame_bits, bit_starts, pulse_width)
 
-
+        # Get the frame bits
         frame_bits, bit_starts, pulse_width = collect_bits(es)
         if pulse_width > 280.0e-6 and es.cur_state() == 1:
             brk = J1850Break()
@@ -331,11 +390,9 @@ def j1850_vpw_decode(vpw, norm_bit=VPWNormBitStyle.SAE, logic_levels=None, strea
             yield sf
             continue
 
-
         # Validate collected bits
         if len(frame_bits) % 8 != 0 or len(frame_bits) < 2 * 8:
             continue
-
 
         # Convert frame bits to bytes
         bytes = []
@@ -343,8 +400,6 @@ def j1850_vpw_decode(vpw, norm_bit=VPWNormBitStyle.SAE, logic_levels=None, strea
             bytes.append(join_bits(frame_bits[i*8:i*8+8]))
 
         byte_starts = bit_starts[::8]
-
-        #print('## decoded bytes:', [hex(x) for x in bytes])
 
         header_len = 1 if bytes[0] & 0x10 else 3
         if header_len == 3 and len(bytes) < 4: continue
@@ -378,8 +433,9 @@ def j1850_vpw_decode(vpw, norm_bit=VPWNormBitStyle.SAE, logic_levels=None, strea
             else: # GM
                 ifr_with_crc = True if pulse_width <= 96.0e-6 else False
 
-            #print('## Found IFR', ifr_with_crc)
             es.advance_to_edge() # Move to first bit
+
+            # Get the IFR bits
             ifr_bits, ifr_bit_starts, pulse_width = collect_bits(es)
             if pulse_width > 280.0e-6 and es.cur_state() == 1:
                 brk = J1850Break()
@@ -387,20 +443,216 @@ def j1850_vpw_decode(vpw, norm_bit=VPWNormBitStyle.SAE, logic_levels=None, strea
                 sf.annotate('frame', {'value':'Break'}, stream.AnnotationFormat.String)
                 yield sf
                 continue
-            #print('## IFR bits:', ifr_bits)
 
             # Validate IFR bits
-            if len(ifr_bits) % 8 == 0 and len(ifr_bits) >= 2 * 8:
+            if len(ifr_bits) % 8 == 0 and len(ifr_bits) >= 8:
                 # Convert IFR bits to bytes
                 for i in xrange(len(ifr_bits) // 8):
                     ifr_bytes.append(join_bits(ifr_bits[i*8:i*8+8]))
 
                 ifr_byte_starts = ifr_bit_starts[::8]
 
+
         sf = _build_j1850_record(bytes, ifr_bytes, byte_starts, ifr_byte_starts, ifr_with_crc, (frame_start, es.cur_time + 64.0e-6))
         yield sf
 
+
+
+def j1850_pwm_decode(pwm, logic_levels=None, stream_type=stream.StreamType.Samples):
+    '''Decode a J1850 PWM data stream
+
+    This decodes the Pulse Width Modulated version of J1850 (Ford).
+
+    This is a generator function that can be used in a pipeline of waveform
+    procesing operations.
+
+    Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
+    of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
+    parameter. Sample streams will be analyzed to find edge transitions representing
+    0 and 1 logic states of the waveforms. With sample streams, an initial block of data
+    is consumed to determine the most likely logic levels in the signal.
+
+    pwm (iterable of SampleChunk objects or (float, int) pairs)
+        A sample stream or edge stream representing a PWM Bus+ signal or the differential
+        Bus+ - Bus-.
+
+    logic_levels ((float, float) or None)
+        Optional pair that indicates (low, high) logic levels of the sample
+        stream. When present, auto level detection is disabled. This has no effect on
+        edge streams.
+    
+    stream_type (streaming.StreamType)
+        A StreamType value indicating that the can parameter represents either Samples
+        or Edges
+
+    Yields a series of J1850StreamFrame objects. Each frame contains subrecords marking the location
+      of sub-elements within the frame. CRC errors are recorded as an error status in their
+      respective subrecords.
+      
+    Raises AutoLevelError if stream_type = Samples and the logic levels cannot
+      be determined.
+    '''
+
+    if stream_type == stream.StreamType.Samples:
+        if logic_levels is None:
+            pwm_it, logic_levels = decode.check_logic_levels(pwm)
+        else:
+            pwm_it = pwm
+        
+        edges = decode.find_edges(pwm_it, logic_levels, hysteresis=0.4)
+    else: # The stream is already a list of edges
+        edges = pwm
+
+    es = decode.EdgeSequence(edges, 0.0)
+
+    while not es.at_end():
+        # Look for start of frame
+        es.advance_to_edge()
+
+        if es.cur_state() != 1: continue
+
+        frame_start = es.cur_time
+
+        if es.next_states[0] > es.cur_time:
+            pulse_width = es.next_states[0] - es.cur_time
+        else:
+            pulse_width = 500.0e-6
+
+        if 27.0e-6 <= pulse_width <= 34.0e-6: # This is a valid SOF pulse (Tp7)
+            sof_start = es.cur_time
+            es.advance_to_edge() # Move to end of SOF pulse
+            if es.next_states[0] > es.cur_time:
+                pulse_width = es.next_states[0] - es.cur_time
+            else:
+                pulse_width = 500.0e-6
+
+            if 42.0e-6 <= es.cur_time - sof_start + pulse_width <= 54.0e-6:
+                # Valid SOF (Tp4)
+                es.advance_to_edge() # Move to first bit
+            
+        else: # Look for break condition
+            if 34.0e-6 < pulse_width <= 43.0e-6 and es.cur_state() == 1:
+                brk = J1850Break()
+                sf = stream.StreamSegment((es.cur_time, es.next_states[0]), brk, kind='break')
+                sf.annotate('frame', {'value':'Break'}, stream.AnnotationFormat.String)
+                yield sf
+
+            continue
+
+        def collect_bits(es):
+            '''Find frame and IFR bits'''
+            frame_bits = []
+            bit_starts = []
+
+            if es.next_states[0] > es.cur_time:
+                pulse_width = es.next_states[0] - es.cur_time
+            else:
+                pulse_width = 500.0e-6
+
+            while pulse_width <= 18.0e-6:
+                if 4.0e-6 <= pulse_width <= 18.0e-6:
+                    if pulse_width <= 10.0e-6:
+                        b = 1
+                    else:
+                        b = 0
+
+                    frame_bits.append(b)
+                    bit_starts.append(es.cur_time)
+
+                    bit_pulse = pulse_width
+                    # Move to end of pulse
+                    es.advance_to_edge()
+                    if es.next_states[0] > es.cur_time:
+                        pulse_width = es.next_states[0] - es.cur_time
+                    else:
+                        pulse_width = 500.0e-6
+
+                    tp3 = bit_pulse + pulse_width
+                    if 21.0e-6 <= tp3 <= 27e-6: # Valid bit
+                        es.advance_to_edge() # Move to start of next bit
+                        if es.next_states[0] > es.cur_time:
+                            pulse_width = es.next_states[0] - es.cur_time
+                        else:
+                            pulse_width = 500.0e-6
+
+                    else: # No more bits
+                        break
+
+                else: # Invalid pulse < 4us
+                    break
+
+            bit_starts.append(es.cur_time)
+            return (frame_bits, bit_starts, pulse_width)
+
+        # Get the frame bits
+        frame_bits, bit_starts, pulse_width = collect_bits(es)
+        if 34.0e-6 < pulse_width <= 43.0e-6 and es.cur_state() == 1:
+            brk = J1850Break()
+            sf = stream.StreamSegment((es.cur_time, es.next_states[0]), brk, kind='break')
+            sf.annotate('frame', {'value':'Break'}, stream.AnnotationFormat.String)
+            yield sf
+            continue
+
+        # Validate collected bits
+        if len(frame_bits) % 8 != 0 or len(frame_bits) < 2 * 8:
+            continue
+
+        # Convert frame bits to bytes
+        bytes = []
+        for i in xrange(len(frame_bits) // 8):
+            bytes.append(join_bits(frame_bits[i*8:i*8+8]))
+
+        byte_starts = bit_starts[::8]
+
+        header_len = 1 if bytes[0] & 0x10 else 3
+        if header_len == 3 and len(bytes) < 4: continue
+
+
+        priority = bytes[0] >> 5
+        msg_type = bytes[0] & 0x0F
+        data = bytes[header_len:-1]
+        if len(data) == 0: data = None
+
+        # Look for IFR
+        if es.next_states[0] > es.cur_time:
+            pulse_width = es.next_states[0] - es.cur_time
+        else:
+            pulse_width = 500.0e-6
+
+        ifr_bytes = []
+        ifr_byte_starts = []
+        ifr_with_crc = False
+        if 42.0e-6 <= pulse_width + (es.cur_time - bit_starts[-2]) <= 63.0e-6 and (msg_type & 0x08) == 0:
+            # IFR is present
+            es.advance_to_edge() # Start of first IFR bit
+
+            ifr_with_crc = True if msg_type == J1850MT.FunctionRead else False
+
+            # Get the IFR bits
+            ifr_bits, ifr_bit_starts, pulse_width = collect_bits(es)
+            if 34.0e-6 < pulse_width <= 43.0e-6 and es.cur_state() == 1:
+                brk = J1850Break()
+                sf = stream.StreamSegment((es.cur_time, es.next_states[0]), brk, kind='break')
+                sf.annotate('frame', {'value':'Break'}, stream.AnnotationFormat.String)
+                yield sf
+                continue
+
+            # Validate IFR bits
+            if len(ifr_bits) % 8 == 0 and len(ifr_bits) >= 8:
+                # Convert IFR bits to bytes
+                for i in xrange(len(ifr_bits) // 8):
+                    ifr_bytes.append(join_bits(ifr_bits[i*8:i*8+8]))
+
+                ifr_byte_starts = ifr_bit_starts[::8]
+
+        sf = _build_j1850_record(bytes, ifr_bytes, byte_starts, ifr_byte_starts, ifr_with_crc, \
+                                (frame_start, es.cur_time + 4.0e-6))
+        yield sf
+
+
+
 def _build_j1850_record(bytes, ifr_bytes, byte_starts, ifr_byte_starts, ifr_with_crc, bounds):
+    '''Create a J1850 frame from raw bytes'''
     header_len = 1 if bytes[0] & 0x10 else 3
     priority = bytes[0] >> 5
     msg_type = bytes[0] & 0x0F
@@ -468,6 +720,17 @@ def _build_j1850_record(bytes, ifr_bytes, byte_starts, ifr_byte_starts, ifr_with
             
 
 def vpw_encode(bytes, start_time):
+    '''Convert bytes to a VPW edge sequence
+
+    bytes (sequence of int)
+        The bytes to encode
+
+    start_time (float)
+        The Start time for the first edge
+
+    Returns a list of (float, int) edge pairs.
+    '''
+
     is_passive = 1
     edges = []
     t = start_time
@@ -492,9 +755,37 @@ def vpw_encode(bytes, start_time):
 
 
 def j1850_vpw_synth(frames, norm_bit=VPWNormBitStyle.SAE, breaks=None, idle_start=0.0, frame_interval=0.0, idle_end=0.0):
+    '''Generate synthesized J1850 VPW data streams
+    
+    frames (sequence of J1850Frame or J1850Break)
+        Frames to be synthesized.
+
+    norm_bit (VPWNormBitStyle)
+        How to interpret the normalization bit for In-Frame Response. Either standard SAE
+        style or the GM specific variant. This determines whether the IFR is expected to
+        have a CRC independently from the message type.
+
+    breaks (sequence of (int, float))
+        A set of tuples that identify which frames are interrupted by a break condition.
+        The first int portion of the tuple identifies the frame index and the second float
+        is the percentage (0.0 to 1.0) of the total frame that is generated before the break.
+
+    idle_start (float)
+        The amount of idle time before the transmission of frames begins.
+
+    frame_interval (float)
+        The amount of time between frames.
+
+    idle_end (float)
+        The amount of idle time after the last frame.
+
+    Yields an edge stream of (float, int) pairs. The first element in the iterator
+      is the initial state of the stream.
+    '''
+
     t = 0.0
 
-    yield (t, 0) # initial conditions
+    yield (t, 0) # Initial conditions
     t += idle_start
 
     break_dict = {}
@@ -536,7 +827,7 @@ def j1850_vpw_synth(frames, norm_bit=VPWNormBitStyle.SAE, breaks=None, idle_star
         else: # No IFR
             t += 280.0e-6 # EOF symbol
 
-        # If IFR is present is must start within the next 80us
+        # If IFR is present it must start within the next 80us
         if include_ifr:
             if f.msg_type == J1850MT.FunctionRead:
                 # Use type-3 IFR as indicated in J2178 5.2.1.5
@@ -573,6 +864,13 @@ def j1850_vpw_synth(frames, norm_bit=VPWNormBitStyle.SAE, breaks=None, idle_star
 
 
 def single_to_diff(signal):
+    '''Convert a single-ended edge stream to a differential pair
+
+    signal (edge stream)
+        The edges to convert to differential
+
+    Returns a pair of edge streams p and m representing the + and - differential pair.
+    '''
     p, m = itertools.izip(*_single_to_diff(signal))
     p = sigp.remove_excess_edges(p)
     m = sigp.remove_excess_edges(m)
@@ -583,11 +881,63 @@ def _single_to_diff(signal):
         yield (e, (e[0], 1 - e[1]))
 
 
-def j1850_pwm_synth(frames, idle_start=0.0, frame_interval=0.0, idle_end=0.0):
-    return single_to_diff(_j1850_pwm_synth(frames, idle_start, frame_interval, idle_end))
+def j1850_pwm_synth(frames, breaks=None, idle_start=0.0, frame_interval=0.0, idle_end=0.0):
+    '''Generate synthesized J1850 PWM data streams
+    
+    frames (sequence of J1850Frame or J1850Break)
+        Frames to be synthesized.
+
+    breaks (sequence of (int, float))
+        A set of tuples that identify which frames are interrupted by a break condition.
+        The first int portion of the tuple identifies the frame index and the second float
+        is the percentage (0.0 to 1.0) of the total frame that is generated before the break.
+
+    idle_start (float)
+        The amount of idle time before the transmission of frames begins.
+
+    frame_interval (float)
+        The amount of time between frames.
+
+    idle_end (float)
+        The amount of idle time after the last frame.
+
+    Yields an edge stream of (float, int) pairs. The first element in the iterator
+      is the initial state of the stream.
+    '''
+    return single_to_diff(_j1850_pwm_synth(frames, breaks, idle_start, frame_interval, idle_end))
 
 
-def _j1850_pwm_synth(frames, idle_start=0.0, frame_interval=0.0, idle_end=0.0):
+def pwm_encode(bytes, start_time, bit_slice):
+    '''Convert bytes to a PWM edge sequence
+
+    bytes (sequence of int)
+        The bytes to encode
+
+    start_time (float)
+        The Start time for the first edge
+
+    bit_slice (float)
+        The time for 1/3 of a bit period.
+
+    Returns a list of (float, int) edge pairs.
+    '''
+    edges = []
+
+    t = start_time
+    for byte in bytes:
+        for b in split_bits(byte, 8):
+            edges.append((t, 1))
+            pw = bit_slice if b == 1 else bit_slice * 2
+            t += pw
+            edges.append((t, 0))
+            t += 3*bit_slice - pw
+
+    edges.append((t, 0))
+    return edges
+
+
+def _j1850_pwm_synth(frames, breaks=None, idle_start=0.0, frame_interval=0.0, idle_end=0.0):
+    '''Perform the actual PWM synthesis'''
     t = 0.0
 
     bit_rate = 41600
@@ -595,37 +945,71 @@ def _j1850_pwm_synth(frames, idle_start=0.0, frame_interval=0.0, idle_end=0.0):
     bit_period = 1.0 / bit_rate
     bit_slice = bit_period / 3    
 
-    yield (t, 0) # initial conditions
+    yield (t, 0) # Initial conditions
     t += idle_start
 
-    for f in frames:
+    break_dict = {}
+    if breaks is not None:
+        break_dict = dict(breaks)
+
+    for i, f in enumerate(frames):
+        if isinstance(f, J1850Break):
+            yield (t, 1)
+            t += 5 * bit_slice
+            yield (t, 0)
+            t += 10 * bit_slice
+            continue
+
+
         # SOF -> high for 4 slices, low for 2
         yield (t, 1)
         t += 4 * bit_slice
         yield (t, 0)
         t += 2 * bit_slice
 
-        for byte in f.bytes:
-            for b in split_bits(byte, 8):
-                yield (t, 1)
-                if b:
-                    t += bit_slice
-                else: # 0
-                    t += 2 * bit_slice
+        edges = pwm_encode(f.bytes, t, bit_slice)
+        if i in break_dict:
+            # Insert break into edge list for this frame
+            brk_time = (edges[-1][0] - edges[0][0]) * break_dict[i] + edges[0][0]
+            edges = [x for x in edges if x[0] <= brk_time] # Remove edges after the break
+            t = edges[-1][0]
+            if edges[-1][1] == 0: # Ensure last edge was 1
+                edges = edges[:-1]
+            t += 5 * bit_slice
+            edges.append((t, 0))
+            t += 10 * bit_slice
+            edges.append((t, 0))
 
-                yield (t, 0)
-                if b:
-                    t += 2 * bit_slice
-                else: # 0
-                    t += bit_slice
-        
-        # EOD symbol
-        t += 200.0e-6
+        for e in edges[:-1]: yield e
+        t = edges[-1][0]
 
-        # If IFR is present is must start within the next 80us
+        include_ifr = True if f.ifr_data is not None and len(f.ifr_data) > 0 \
+                                and (f.msg_type & 0x08) == 0 else False
 
+        if include_ifr:
+            t += bit_period # EOD
+        else: # No IFR
+            t += 2 * bit_period # EOF
 
-        t += 100e-6
+        # If IFR is present is must start within the next bit period
+        if include_ifr:
+            if f.msg_type == J1850MT.FunctionRead:
+                # Use type-3 IFR as indicated in J2178 5.2.1.5
+                ifr_with_crc = True
+            else:
+                ifr_with_crc = False
+
+            t += bit_period / 2
+
+            ifr_bytes = f.ifr_bytes if ifr_with_crc else f.ifr_data
+
+            edges = pwm_encode(ifr_bytes, t, bit_slice)
+            for e in edges[:-1]: yield e
+            t = edges[-1][0]
+
+            t += 2 * bit_period # EOF
+
+        t += bit_period # IFS
 
         t += frame_interval
 
