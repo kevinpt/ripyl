@@ -59,7 +59,7 @@ The Ripyl Plotter object needs sample streams as the waveform source(s). If you 
 Plot waveforms
 --------------
 
-Once the sample streams are prepared you are ready to plot. Ripyl provides a :class:`~.Plotter` class that encapsulates a matplotlib figure and handles layout and annotation formatting. You prepare a plot with the :meth:`~.Plotter.plot` method, providing a dict of channel definitions containing waveform samples, any decoded records for annotation, and the title for the plot. Once the ``Plotter`` object is prepared you can either show the result in a matplotlib window or save it to a file.
+Once the sample streams are prepared you are ready to plot. The StreamRecords produced by the protocol decoders contain annotation information useful for plotting. Ripyl provides a :class:`~.Plotter` class that encapsulates a matplotlib figure and handles layout and annotation formatting. You prepare a plot with the :meth:`~.Plotter.plot` method, providing a dict of channel definitions with the waveform samples, any decoded records for annotation, and the title for the plot. Once the ``Plotter`` object is prepared you can either show the result in a matplotlib window or save it to a file.
 
 .. code-block:: python
 
@@ -68,6 +68,8 @@ Once the sample streams are prepared you are ready to plot. Ripyl provides a :cl
     from collections import OrderedDict
 
     noisy_scl, noisy_sda = sim_i2c() # Generate simulated sample streams
+
+    # The decoded records contain annotation information
     records = list(i2c.i2c_decode(iter(noisy_scl), iter(noisy_sda)))
 
     # Define the channels ordered from top to bottom with the y-axis labels
@@ -86,7 +88,7 @@ This produces an interactive plot window:
     :scale: 75%
 
 
-You can save the plot to a file:
+You can save the plot to a file instead:
 
 .. code-block:: python
 
@@ -97,10 +99,10 @@ You can save the plot to a file:
     :scale: 60%
 
 
-The :meth:`~.Plotter.plot` method has a ``label_format`` parameter that controls the default format for annotations. The available formats are defined in the :class:`~.AnnotationFormat` enum:
+The :meth:`~.Plotter.plot` method has a ``label_format`` parameter that controls the default format for the annotation text labels. The available formats are defined in the :class:`~.AnnotationFormat` enum:
 
 Hidden
-    Invisible text label
+    Invisible text label. Only the colored rectangle is drawn
 
 Invisible
     Invisible text label and rectangle
@@ -124,7 +126,7 @@ Small
     Same as String but with smaller text
 
 
-Changing the format to Hex produces this result:
+The ``label_format`` parameter only affects fields that have been annotated to have a general purpose format. Changing the format to Hex produces the following result. Note that the address portion and the ack bits retain their formatting as String and Hidden.
 
 .. code-block:: python
 

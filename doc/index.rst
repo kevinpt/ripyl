@@ -20,7 +20,7 @@ It can process a waveform like this:
 
 .. image:: image/uart_hello_small.png
 
-Using Ripyl is as simple as:
+Using Ripyl is as simple as follows:
 
 .. code-block:: python
 

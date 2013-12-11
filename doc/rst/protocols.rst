@@ -6,18 +6,24 @@ The Ripyl library supports a number of protocols for decoding. Protocol decoders
 
 The base protocols provided with Ripyl are the following:
 
-* :ref:`CAN <can>`
-* :ref:`I2C <i2c>` (also handles SMBus)
-* :ref:`ISO K-line <kline>` (ISO 9141 and ISO 14230 automotive protocols)
-* :ref:`LIN <lin>`
-* :ref:`NEC <nec>`
-* :ref:`PS/2 <ps2>`
-* :ref:`RC5 <rc5>`
-* :ref:`RC6 <rc6>`
-* :ref:`SIRC <sirc>`
-* :ref:`SPI <spi>`
-* :ref:`UART <uart>`
-* :ref:`USB 2.0 <usb>` (all speeds and HSIC support)
+* General purpose
+    * :ref:`Ethernet`
+    * :ref:`I2C <i2c>` (also handles SMBus)
+    * :ref:`PS/2 <ps2>`
+    * :ref:`SPI <spi>`
+    * :ref:`UART <uart>`
+    * :ref:`USB 2.0 <usb>` (all speeds and HSIC support)
+* Automotive
+    * :ref:`CAN <can>`
+    * :ref:`J1850 <j1850>` (Both VPW and PWM variants)
+    * :ref:`LIN <lin>`
+    * :ref:`ISO K-line <kline>` (ISO 9141 and ISO 14230)
+* Infrared
+    * :ref:`NEC <nec>`
+    * :ref:`RC5 <rc5>`
+    * :ref:`RC6 <rc6>`
+    * :ref:`SIRC <sirc>`
+
 
 
 All base level protocols in the library have functions to support the synthesis of arbitrary waveforms. This can be useful for testing or recreating special circumstances that would be challenging to perform with real hardware.
@@ -42,6 +48,15 @@ CAN
 
 The :mod:`can <.protocol.can>` module decodes the CAN protocol. It supports 11-bit and 29-bit identifiers.
 
+
+.. _ethernet:
+
+Ethernet
+--------
+
+The :mod:`ethernet <.protocol.ethernet>` module decodes the Ethernet protocol.
+
+
 .. _i2c:
 
 I\ :sup:`2`\ C
@@ -61,6 +76,14 @@ ISO K-line (ISO 9141 and ISO 14230)
     :scale: 60%
 
 The :mod:`iso_k_line <.protocol.iso_k_line>` module decodes the ISO 9141 and ISO 14230 (KWP2000) automotive protocols. It supports slow and fast init sequences and 3 or 4-byte headers.
+
+
+.. _j1850:
+
+J1850
+-----
+
+The :mod:`j1850 <.protocol.j1850>` module decodes the J1850 automotive protocols. Both the Variable Pulse Width (VPW) and Pulse Width Modulation (PWM) variants are supported.
 
 
 .. _lin:
