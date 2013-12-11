@@ -68,6 +68,7 @@ Supported protocols:
     parser.add_option('-d', '--dropout', dest='dropout', help='Dropout signal from "start,end[,level]"')
     parser.add_option('-t', '--title', dest='title', help='Title for plot')
     parser.add_option('-f', '--figsize', dest='figsize', help='Figure size (w,h) in inches')
+    parser.add_option('-x', '--x-range', dest='xrange', help='X-axis range (start,end)')
     parser.add_option('-l', '--label-names', dest='show_names', action='store_true', default=False, help='Show field names for text labels')
     parser.add_option('-a', '--no-annotation', dest='no_annotation', action='store_true', default=False, help='Disable plot annotation')
     
@@ -88,8 +89,9 @@ Supported protocols:
 
     if options.figsize is not None:
         options.figsize = [float(x) for x in options.figsize.split(',')]
-        
 
+    if options.xrange is not None:
+        options.xrange = [float(x) for x in options.xrange.split(',')]
         
     options.protocol = options.protocol.lower()
 
@@ -1114,7 +1116,8 @@ def demo_ethernet(options):
     frames = [
         ether.EthernetFrame('2:2:3:4:5:6', 'a:b:c:d:e:f', range(66), length_type=0x800 ),
         #ether.EthernetLinkTest(ether.EthernetLinkCode(1,1,1,1,1)),
-        ether.EthernetFrame('1:2:3:4:5:6', 'a:b:c:d:e:f', range(67), tags=[ether.EthernetTag(1, 1)], length_type=0x8100)
+        ether.EthernetFrame('1:2:3:4:5:6', 'a:b:c:d:e:f', range(67), tags=[ether.EthernetTag(0x8100, 1),
+                ether.EthernetTag(0x9100, 2)], length_type=0x800)
     ]
 
     # Synthesize the waveform edge stream
@@ -1137,7 +1140,7 @@ def demo_ethernet(options):
     decode_success = True
     records = []
     try:
-        records_it = ether.ethernet_decode(iter(noisy_samples), tag_num=1)
+        records_it = ether.ethernet_decode(iter(noisy_samples))
         records = list(records_it)
         
     except stream.StreamError as e:
@@ -1290,7 +1293,7 @@ def demo_j1850_pwm(options):
     }
 
     plot_params = {
-        'default_title': 'J1850 VPW Simulation',
+        'default_title': 'J1850 PWM Simulation',
         'label_format': stream.AnnotationFormat.Hex
     }
 
@@ -1326,11 +1329,16 @@ def plot_channels(channels, annotations, options, plot_params, sample_points=Non
         else:
             ylim = None
 
+        if options.xrange is not None:
+            xlim = options.xrange
+        else:
+            xlim = None
+
 
         plotter = rplot.Plotter()
         annotations = None if options.no_annotation else annotations
         plotter.plot(channels, annotations, title, label_format=plot_params['label_format'], show_names=options.show_names, \
-            ylim=ylim)
+            ylim=ylim, xlim=xlim)
 
         if sample_points is not None:
             # Each sample point is a pair with the first element being the start of the bit

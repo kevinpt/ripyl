@@ -101,7 +101,8 @@ class Plotter(object):
         
         return bounds
 
-    def plot(self, channels, annotations=None, title='', label_format=stream.AnnotationFormat.Int, show_names=False, ylim=None):
+    def plot(self, channels, annotations=None, title='', label_format=stream.AnnotationFormat.Int, show_names=False, \
+            ylim=None, xlim=None):
         '''Plot annotated waveform data
 
         channels (dict of string:sample stream)
@@ -123,6 +124,9 @@ class Plotter(object):
 
         ylim (pair of float or None)
             Set lower and upper bound for the y-axes
+
+        xlim (pair of float or None)
+            Set lower and upper bound for the x-axis
 
         '''
 
@@ -169,7 +173,10 @@ class Plotter(object):
         else:
             self.axes[-1].set_ylim(ylim[0], ylim[1])
 
-        self.axes[-1].set_xlim(vectors[ann_chan][1][0], vectors[ann_chan][1][-1])
+        if xlim is None:
+            self.axes[-1].set_xlim(vectors[ann_chan][1][0], vectors[ann_chan][1][-1])
+        else:
+            self.axes[-1].set_xlim(xlim[0], xlim[1])
 
 
 
