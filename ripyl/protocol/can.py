@@ -46,6 +46,19 @@ class CANConfig(Enum):
 class CANTiming(object):
     '''Represent CAN bit timing and adaptive sampling point info'''
     def __init__(self, prop, p1, ipt=2, resync_jump_quanta=None):
+        '''
+        prop (int)
+            Propagataion time in quanta.
+
+        p1 (int)
+            Phase segment 1 time in quanta.
+
+        ipt (int)
+            Information Processing Time in quanta.
+
+        resync_jump_quanta (int or None)
+            The number of quanta to jump by on a resync. Default is minimum of 4 and p1.
+        '''
         self.sync = 1
         self.prop = prop # 1-8 quanta
         self.p1 = p1 # 1-8 quanta
