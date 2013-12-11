@@ -101,14 +101,14 @@ class Plotter(object):
         
         return bounds
 
-    def plot(self, channels, annotations, title='', label_format=stream.AnnotationFormat.Int, show_names=False, ylim=None):
+    def plot(self, channels, annotations=None, title='', label_format=stream.AnnotationFormat.Int, show_names=False, ylim=None):
         '''Plot annotated waveform data
 
         channels (dict of string:sample stream)
             A dict of waveform sample data keyed by the string label
             used for each channel's vertical axis.
 
-        annotations (sequence of StreamRecord)
+        annotations (sequence of StreamRecord or None)
             The annotation data produced by a protocol decoder
 
         title (string)
@@ -212,6 +212,9 @@ class Plotter(object):
     def _plot_patches(self, a, ann_b, ann_ax):
         '''Recursively generate colored rectangles for annotations'''
 
+        if not hasattr(a, 'start_time'): # Not a stream segment
+            return
+
         if a.data_format != stream.AnnotationFormat.Invisible:
             p_start = a.start_time
             p_end = a.end_time
@@ -266,12 +269,14 @@ class Plotter(object):
             label_fields = label.split()
             bl_f = [based_literal.match(f) for f in label_fields]
 
-            if a.data_format == stream.AnnotationFormat.Enum:
+            if applied_format == stream.AnnotationFormat.Enum:
                 label_style_name = 'enum'
-            elif a.data_format == stream.AnnotationFormat.Small:
+            elif applied_format == stream.AnnotationFormat.Small:
                 label_style_name = 'small'
-            elif all(bl_f):
+            elif all(bl_f): # Based literal
+                #print('## based literal', bl_f)
                 label_fields = []
+                label_style_name = 'normal'
                 for bl in bl_f:
                     base = int(bl.groups()[0])
                     if base == 2:
@@ -290,6 +295,7 @@ class Plotter(object):
             else:
                 label_style_name = 'normal'
 
+            #print('## style name:', label_style_name, label_format, a.data_format, applied_format, label)
             ls = label_styles[label_style_name]
 
             weight = 'bold' if ls.bold else 'normal'

@@ -147,10 +147,12 @@ class StreamRecord(object):
         else:
             data_format = self.data_format
 
-        if '_value' in self.fields and (data_format == AnnotationFormat.String or data_format == AnnotationFormat.Enum):
+        #print('## text:', AnnotationFormat(data_format), self.fields.keys(), str(self.data))
+
+        if '_value' in self.fields and (data_format in [AnnotationFormat.String, AnnotationFormat.Small, AnnotationFormat.Enum]):
             return str(self.fields['_value'])
 
-        if data_format == AnnotationFormat.String:
+        if data_format in [AnnotationFormat.String, AnnotationFormat.Small]:
             return str(self.data)
         elif data_format == AnnotationFormat.Enum and '_enum' in self.fields:
             return self.fields['_enum'](self.data)
