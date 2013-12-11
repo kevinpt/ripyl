@@ -54,7 +54,6 @@ class J1850MT(Enum):
     Reserved5 = 5
     Reserved6 = 6
     Reserved7 = 7
-    Reserved8 = 8
 
 # K-bit = 1 (no IFR VPW/GM)
     FunctionCmd = 8
