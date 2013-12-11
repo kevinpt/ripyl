@@ -190,7 +190,7 @@ def manchester_encode(states, bit_period, falling=0, idle_start=0.0, idle_end=0.
 
 
 def diff_encode(bits):
-    '''Convert from unipolar (0, Idle, 1) to differential (-1, 0, 1) encoding
+    '''Convert from unipolar Manchester states (0, Idle, 1) to differential (-1, 0, 1) encoding
 
     bits (iterable of (float, int))
         An edge stream to convert to differential form.
