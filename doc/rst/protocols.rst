@@ -54,7 +54,14 @@ The :mod:`can <.protocol.can>` module decodes the CAN protocol. It supports 11-b
 Ethernet
 --------
 
-The :mod:`ethernet <.protocol.ethernet>` module decodes the Ethernet protocol.
++-------------------------------------------------+----------------------------------------------------+
+| .. figure:: ../image/example/ethernet_start.png | .. figure:: ../image/example/ethernet_end.png      |
+|     :scale: 50%                                 |     :scale: 50%                                    |
+|                                                 |                                                    |
+|     Start of 10base-T frame                     |     End of 10base-T frame                          |
++-------------------------------------------------+----------------------------------------------------+
+
+The :mod:`ethernet <.protocol.ethernet>` module decodes the Ethernet protocol. It supports 10base-T encoding and frames with 802.1Q and 802.1ad tags.
 
 
 .. _i2c:
@@ -83,7 +90,15 @@ The :mod:`iso_k_line <.protocol.iso_k_line>` module decodes the ISO 9141 and ISO
 J1850
 -----
 
-The :mod:`j1850 <.protocol.j1850>` module decodes the J1850 automotive protocols. Both the Variable Pulse Width (VPW) and Pulse Width Modulation (PWM) variants are supported.
++----------------------------------------------+----------------------------------------------------+
+| .. figure:: ../image/example/j1850_vpw.png   | .. figure:: ../image/example/j1850_pwm.png         |
+|     :scale: 50%                              |     :scale: 50%                                    |
+|                                              |                                                    |
+|     VPW protocol                             |     PWM protocol                                   |
++----------------------------------------------+----------------------------------------------------+
+
+
+The :mod:`j1850 <.protocol.j1850>` module decodes the J1850 automotive protocols. Both the 10.4Kbps Variable Pulse Width (VPW) and 41.6Kbps Pulse Width Modulation (PWM) variants are supported.
 
 
 .. _lin:

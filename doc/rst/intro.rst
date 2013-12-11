@@ -41,8 +41,12 @@ You can examine all of the protocols supported by Ripyl with ``ripyl_demo -h``. 
 
 can
   Component Area Network
+ethernet
+  Ethernet 10base-T
 i2c
   Inter-IC (I\ :sup:`2`\ C) bus
+j1850, j1850-pwm
+  J1850 VPW and PWM variants
 kline
   ISO9141 and ISO14230 "K-line" automotive interfaces
 lin

@@ -9,7 +9,7 @@ The Ripyl library comes with a demo program that can plot examples of each suppo
 Get sampled data
 ----------------
 
-For this example we will generate some synthesized I2C waveforms to plot with. This step can be skipped if you already have sampled waveforms ready to plot.
+For this example we will generate some synthesized I\ :sup:`2`\ C waveforms to plot with. This step can be skipped if you already have sampled waveforms ready to plot.
 
 .. code-block:: python
 

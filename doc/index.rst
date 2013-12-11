@@ -35,12 +35,12 @@ The library provides decoded information in an easily traversed tree detailing t
 
 Features include:
     * Multi-protocol support:
-        ======================= ======================== ================== =================
-        :ref:`CAN <can>`        :ref:`HSIC <hsic>`       :ref:`I2C <i2c>`   :ref:`LIN <lin>`
-        :ref:`ISO 9141 <kline>` :ref:`ISO 14230 <kline>` :ref:`NEC <nec>`   :ref:`PS/2 <ps2>`
-        :ref:`RC5 <rc5>`        :ref:`RC6 <rc6>`         :ref:`SIRC <sirc>` :ref:`SPI <spi>`
-        :ref:`UART <uart>`      :ref:`USB 2.0 <usb>`
-        ======================= ======================== ================== =================
+        ======================= ========================== ======================= ========================
+        :ref:`CAN <can>`        :ref:`Ethernet <ethernet>` :ref:`HSIC <hsic>`      :ref:`I2C <i2c>`
+        :ref:`J1850 <j1850>`    :ref:`LIN <lin>`           :ref:`ISO 9141 <kline>` :ref:`ISO 14230 <kline>`
+        :ref:`NEC <nec>`        :ref:`PS/2 <ps2>`          :ref:`RC5 <rc5>`        :ref:`RC6 <rc6>`
+        :ref:`SIRC <sirc>`      :ref:`SPI <spi>`           :ref:`UART <uart>`      :ref:`USB 2.0 <usb>`
+        ======================= ========================== ======================= ========================
     * Protocol simulation
     * Annotated plotting
     * Layering of protocols
