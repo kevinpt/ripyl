@@ -50,7 +50,7 @@ def main():
     '''Entry point for script'''
 
     protocols = ('uart', 'ethernet', 'i2c', 'lm73', 'spi', 'usb', 'usb-diff', 'hsic', 'ps2', \
-                'kline', 'rc5', 'rc6', 'nec', 'sirc', 'can', 'lin', 'j1850', 'j1850_pwm')
+                'kline', 'rc5', 'rc6', 'nec', 'sirc', 'can', 'lin', 'j1850', 'j1850-pwm')
 
     usage = '''%prog [-p PROTOCOL] [-n] [-m MSG]
     
@@ -100,6 +100,9 @@ Supported protocols:
 
         if options.protocol in ('usb-diff', 'hsic'):
             func = 'demo_usb'
+
+        if options.protocol == 'j1850-pwm':
+            func = 'demo_j1850_pwm'
 
         globals()[func](options) # Call the protocol demo routine
     else:
@@ -1173,19 +1176,19 @@ def demo_j1850(options):
     noise_snr = options.snr_db
 
     frames = [
-        j1850.J1850Frame(0, j1850.J1850MT.FunctionRead, [0, 1, 0x55, 0xaa, 2, 3], 0x10, 0xf1, ifr_data=[4,5,6]),
-        j1850.J1850Frame(7, j1850.J1850MT.NodeToNode, [0, 1, 2, 3], 0x10, 0xf1),
-        j1850.J1850Frame(3, j1850.J1850MT.NodeToNode, None, 0x10, 0xf1),
+        j1850.J1850Frame(3, j1850.J1850MT.FunctionCmd, [0x01, 0x00], 0x6a, 0xf1),
         j1850.J1850Break(),
-        j1850.J1850Frame(0, j1850.J1850MT.FunctionCmd, [0, 1, 0x55, 0xaa, 2, 3], 0x10, 0xf1, ifr_data=None)
+        j1850.J1850Frame(3, j1850.J1850MT.FunctionCmd, [0xBE, 0x1E, 0x90, 0x11], 0x6b, 0xd1)
     ]
 
+    #norm_bit = j1850.VPWNormBitStyle.SAE
+    norm_bit = j1850.VPWNormBitStyle.GM
 
     # Synthesize the waveform edge stream
-    edges_it = j1850.j1850_vpw_synth(frames, breaks=[(0, 0.2)], idle_start=2.0e-4, \
-                                    frame_interval=1.0e-3, idle_end=2.0e-4)
+    breaks = None # [(0, 0.2)]
+    edges_it = j1850.j1850_vpw_synth(frames, norm_bit=norm_bit, breaks=breaks, idle_start=2.0e-4, \
+                                    frame_interval=1.0e-3)
 
-    
     # Convert to a sample stream with band-limited edges and noise
     clean_samples_it = sigp.synth_wave(edges_it, sample_rate, rise_time, tau_factor=0.5)
     
@@ -1201,11 +1204,9 @@ def demo_j1850(options):
     decode_success = True
     records = []
     try:
-        records_it = j1850.j1850_vpw_decode(iter(noisy_samples))
+        records_it = j1850.j1850_vpw_decode(iter(noisy_samples), norm_bit=norm_bit)
         records = list(records_it)
-        #for r in records: print(r)
-        #records = []
-        
+
     except stream.StreamError as e:
         print('Decode failed:\n  {}'.format(e))
         decode_success = False
@@ -1242,20 +1243,15 @@ def demo_j1850_pwm(options):
     noise_snr = options.snr_db
 
     frames = [
-        j1850.J1850Frame(0, j1850.J1850MT.NodeToNode, [0, 1, 0x55, 0xaa, 2, 3], 0x10, 0xf1)
+        j1850.J1850Frame(3, j1850.J1850MT.Function, [0x01, 0x00], 0x6a, 0xf1, [0xd1]),
+        j1850.J1850Frame(3, j1850.J1850MT.Broadcast, [0xBE, 0x1E, 0x90, 0x11], 0x6b, 0xd1, [0xf1])
     ]
 
-    print('## Frame bytes:', [hex(b) for b in frames[0].bytes])
-
     # Synthesize the waveform edge stream
-    p, m = j1850.j1850_pwm_synth(frames, idle_start=2.0e-6, \
+    breaks = None #[(0, 0.2)]
+    p, m = j1850.j1850_pwm_synth(frames, breaks=breaks, idle_start=50.0e-6, \
                                     frame_interval=(12 * 8 * 100.0e-9), idle_end=2.0e-6)
 
-    #lp = list(p)
-    #lm = list(m)
-
-    #p = iter(lp)
-    #m = iter(lm)
     
     # Convert to a sample stream with band-limited edges and noise
     clean_p_it = sigp.synth_wave(p, sample_rate, rise_time, tau_factor=0.1)
@@ -1270,16 +1266,14 @@ def demo_j1850_pwm(options):
     # Capture the samples from the iterator
     noisy_p = list(noisy_p_it)
     noisy_m = list(noisy_m_it)
-    #noisy_m = noisy_p
     
 
     # Decode the samples
     decode_success = True
     records = []
     try:
-        #records_it = ether.ethernet_decode(iter(noisy_samples), tag_num=1)
-        #records = list(records_it)
-        records = []
+        records_it = j1850.j1850_pwm_decode(iter(noisy_p))
+        records = list(records_it)
         
     except stream.StreamError as e:
         print('Decode failed:\n  {}'.format(e))
@@ -1301,7 +1295,7 @@ def demo_j1850_pwm(options):
     }
 
     report_results(records, frames, protocol_params, wave_params, decode_success, lambda d, o: (d.data, o) )
-    channels = OrderedDict([('P', noisy_p), ('M', noisy_m)])
+    channels = OrderedDict([('Bus-(V)', noisy_m), ('Bus+(V)', noisy_p)])
     plot_channels(channels, records, options, plot_params)
 
 
@@ -1318,6 +1312,7 @@ def edges_to_waveform(edges, options, sample_rate, rise_time, gain, offset=0.0, 
         noisy_samples = sigp.dropout(noisy_samples, options.dropout[0], options.dropout[1], options.dropout_level)
 
     return noisy_samples
+
 
 def plot_channels(channels, annotations, options, plot_params, sample_points=None):
     if not options.no_plot:
