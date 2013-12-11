@@ -80,6 +80,7 @@ ethertypes = {
 }    
 
 class EthernetTag(object):
+    '''Tag object representing 802.1Q tag'''
     def __init__(self, tpid, tci):
         self.tpid = tpid
         self.tci = tci
@@ -111,7 +112,15 @@ class EthernetTag(object):
 
 
 class MACAddr(object):
+    '''Ethernet MAC address'''
     def __init__(self, addr):
+        '''
+        addr (str or sequence of int)
+            The address can be specified as in two formats: a list of int or a string. The string
+            is a series of hex digits with optional colon separators on byteboundaries.
+
+        Raises ValueError if the address does not contain 6 bytes.
+        '''
         if isinstance(addr, str):
             if ':' in addr:
                 self.bytes = [int(b, 16) for b in addr.split(':')]
@@ -141,12 +150,31 @@ class MACAddr(object):
 
 
 class EthernetFrame(object):
-
+    '''Ethernet frame object'''
     # Ethernet II frame: length_type field >= 0x600 (type code)
     # 802.3 frame: length_type field < 0x600 (length code)
     # 802.3 SNAP frame: 802.3 frame + LLC field = 0xaaaa03
     
     def __init__(self, dest, source, data, length_type=None, tags=None, crc=None):
+        '''
+        dest (MACAddr, str, or sequence of int)
+            The destination address of the frame.
+
+        source (MACAddr, str, or sequence of int)
+            The source address of the frame.
+
+        data (sequence of int)
+            The data for the frame. Padding is not necessary.
+
+        length_type (int or None)
+            The Ethertype / length field. Ethertypes should be >= 0x600.
+
+        tags (sequence of EthernetTag or None)
+            Optional sequence of 802.1Q tags to insert into frame.
+
+        crc (int or None)
+            The decoded CRC for the frame. Leave as None to generate CRC automatically.
+        '''
         if not isinstance(dest, MACAddr):
             dest = MACAddr(dest)
 
@@ -213,7 +241,11 @@ class EthernetFrame(object):
 
     @property
     def bytes(self):
+        '''Get the bytes for this frame.
 
+        Returns a series of bytes representing the header, payload, and CRC. This does not
+        include the SOF and SFD sequence.
+        '''
         tag_bytes = []
         if self.tags is not None:
             for t in self.tags:
@@ -241,6 +273,10 @@ class EthernetFrame(object):
 
 
     def bit_stream(self):
+        '''Get the sequence of raw bits for the frame.
+
+        This includes the SOF and SFD at the start and the IDL phase at end of frame.
+        '''
         for b in [0x55] * 7 + [0xD5]: # SOF + SFD
             for bit in reversed(split_bits(b, 8)):
                 yield bit
@@ -280,15 +316,34 @@ class EthernetFrame(object):
 
 
 class EthernetLinkCode(object):
+    '''Representation of the pulses in a 100Mbps Ethernet autonegotiation'''
     def __init__(self, selector, tech_ability, rem_fault, ack, next_page):
+        '''
+        selector (int)
+            Identify which standard is in use
+
+        tech_ability (int)
+            Technology ability. Identifies posible modes of operation.
+
+        rem_fault (int or bool)
+            Flag indicating a link failure
+
+        ack (int or bool)
+            Flag to indicate reception of the base link code word.
+
+        next_page (int or bool)
+            Flag to indicate intention to send other link code words.
+        '''
         self.selector = selector & 0x1F
         self.tech_ability = tech_ability & 0xFF
-        self.rem_fault = rem_fault & 0x01
-        self.ack = ack & 0x01
-        self.next_page = next_page & 0x01
+
+        self.rem_fault = 1 if rem_fault else 0
+        self.ack = 1 if ack else 0
+        self.next_page = 1 if next_page else 0
 
     @property
     def word(self):
+        '''Generate 16-bit word from the fields'''
         code = self.selector
         code = (code << 8) + self.tech_ability
         code = (code << 1) + self.rem_fault
@@ -357,22 +412,54 @@ class EthernetStreamFrame(stream.StreamSegment):
 
 
 
-def ethernet_decode(rxtx, tag_num=0, logic_levels=None, stream_type=stream.StreamType.Samples):
+def ethernet_decode(rxtx, tag_ethertypes=None, logic_levels=None, stream_type=stream.StreamType.Samples):
+    '''Decode an ethernet data stream
+
+    This is a generator function that can be used in a pipeline of waveform
+    procesing operations.
+
+    Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
+    of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
+    parameter. Sample streams will be analyzed to find edge transitions representing
+    0 and 1 logic states of the waveforms. With sample streams, an initial block of data
+    is consumed to determine the most likely logic levels in the signal.
+
+    rxtx (iterable of SampleChunk objects or (float, int) pairs)
+        A sample stream or edge stream representing a differential ethernet signal.
+
+    tag_ethertypes (sequence of int or None)
+        The ethertypes to use for identifying 802.1Q tags. Default is 0x8100, 0x88a8, and 0x9100.
+
+    logic_levels ((float, float) or None)
+        Optional pair that indicates (low, high) logic levels of the sample
+        stream. When present, auto level detection is disabled. This has no effect on
+        edge streams.
+    
+    stream_type (streaming.StreamType)
+        A StreamType value indicating that the can parameter represents either Samples
+        or Edges
+
+    Yields a series of EthernetStreamFrame objects. Each frame contains subrecords marking the location
+      of sub-elements within the frame. CRC errors are recorded as an error status in their
+      respective subrecords.
+      
+    Raises AutoLevelError if stream_type = Samples and the logic levels cannot
+      be determined.
+    '''
+
     if stream_type == stream.StreamType.Samples:
         if logic_levels is None:
             s_rxtx_it, logic_levels = decode.check_logic_levels(rxtx)
         else:
             s_rxtx_it = rxtx
 
-        #hyst = 0.1
-        #rxtx_it = decode.find_edges(s_rxtx_it, logic_levels, hysteresis=hyst)
         hyst_thresholds = decode.gen_hyst_thresholds(logic_levels, expand=3, hysteresis=0.05)
         rxtx_it = decode.find_multi_edges(s_rxtx_it, hyst_thresholds)
 
     else: # The streams are already lists of edges
         rxtx_it = rxtx
 
-    bit_period = 1.0 / 10.0e6 #FIX
+    bit_period = 1.0 / 10.0e6 #FIX: Detect speed
 
     if stream_type == stream.StreamType.Samples:
         # We needed the bus speed before we could properly strip just
@@ -383,13 +470,13 @@ def ethernet_decode(rxtx, tag_num=0, logic_levels=None, stream_type=stream.Strea
 
     mstates = manchester_decode(rxtx_it, bit_period)
 
-    for r in _ethernet_generic_decode(mstates, tag_num=tag_num):
+    for r in _ethernet_generic_decode(mstates, tag_ethertypes=tag_ethertypes):
         yield r
 
 
 
-def _ethernet_generic_decode(mstates, tag_num):
-
+def _ethernet_generic_decode(mstates, tag_ethertypes):
+    '''Decode Manchester states into ethernet frames'''
     while True:
         try:
             cur_edge = next(mstates)
@@ -427,6 +514,7 @@ def _ethernet_generic_decode(mstates, tag_num):
         prev_bit = cur_edge[1]
         preamble_count = 7*8 + 6 + 1
         # Get alternating 1's and 0's until we see a break in the pattern
+        # that indicates we've reached the SFD.
         while preamble_count > 0:
             try:
                 cur_edge = next(mstates)
@@ -498,21 +586,22 @@ def _ethernet_generic_decode(mstates, tag_num):
         #print('## got bytes:', ['{:02x}'.format(b) for b in frame_bytes])
 
         # Create frame object
-        tags = []
-        if tag_num > 0:
-            # Verify that the ethertype is correct for tagged frames
-            lt_start = 12 + tag_num * 4
-            length_type = frame_bytes[lt_start] * 256 + frame_bytes[lt_start + 1]
+        if tag_ethertypes is None:
+            tag_ethertypes = [0x8100, 0x88a8, 0x9100]
 
-            if length_type == 0x8100: # 802.1Q ethertype
-                for i in xrange(tag_num):
-                    tpid = frame_bytes[12 + i*4] * 256 + frame_bytes[12 + i*4 + 1]
-                    tci = frame_bytes[12 + i*4 + 2] * 256 + frame_bytes[12 + i*4 + 3]
-                    tags.append(EthernetTag(tpid, tci))
+        tags = []
+
+        lt_start = 12
+        length_type = frame_bytes[lt_start] * 256 + frame_bytes[lt_start + 1]
+        while length_type in tag_ethertypes: # This is a tag
+            tpid = length_type
+            tci = frame_bytes[lt_start + 2] * 256 + frame_bytes[lt_start + 3]
+            tags.append(EthernetTag(tpid, tci))
+
+            lt_start += 4
+            length_type = frame_bytes[lt_start] * 256 + frame_bytes[lt_start + 1]
 
         if len(tags) == 0: # No tags
-            lt_start = 12
-            length_type = frame_bytes[lt_start] * 256 + frame_bytes[lt_start + 1]
             tags = None
 
         data_bytes = frame_bytes[lt_start+2:-4]
@@ -529,11 +618,11 @@ def _ethernet_generic_decode(mstates, tag_num):
 
         bounds = (byte_start_times[0], byte_start_times[6])
         sf.subrecords.append(stream.StreamSegment(bounds, str(ef.dest), kind='dest'))
-        sf.subrecords[-1].annotate('addr', {'_bits':48}, stream.AnnotationFormat.String)
+        sf.subrecords[-1].annotate('addr', {'_bits':48}, stream.AnnotationFormat.Small)
 
         bounds = (byte_start_times[6], byte_start_times[12])
         sf.subrecords.append(stream.StreamSegment(bounds, str(ef.source), kind='source'))
-        sf.subrecords[-1].annotate('addr', {'_bits':48}, stream.AnnotationFormat.String)
+        sf.subrecords[-1].annotate('addr', {'_bits':48}, stream.AnnotationFormat.Small)
 
         # Tags
         if tags is not None:
@@ -552,7 +641,7 @@ def _ethernet_generic_decode(mstates, tag_num):
                 value = ethertypes[length_type]
             else:
                 value = 'Unknown: {:04X}'.format(length_type)
-            text_format = stream.AnnotationFormat.String
+            text_format = stream.AnnotationFormat.Small
         else:
             kind = 'length'
             value = length_type
@@ -581,7 +670,10 @@ def add_overshoot(bits, duration, overshoot=0.75, undershoot=0.8):
     '''Add simulated overshoot to an edge stream
 
     This function is intended to simulate the overshoot behavior produced by the
-    output drivers and magnetics of 10Base-T ethernet.
+    output drivers and magnetics of 10Base-T ethernet. This is done crudely by scaling
+    the edge stream values by the overshoot and undershoot factors. This results in a
+    non-standard edge stream that can be processed by synth_wave() to create a
+    realistic sampled waveform but is otherwise not useful.
 
     bits (iterable of (float, int))
         A differential edge stream to add overshoot to.
@@ -672,8 +764,6 @@ def ethernet_synth(frames, overshoot=None, idle_start=0.0, frame_interval=0.0, i
             frame_its.append(diff_encode(edges))
 
     return sigp.chain_edges(frame_interval, *frame_its)
-
-
 
 
 
