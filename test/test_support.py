@@ -33,6 +33,7 @@ import random
 import time
 import gc
 from ripyl.util.eng import eng_si
+import ripyl.util.color as color
 
 
 def relativelyEqual(a, b, epsilon):
@@ -67,7 +68,7 @@ class RandomSeededTestCase(unittest.TestCase):
             random.seed()
             seed = long(random.random() * 1e9)
 
-        print('\n * Random seed: {} *'.format(seed))
+        print(color.note('\n * Random seed: {} *'.format(seed)))
         random.seed(seed)
 
     def update_progress(self, cur_trial, dotted=True):
