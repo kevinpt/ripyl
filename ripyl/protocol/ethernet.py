@@ -31,6 +31,8 @@ from ripyl.util.enum import Enum
 from ripyl.util.bitops import split_bits, join_bits
 from ripyl.manchester import manchester_encode, manchester_decode, ManchesterStates, diff_encode
 from copy import copy
+import itertools
+from ripyl.util.eng import eng_si
 
 
 ethertypes = {
@@ -264,7 +266,6 @@ class EthernetFrame(object):
         crc = table_ethernet_crc32(check_bytes)
         crc_bytes = [0] * 4
 
-        # FIX: verify byte order
         for i in xrange(4):
             crc_bytes[i] = crc & 0xFF
             crc >>= 8
@@ -445,6 +446,7 @@ def ethernet_decode(rxtx, tag_ethertypes=None, logic_levels=None, stream_type=st
       
     Raises AutoLevelError if stream_type = Samples and the logic levels cannot
       be determined.
+    Raises StreamError if ethernet speed cannot be determined.
     '''
 
     if stream_type == stream.StreamType.Samples:
@@ -456,10 +458,43 @@ def ethernet_decode(rxtx, tag_ethertypes=None, logic_levels=None, stream_type=st
         hyst_thresholds = decode.gen_hyst_thresholds(logic_levels, expand=3, hysteresis=0.05)
         rxtx_it = decode.find_multi_edges(s_rxtx_it, hyst_thresholds)
 
+        #print('## logic levels:', logic_levels, hyst_thresholds)
+
     else: # The streams are already lists of edges
         rxtx_it = rxtx
 
-    bit_period = 1.0 / 10.0e6 #FIX: Detect speed
+    # Detect speed of ethernet
+    buf_edges = 150
+    min_edges = 100
+    # tee off an iterator to determine speed class
+    rxtx_it, speed_check_it = itertools.tee(rxtx_it)
+
+    # Remove Diff-0's #FIX: need to modify to work with 100Mb and 1Gb Enet
+    speed_check_it = (edge for edge in speed_check_it if edge[1] != 0)
+
+
+    symbol_rate_edges = itertools.islice(speed_check_it, buf_edges)
+    
+    # We need to ensure that we can pull out enough edges from the iterator slice
+    # Just consume them all for a count        
+    sre_list = list(symbol_rate_edges)
+    if len(sre_list) < min_edges:
+        raise stream.StreamError('Unable to determine Ethernet speed (not enough edge transitions)')
+    del speed_check_it
+        
+    #print('## sym. rate edges len:', len(sre_list))
+    
+    raw_symbol_rate = decode.find_symbol_rate(iter(sre_list), spectra=2)
+    #print('### raw sym rate:', raw_symbol_rate)
+
+    # For 10baseT (10MHz Manchester) the symbol rate will be 20MHz
+    # For 100BaseTX the symbol rate will be 31.25MHz?
+
+    if raw_symbol_rate < 25e6:
+        bit_period = 1.0 / 10.0e6
+    else:
+        raise stream.StreamError('Unsupported Ethernet speed: {}'.format(eng_si(raw_symbol_rate, 'Hz')))
+
 
     if stream_type == stream.StreamType.Samples:
         # We needed the bus speed before we could properly strip just
@@ -746,7 +781,7 @@ def ethernet_synth(frames, overshoot=None, idle_start=0.0, frame_interval=0.0, i
     Yields an edge stream of (float, int) pairs. The first element in the iterator
       is the initial state of the stream.
     '''
-    bit_period = 1.0 / 10.0e6 #FIX
+    bit_period = 1.0 / 10.0e6 #FIX set speed
 
     frame_its = []
     for i, frame in enumerate(frames):
