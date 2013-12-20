@@ -376,17 +376,28 @@ def find_logic_levels(samples, max_samples=20000, buf_size=2000):
     # enough to permit edge detection in the next stage.
 
     # The test for edges present will also fail when the initial samples are a periodic signal
-    # with a short period relative to the sample rate. To cover this case we perform an FFT
-    # and look for any peaks in the spectrum beyond the first DC-level peak.
-    fft_edges_present = False
+    # with a short period relative to the sample rate. To cover this case we compute an
+    # auto-correlation and look for more than one peak indicating the presence of periodicity.
+    acorr_edges_present = False
     if not edges_present:
-        nf_fft = np.abs(np.fft.rfft(noise_filtered * np.hanning(len(noise_filtered))))
-        fft_peaks = find_hist_peaks(nf_fft, thresh_scale=1.0)
-        if len(fft_peaks) > 1:
-            fft_edges_present = True
-        #print('\n$$$ FFT peaks:', fft_peaks)
-        #plt.plot(nf_fft)
-        #plt.plot(noise_filtered * np.hanning(len(noise_filtered)))
+        norm_noise_filt = noise_filtered - np.mean(noise_filtered)
+        auto_corr = np.correlate(norm_noise_filt, norm_noise_filt, 'same')
+
+        ac_max = np.max(auto_corr)
+        if ac_max > 0.0:
+            # Take the right half of the auto-correlation and normalize to 1000.0
+            norm_ac = auto_corr[len(auto_corr)//2:] / ac_max * 1000.0
+            ac_peaks = find_hist_peaks(norm_ac, thresh_scale=1.0)
+            if len(ac_peaks) > 1:
+                p1_max = np.max(norm_ac[ac_peaks[1][0]:ac_peaks[1][1]+1])
+                #print('$$$ p1 max:', p1_max)
+                if p1_max > 500.0:
+                    acorr_edges_present = True
+
+        #print('\n$$$ auto-correlation peaks:', ac_peaks, acorr_edges_present)
+
+        #plt.plot(et_samples)
+        #plt.plot(norm_ac)
         #plt.show()
 
 
@@ -395,7 +406,7 @@ def find_logic_levels(samples, max_samples=20000, buf_size=2000):
     #os.accumulate(rev_mvavg)
     #rev_mvavg = [abs(x - os.mean()) for x in rev_mvavg]
 
-    if edges_present or fft_edges_present:
+    if edges_present or acorr_edges_present:
         #edge_threshold = max(mad2) * 0.75
         edge_threshold = max(mvavg_diff) * 0.6
     else:
@@ -403,7 +414,7 @@ def find_logic_levels(samples, max_samples=20000, buf_size=2000):
         #edge_threshold = max(mad2) * 10
         edge_threshold = max(mvavg_diff) * 5
 
-    #print('$$$ edges present:', edges_present, fft_edges_present, edge_threshold)
+    #print('$$$ edges present:', edges_present, acorr_edges_present, edge_threshold)
 
 	# For synthetic waveforms with no noise present and no edges in the initial samples we will
 	# get an edge_threshold of 0.0. In this case we will just set the threshold high enough to
@@ -420,7 +431,7 @@ def find_logic_levels(samples, max_samples=20000, buf_size=2000):
     # again. This time, any difference above the threshold will be an indicator of an edge
     # transition.
 
-    if fft_edges_present:
+    if acorr_edges_present:
         samp_cex = ChunkExtractor(samp_it)
         buf = samp_cex.next_samples(buf_size)
         state = S_FINISH_BUF
