@@ -105,7 +105,7 @@ class TestPerformance(unittest.TestCase):
         samples = list(sigp.synth_wave(iter(edges), sample_rate, sigp.min_rise_time(sample_rate) * 6.0, \
             logic_states=(-1, 1), chunk_size=10000))
 
-        hyst_thresh = decode.gen_hyst_thresholds((0.0, 0.5, 1.0), 0.4)
+        hyst_thresh = decode.gen_hyst_thresholds((0.0, 0.5, 1.0), hysteresis=0.4)
 
 
         self._t_start = time.time()
