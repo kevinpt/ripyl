@@ -99,7 +99,7 @@ class TestJ1850Funcs(tsup.RandomSeededTestCase):
                         print('  ', repr(r.data))
                 self.assertEqual(r.data, o, 'Frames are different')
 
-
+    #@unittest.skip('debugging')
     def test_j1850_pwm_decode(self):
         self.test_name = 'J1850 PWM frame'
         self.trial_count = 100
@@ -131,4 +131,18 @@ class TestJ1850Funcs(tsup.RandomSeededTestCase):
                 self.assertEqual(r.data, o, 'Frames are different')
 
 
+    #@unittest.skip('debugging')
+    def test_j1850_sample_data(self):
+    
+        # Read files containing frames
+        dp_samples, sample_period, start_time = tsup.read_bin_file('test/data/j1850_pwm_1p.bin')
+        dp_it = stream.samples_to_sample_stream(dp_samples, sample_period, start_time)
+
+        records = list(j1850.j1850_pwm_decode(dp_it))
+        
+        #print('### decoded records:', len(records))
+        #for r in records:
+        #    print(r.data)
+        self.assertEqual(len(records), 9, 'Missing records, expected to decode 9')
+        
 
