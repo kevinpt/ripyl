@@ -25,6 +25,14 @@ ripyl Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`manchester` Module
+------------------------
+
+.. automodule:: ripyl.manchester
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`sigproc` Module
 ---------------------
 
@@ -54,6 +62,8 @@ Subpackages
 
 .. toctree::
 
+    ripyl.cython
+    ripyl.io
     ripyl.protocol
     ripyl.util
 

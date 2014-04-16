@@ -34,7 +34,7 @@ util Package
     :show-inheritance:
 
 :mod:`equality` Module
-------------------
+----------------------
 
 .. automodule:: ripyl.util.equality
     :members:
@@ -56,5 +56,4 @@ util Package
     :members:
     :undoc-members:
     :show-inheritance:
-
 

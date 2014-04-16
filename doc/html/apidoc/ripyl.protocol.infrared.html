@@ -25,6 +25,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="Ripyl 1.2 documentation" href="../index.html" />
     <link rel="up" title="protocol Package" href="ripyl.protocol.html" />
     <link rel="next" title="util Package" href="ripyl.util.html" />
@@ -186,6 +187,11 @@
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>NEC infrared message</p>
 <dl class="method">
+<dt id="ripyl.protocol.infrared.nec.NECMessage.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>cmd</em>, <em>addr_low</em>, <em>addr_high=None</em>, <em>cmd_inv=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.nec.NECMessage.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="ripyl.protocol.infrared.nec.NECMessage.is_valid">
 <tt class="descname">is_valid</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.nec.NECMessage.is_valid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return True if the command check byte is correct</p>
@@ -199,6 +205,11 @@
 <dd><p>Bases: <a class="reference internal" href="#ripyl.protocol.infrared.nec.NECMessage" title="ripyl.protocol.infrared.nec.NECMessage"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.protocol.infrared.nec.NECMessage</span></tt></a></p>
 <p>NEC infrared repeat command</p>
 <dl class="method">
+<dt id="ripyl.protocol.infrared.nec.NECRepeat.__init__">
+<tt class="descname">__init__</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.nec.NECRepeat.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="ripyl.protocol.infrared.nec.NECRepeat.is_valid">
 <tt class="descname">is_valid</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.nec.NECRepeat.is_valid" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -210,6 +221,11 @@
 <em class="property">class </em><tt class="descclassname">ripyl.protocol.infrared.nec.</tt><tt class="descname">NECStreamMessage</tt><big>(</big><em>bounds</em>, <em>data=None</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.nec.NECStreamMessage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="ripyl.html#ripyl.streaming.StreamSegment" title="ripyl.streaming.StreamSegment"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamSegment</span></tt></a></p>
 <p>Message object for NEC data</p>
+<dl class="method">
+<dt id="ripyl.protocol.infrared.nec.NECStreamMessage.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>bounds</em>, <em>data=None</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.nec.NECStreamMessage.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="function">
@@ -286,6 +302,11 @@ is the initial state of the stream.</p>
 <em class="property">class </em><tt class="descclassname">ripyl.protocol.infrared.rc5.</tt><tt class="descname">RC5Message</tt><big>(</big><em>cmd</em>, <em>addr</em>, <em>toggle</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.rc5.RC5Message" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>RC-5 infrared message</p>
+<dl class="method">
+<dt id="ripyl.protocol.infrared.rc5.RC5Message.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>cmd</em>, <em>addr</em>, <em>toggle</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.rc5.RC5Message.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -293,6 +314,11 @@ is the initial state of the stream.</p>
 <em class="property">class </em><tt class="descclassname">ripyl.protocol.infrared.rc5.</tt><tt class="descname">RC5StreamMessage</tt><big>(</big><em>bounds</em>, <em>data=None</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.rc5.RC5StreamMessage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="ripyl.html#ripyl.streaming.StreamSegment" title="ripyl.streaming.StreamSegment"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamSegment</span></tt></a></p>
 <p>Message object for RC-5 data</p>
+<dl class="method">
+<dt id="ripyl.protocol.infrared.rc5.RC5StreamMessage.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>bounds</em>, <em>data=None</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.rc5.RC5StreamMessage.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="function">
@@ -371,6 +397,11 @@ Only mode-0 and mode-6 (RC6A) is properly supported by this decoder.</p>
 <em class="property">class </em><tt class="descclassname">ripyl.protocol.infrared.rc6.</tt><tt class="descname">RC6Message</tt><big>(</big><em>cmd</em>, <em>addr</em>, <em>toggle</em>, <em>mode=0</em>, <em>customer=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.rc6.RC6Message" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>RC-6 infrared message</p>
+<dl class="method">
+<dt id="ripyl.protocol.infrared.rc6.RC6Message.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>cmd</em>, <em>addr</em>, <em>toggle</em>, <em>mode=0</em>, <em>customer=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.rc6.RC6Message.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -378,6 +409,11 @@ Only mode-0 and mode-6 (RC6A) is properly supported by this decoder.</p>
 <em class="property">class </em><tt class="descclassname">ripyl.protocol.infrared.rc6.</tt><tt class="descname">RC6StreamMessage</tt><big>(</big><em>bounds</em>, <em>data=None</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.rc6.RC6StreamMessage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="ripyl.html#ripyl.streaming.StreamSegment" title="ripyl.streaming.StreamSegment"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamSegment</span></tt></a></p>
 <p>Message object for RC-6 data</p>
+<dl class="method">
+<dt id="ripyl.protocol.infrared.rc6.RC6StreamMessage.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>bounds</em>, <em>data=None</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.rc6.RC6StreamMessage.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="function">
@@ -454,6 +490,11 @@ is the initial state of the stream.</p>
 <em class="property">class </em><tt class="descclassname">ripyl.protocol.infrared.sirc.</tt><tt class="descname">SIRCMessage</tt><big>(</big><em>cmd</em>, <em>device</em>, <em>extended=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.sirc.SIRCMessage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>SIRC infrared message</p>
+<dl class="method">
+<dt id="ripyl.protocol.infrared.sirc.SIRCMessage.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>cmd</em>, <em>device</em>, <em>extended=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.sirc.SIRCMessage.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -461,6 +502,11 @@ is the initial state of the stream.</p>
 <em class="property">class </em><tt class="descclassname">ripyl.protocol.infrared.sirc.</tt><tt class="descname">SIRCStreamMessage</tt><big>(</big><em>bounds</em>, <em>data=None</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.sirc.SIRCStreamMessage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="ripyl.html#ripyl.streaming.StreamSegment" title="ripyl.streaming.StreamSegment"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamSegment</span></tt></a></p>
 <p>Stream message object for SIRC data</p>
+<dl class="method">
+<dt id="ripyl.protocol.infrared.sirc.SIRCStreamMessage.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>bounds</em>, <em>data=None</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.sirc.SIRCStreamMessage.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="function">
@@ -602,9 +648,22 @@ is the initial state of the stream.</p>
           <li><a href="ripyl.protocol.html" >protocol Package</a> &raquo;</li> 
       </ul>
     </div>
+
     <div class="footer">
         &copy; Copyright 2013, Kevin Thibedeau.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
+
+<script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-43149311-1', 'google.com');
+  ga('send', 'pageview');
+
+</script>
+
   </body>
 </html>

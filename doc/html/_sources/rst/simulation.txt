@@ -164,7 +164,8 @@ The signal processing operations can be combined together in sequence to perform
     c = tau / r
 
     proc_samples = sigp.dropout(iter(pulse_samples), start_time=1.5, end_time=1.7)
-    proc_samples = sigp.filter_waveform(sigp.capacify(proc_samples, c, r), sample_rate=sample_rate, rise_time=rt)
+    proc_samples = sigp.filter_waveform(sigp.capacify(proc_samples, c, r), \
+                                        sample_rate=sample_rate, rise_time=rt)
     proc_samples = sigp.quantize(sigp.noisify(proc_samples, snr_db=20.0), full_scale=20.0)
     proc_samples = sigp.amplify(proc_samples, gain=5.0)
 

@@ -25,6 +25,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="Ripyl 1.2 documentation" href="#" />
     <link rel="next" title="Installing Ripyl" href="rst/installation.html" /> 
   </head>
@@ -61,6 +62,15 @@ advanced protocols.</p>
 <img alt="_images/uart_plain.png" src="_images/uart_plain.png" />
 <p>... and produce an annotated result like this:</p>
 <img alt="_images/uart_hello_small.png" src="_images/uart_hello_small.png" />
+<p>Using Ripyl is as simple as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">ripyl</span>
+<span class="kn">import</span> <span class="nn">ripyl.protocol.uart</span> <span class="kn">as</span> <span class="nn">uart</span>
+
+<span class="n">raw_samples</span><span class="p">,</span> <span class="n">sample_period</span> <span class="o">=</span> <span class="n">read_samples_from_your_oscilloscope</span><span class="p">()</span>
+<span class="n">txd</span> <span class="o">=</span> <span class="n">ripyl</span><span class="o">.</span><span class="n">streaming</span><span class="o">.</span><span class="n">samples_to_sample_stream</span><span class="p">(</span><span class="n">raw_samples</span><span class="p">,</span> <span class="n">sample_period</span><span class="p">)</span>
+<span class="n">records</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">uart</span><span class="o">.</span><span class="n">uart_decode</span><span class="p">(</span><span class="n">txd</span><span class="p">,</span> <span class="n">bits</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">parity</span><span class="o">=</span><span class="s">&#39;even&#39;</span><span class="p">,</span> <span class="n">stop_bits</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
 <p>The library provides decoded information in an easily traversed tree detailing the time and data for each sub-element of a protocol transmission. In the example above you can see the individual frames along with the highlighted data and parity bits within each frame. The status of parity is verified as are checksums and CRCs used in other protocols.</p>
 <dl class="docutils">
 <dt>Features include:</dt>
@@ -69,45 +79,47 @@ advanced protocols.</p>
 <dt>Multi-protocol support:</dt>
 <dd><table border="1" class="first last docutils">
 <colgroup>
-<col width="28%" />
-<col width="29%" />
-<col width="22%" />
-<col width="21%" />
+<col width="24%" />
+<col width="27%" />
+<col width="24%" />
+<col width="25%" />
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><p class="first last"><a class="reference internal" href="rst/protocols.html#can"><em>CAN</em></a></p>
+</td>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#ethernet"><em>Ethernet</em></a></p>
 </td>
 <td><p class="first last"><a class="reference internal" href="rst/protocols.html#hsic"><em>HSIC</em></a></p>
 </td>
 <td><p class="first last"><a class="reference internal" href="rst/protocols.html#i2c"><em>I2C</em></a></p>
 </td>
+</tr>
+<tr class="row-even"><td><p class="first last"><a class="reference internal" href="rst/protocols.html#j1850"><em>J1850</em></a></p>
+</td>
 <td><p class="first last"><a class="reference internal" href="rst/protocols.html#lin"><em>LIN</em></a></p>
 </td>
-</tr>
-<tr class="row-even"><td><p class="first last"><a class="reference internal" href="rst/protocols.html#kline"><em>ISO 9141</em></a></p>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#kline"><em>ISO 9141</em></a></p>
 </td>
 <td><p class="first last"><a class="reference internal" href="rst/protocols.html#kline"><em>ISO 14230</em></a></p>
 </td>
-<td><p class="first last"><a class="reference internal" href="rst/protocols.html#nec"><em>NEC</em></a></p>
+</tr>
+<tr class="row-odd"><td><p class="first last"><a class="reference internal" href="rst/protocols.html#nec"><em>NEC</em></a></p>
 </td>
 <td><p class="first last"><a class="reference internal" href="rst/protocols.html#ps2"><em>PS/2</em></a></p>
 </td>
-</tr>
-<tr class="row-odd"><td><p class="first last"><a class="reference internal" href="rst/protocols.html#rc5"><em>RC5</em></a></p>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#rc5"><em>RC5</em></a></p>
 </td>
 <td><p class="first last"><a class="reference internal" href="rst/protocols.html#rc6"><em>RC6</em></a></p>
 </td>
-<td><p class="first last"><a class="reference internal" href="rst/protocols.html#sirc"><em>SIRC</em></a></p>
+</tr>
+<tr class="row-even"><td><p class="first last"><a class="reference internal" href="rst/protocols.html#sirc"><em>SIRC</em></a></p>
 </td>
 <td><p class="first last"><a class="reference internal" href="rst/protocols.html#spi"><em>SPI</em></a></p>
 </td>
-</tr>
-<tr class="row-even"><td><p class="first last"><a class="reference internal" href="rst/protocols.html#uart"><em>UART</em></a></p>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#uart"><em>UART</em></a></p>
 </td>
 <td><p class="first last"><a class="reference internal" href="rst/protocols.html#usb"><em>USB 2.0</em></a></p>
 </td>
-<td>&nbsp;</td>
-<td>&nbsp;</td>
 </tr>
 </tbody>
 </table>
@@ -128,7 +140,7 @@ advanced protocols.</p>
 </div>
 <div class="section" id="getting-started">
 <h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
-<p>If you are new to Ripyl you can get started by reviewing the <a class="reference internal" href="rst/intro.html"><em>introductory guide</em></a> and following the <a class="reference internal" href="rst/tutorial.html"><em>tutorial</em></a>.</p>
+<p>If you are new to Ripyl you can get started by reviewing the <a class="reference internal" href="rst/intro.html"><em>introductory guide</em></a> and following the <a class="reference internal" href="rst/tut_beginner.html"><em>beginner&#8217;s tutorial</em></a>.</p>
 </div>
 <div class="section" id="contents">
 <h1>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h1>
@@ -145,15 +157,11 @@ advanced protocols.</p>
 <li class="toctree-l2"><a class="reference internal" href="rst/intro.html#ripyl-demonstration">Ripyl demonstration</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="rst/tutorial.html">Ripyl tutorial</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="rst/tutorial.html#prepare-your-data">Prepare your data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rst/tutorial.html#decode-your-data">Decode your data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rst/tutorial.html#analyze-the-results">Analyze the results</a></li>
-<li class="toctree-l2"><a class="reference internal" href="rst/tutorial.html#what-could-go-wrong">What could go wrong?</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="rst/tutorial.html">Ripyl tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rst/reading_data.html">Reading oscilloscope data</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="rst/reading_data.html#lecroy">LeCroy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/reading_data.html#rigol">Rigol</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/reading_data.html#tektronix">Tektronix</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="rst/data_structures.html">Common data structures</a><ul>
@@ -164,8 +172,10 @@ advanced protocols.</p>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="rst/protocols.html">Ripyl protocols</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#can">CAN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#ethernet">Ethernet</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#i2c">I<sup>2</sup>C</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#iso-k-line-iso-9141-and-iso-14230">ISO K-line (ISO 9141 and ISO 14230)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#j1850">J1850</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#lin">LIN</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#lm73">LM73</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#nec-infrared">NEC Infrared</a></li>
@@ -258,9 +268,22 @@ advanced protocols.</p>
         <li><a href="#">Ripyl 1.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
+
     <div class="footer">
         &copy; Copyright 2013, Kevin Thibedeau.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
+
+<script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-43149311-1', 'google.com');
+  ga('send', 'pageview');
+
+</script>
+
   </body>
 </html>

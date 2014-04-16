@@ -25,6 +25,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="Ripyl 1.2 documentation" href="../index.html" />
     <link rel="next" title="ripyl" href="../apidoc/modules.html" />
     <link rel="prev" title="Ripyl protocols" href="protocols.html" /> 
@@ -108,9 +109,7 @@
 </div>
 <div class="section" id="quantize">
 <h3>Quantize<a class="headerlink" href="#quantize" title="Permalink to this headline">¶</a></h3>
-<p>The <a class="reference internal" href="../apidoc/ripyl.html#ripyl.sigproc.quantize" title="ripyl.sigproc.quantize"><tt class="xref py py-func docutils literal"><span class="pre">quantize()</span></tt></a> function simulates the effect of ADC sample quantization by restricting samples to discrete levels. It is best visualized when used in conjunction with <cite>noisify()</cite>. The <cite>full_scale</cite> parameter specifies the voltage range of the ADC. Along with the specified number of ADC bits (default is 8) the discrete levels are separated by <math xmlns="http://www.w3.org/1998/Math/MathML">
-<mrow><mtext>full_scale</mtext><mo>/</mo><msup><mn>2</mn>
-<mrow><mi>b</mi><mi>i</mi><mi>t</mi><mi>s</mi></mrow></msup></mrow></math> volts. The output will not be clipped if the input levels extend beyond the range of <cite>full_scale</cite>. When this happens the effective number of bits is greater than what is specified with the <cite>bits</cite> parameter.</p>
+<p>The <a class="reference internal" href="../apidoc/ripyl.html#ripyl.sigproc.quantize" title="ripyl.sigproc.quantize"><tt class="xref py py-func docutils literal"><span class="pre">quantize()</span></tt></a> function simulates the effect of ADC sample quantization by restricting samples to discrete levels. It is best visualized when used in conjunction with <cite>noisify()</cite>. The <cite>full_scale</cite> parameter specifies the voltage range of the ADC. Along with the specified number of ADC bits (default is 8) the discrete levels are separated by <span class="math">\(\text{full_scale} / 2^{bits}\)</span> volts. The output will not be clipped if the input levels extend beyond the range of <cite>full_scale</cite>. When this happens the effective number of bits is greater than what is specified with the <cite>bits</cite> parameter.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># The input pulse spans 0.0V to 1.0V (before noise). A 30V range means that an 8-bit ADC</span>
 <span class="c"># will quantize to 30.0 / 2**8 = 117mV steps.</span>
 <span class="n">proc_samples</span> <span class="o">=</span> <span class="n">sigp</span><span class="o">.</span><span class="n">quantize</span><span class="p">(</span><span class="n">sigp</span><span class="o">.</span><span class="n">noisify</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">pulse_samples</span><span class="p">),</span> <span class="n">snr_db</span><span class="o">=</span><span class="mf">20.0</span><span class="p">),</span> <span class="n">full_scale</span><span class="o">=</span><span class="mf">30.0</span><span class="p">)</span>
@@ -120,8 +119,7 @@
 </div>
 <div class="section" id="filter-waveform">
 <h3>Filter waveform<a class="headerlink" href="#filter-waveform" title="Permalink to this headline">¶</a></h3>
-<p>The <a class="reference internal" href="../apidoc/ripyl.html#ripyl.sigproc.filter_waveform" title="ripyl.sigproc.filter_waveform"><tt class="xref py py-func docutils literal"><span class="pre">filter_waveform()</span></tt></a> function performs a low-pass FFT on a sample stream. The filter parameters are specified with a <cite>sample_rate</cite> and a <cite>rise_time</cite> parameter that sets the approximate edge rate for the rising and falling edges. A Kaiser window function is used to generate filter coefficients. The <a class="reference internal" href="../apidoc/ripyl.html#ripyl.sigproc.min_rise_time" title="ripyl.sigproc.min_rise_time"><tt class="xref py py-func docutils literal"><span class="pre">min_rise_time()</span></tt></a> helper function provides the minimum rise time value for a given sample rate for a system with gaussian response (<math xmlns="http://www.w3.org/1998/Math/MathML">
-<mrow><mtext>rise_time</mtext><mo>≈</mo><mn>0</mn><mo>.</mo><mn>3</mn><mn>5</mn><mo>/</mo><mi>B</mi><mi>W</mi></mrow></math>).</p>
+<p>The <a class="reference internal" href="../apidoc/ripyl.html#ripyl.sigproc.filter_waveform" title="ripyl.sigproc.filter_waveform"><tt class="xref py py-func docutils literal"><span class="pre">filter_waveform()</span></tt></a> function performs a low-pass FFT on a sample stream. The filter parameters are specified with a <cite>sample_rate</cite> and a <cite>rise_time</cite> parameter that sets the approximate edge rate for the rising and falling edges. A Kaiser window function is used to generate filter coefficients. The <a class="reference internal" href="../apidoc/ripyl.html#ripyl.sigproc.min_rise_time" title="ripyl.sigproc.min_rise_time"><tt class="xref py py-func docutils literal"><span class="pre">min_rise_time()</span></tt></a> helper function provides the minimum rise time value for a given sample rate for a system with gaussian response (<span class="math">\(\text{rise_time} \approx 0.35 / BW\)</span>).</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">rt</span> <span class="o">=</span> <span class="n">sigp</span><span class="o">.</span><span class="n">min_rise_time</span><span class="p">(</span><span class="n">sample_rate</span><span class="p">)</span> <span class="o">*</span> <span class="mf">20.0</span>
 <span class="n">proc_samples</span> <span class="o">=</span> <span class="n">sigp</span><span class="o">.</span><span class="n">filter_waveform</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">pulse_samples</span><span class="p">),</span> <span class="n">sample_rate</span><span class="o">=</span><span class="n">sample_rate</span><span class="p">,</span> <span class="n">rise_time</span><span class="o">=</span><span class="n">rt</span><span class="p">)</span>
 </pre></div>
@@ -131,45 +129,9 @@
 <div class="section" id="capacify">
 <h3>Capacify<a class="headerlink" href="#capacify" title="Permalink to this headline">¶</a></h3>
 <p>The <a class="reference internal" href="../apidoc/ripyl.html#ripyl.sigproc.capacify" title="ripyl.sigproc.capacify"><tt class="xref py py-func docutils literal"><span class="pre">capacify()</span></tt></a> function simulates a first-order RC filter applied to a sample stream. The result is rising and falling edges that exhibit exponential decay. This function iteratively computes the capacitor voltage to simulate the filter output for each sample. The default number of iterations is 80. If the iterations is set too low the output can exhibit erroneous artifacts due to numeric instabilities. This is dependent on the input waveform sample values, the sample period, and the time constant. There is a native Python implementation and a Cython implementation of this function. The native implementation is prohibitively slow if more than about 5 iterations is performed. If Cython is unavailable it is important to be careful when the iterations are reduced.</p>
-<p>We establish an initial capacitor voltage and charge from the first sample <math xmlns="http://www.w3.org/1998/Math/MathML">
-<mrow><msub><mi>v</mi><mi>c</mi></msub><mo>=</mo><msub><mi>v</mi>
-<mrow><mi>s</mi><mi>a</mi><mi>m</mi><mi>p</mi><mi>l</mi><mi>e</mi></mrow></msub><mo>(</mo><mn>0</mn><mo>)</mo><mo>;</mo><msub><mi>q</mi><mn>0</mn></msub><mo>=</mo><msub><mi>v</mi><mi>c</mi></msub><mo>*</mo><mi>c</mi></mrow></math>. For each iteration of the simulation we increment time such that <math xmlns="http://www.w3.org/1998/Math/MathML">
-<mrow><mi>d</mi><mi>t</mi><mo>=</mo><mtext>sample_period</mtext><mo>/</mo><mtext>iterations</mtext></mrow></math>:</p>
-<div>
-<math xmlns="http://www.w3.org/1998/Math/MathML" mode="display">
-<mtable>
-<mtr>
-<mtd><mi>d</mi><mi>v</mi><mo>=</mo><msub><mi>v</mi>
-<mrow><mi>s</mi><mi>a</mi><mi>m</mi><mi>p</mi><mi>l</mi><mi>e</mi></mrow></msub><mo>-</mo><msub><mi>v</mi><mi>c</mi></msub></mtd>
-<mtd></mtd>
-<mtd><mtext>(voltage across resistor)</mtext></mtd></mtr></mtable></math>
-</div>
-<div>
-<math xmlns="http://www.w3.org/1998/Math/MathML" mode="display">
-<mtable>
-<mtr>
-<mtd><mi>i</mi><mo>=</mo><mi>d</mi><mi>v</mi><mo>/</mo><mi>r</mi></mtd>
-<mtd></mtd>
-<mtd><mtext>(current through r and c)</mtext></mtd></mtr></mtable></math>
-</div>
-<div>
-<math xmlns="http://www.w3.org/1998/Math/MathML" mode="display">
-<mtable>
-<mtr>
-<mtd><mi>i</mi><mo>=</mo><mi>d</mi><mi>q</mi><mo>/</mo><mi>d</mi><mi>t</mi><mo>⟹</mo><mi>d</mi><mi>q</mi><mo>=</mo><mi>i</mi><mo>*</mo><mi>d</mi><mi>t</mi></mtd></mtr></mtable></math>
-</div>
-<div>
-<math xmlns="http://www.w3.org/1998/Math/MathML" mode="display">
-<mtable>
-<mtr>
-<mtd><mi>q</mi><mo>'</mo><mo>=</mo><mi>q</mi><mo>+</mo><mi>d</mi><mi>q</mi></mtd></mtr></mtable></math>
-</div>
-<div>
-<math xmlns="http://www.w3.org/1998/Math/MathML" mode="display">
-<mtable>
-<mtr>
-<mtd><msub><mi>v</mi><mi>c</mi></msub><mo>'</mo><mo>=</mo><mi>q</mi><mo>'</mo><mo>/</mo><mi>c</mi></mtd></mtr></mtable></math>
-</div>
+<p>We establish an initial capacitor voltage and charge from the first sample <span class="math">\(v_c = v_{sample}(0); q_0 = v_c * c\)</span>. For each iteration of the simulation we increment time such that <span class="math">\(dt = \text{sample_period} / \text{iterations}\)</span>:</p>
+<div class="math">
+\[\begin{split}dv = v_{sample} - v_c &amp;&amp; \text{(voltage across resistor)}\end{split}\]\[\begin{split}i = dv / r  &amp;&amp; \text{(current through r and c)}\end{split}\]\[i = dq / dt \Longrightarrow dq = i * dt\]\[q' = q + dq\]\[v_c' = q' / c\]</div>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">tau</span> <span class="o">=</span> <span class="mf">0.25</span>
 <span class="n">r</span> <span class="o">=</span> <span class="mf">1.0</span>
 <span class="n">c</span> <span class="o">=</span> <span class="n">tau</span> <span class="o">/</span> <span class="n">r</span>  <span class="c"># Still 0.25 in this case with 1.0 Ohm of resistance</span>
@@ -198,7 +160,8 @@
 <span class="n">c</span> <span class="o">=</span> <span class="n">tau</span> <span class="o">/</span> <span class="n">r</span>
 
 <span class="n">proc_samples</span> <span class="o">=</span> <span class="n">sigp</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">pulse_samples</span><span class="p">),</span> <span class="n">start_time</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">end_time</span><span class="o">=</span><span class="mf">1.7</span><span class="p">)</span>
-<span class="n">proc_samples</span> <span class="o">=</span> <span class="n">sigp</span><span class="o">.</span><span class="n">filter_waveform</span><span class="p">(</span><span class="n">sigp</span><span class="o">.</span><span class="n">capacify</span><span class="p">(</span><span class="n">proc_samples</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> <span class="n">sample_rate</span><span class="o">=</span><span class="n">sample_rate</span><span class="p">,</span> <span class="n">rise_time</span><span class="o">=</span><span class="n">rt</span><span class="p">)</span>
+<span class="n">proc_samples</span> <span class="o">=</span> <span class="n">sigp</span><span class="o">.</span><span class="n">filter_waveform</span><span class="p">(</span><span class="n">sigp</span><span class="o">.</span><span class="n">capacify</span><span class="p">(</span><span class="n">proc_samples</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> \
+                                    <span class="n">sample_rate</span><span class="o">=</span><span class="n">sample_rate</span><span class="p">,</span> <span class="n">rise_time</span><span class="o">=</span><span class="n">rt</span><span class="p">)</span>
 <span class="n">proc_samples</span> <span class="o">=</span> <span class="n">sigp</span><span class="o">.</span><span class="n">quantize</span><span class="p">(</span><span class="n">sigp</span><span class="o">.</span><span class="n">noisify</span><span class="p">(</span><span class="n">proc_samples</span><span class="p">,</span> <span class="n">snr_db</span><span class="o">=</span><span class="mf">20.0</span><span class="p">),</span> <span class="n">full_scale</span><span class="o">=</span><span class="mf">20.0</span><span class="p">)</span>
 <span class="n">proc_samples</span> <span class="o">=</span> <span class="n">sigp</span><span class="o">.</span><span class="n">amplify</span><span class="p">(</span><span class="n">proc_samples</span><span class="p">,</span> <span class="n">gain</span><span class="o">=</span><span class="mf">5.0</span><span class="p">)</span>
 </pre></div>
@@ -282,9 +245,22 @@
         <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
+
     <div class="footer">
         &copy; Copyright 2013, Kevin Thibedeau.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
+
+<script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-43149311-1', 'google.com');
+  ga('send', 'pageview');
+
+</script>
+
   </body>
 </html>

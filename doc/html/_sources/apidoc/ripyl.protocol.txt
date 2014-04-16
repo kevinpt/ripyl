@@ -9,11 +9,18 @@ protocol Package
     :undoc-members:
     :show-inheritance:
 
-
 :mod:`can` Module
 -----------------
 
 .. automodule:: ripyl.protocol.can
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`ethernet` Module
+----------------------
+
+.. automodule:: ripyl.protocol.ethernet
     :members:
     :undoc-members:
     :show-inheritance:
@@ -30,6 +37,14 @@ protocol Package
 ------------------------
 
 .. automodule:: ripyl.protocol.iso_k_line
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`j1850` Module
+-------------------
+
+.. automodule:: ripyl.protocol.j1850
     :members:
     :undoc-members:
     :show-inheritance:
@@ -86,6 +101,14 @@ protocol Package
 ------------------
 
 .. automodule:: ripyl.protocol.uart
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`usb.alt_stuffing` Module
+------------------------------
+
+.. automodule:: ripyl.protocol.usb.alt_stuffing
     :members:
     :undoc-members:
     :show-inheritance:

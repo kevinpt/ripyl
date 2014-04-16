@@ -25,9 +25,10 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="Ripyl 1.2 documentation" href="../index.html" />
     <link rel="up" title="ripyl" href="modules.html" />
-    <link rel="next" title="protocol Package" href="ripyl.protocol.html" />
+    <link rel="next" title="io Package" href="ripyl.io.html" />
     <link rel="prev" title="ripyl" href="modules.html" /> 
   </head>
   <body>
@@ -41,7 +42,7 @@
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="ripyl.protocol.html" title="protocol Package"
+          <a href="ripyl.io.html" title="io Package"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="modules.html" title="ripyl"
@@ -70,6 +71,11 @@
 <em class="property">class </em><tt class="descclassname">ripyl.config.</tt><tt class="descname">ConfigSettings</tt><a class="headerlink" href="#ripyl.config.ConfigSettings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Container for general ripyl library settings</p>
+<dl class="method">
+<dt id="ripyl.config.ConfigSettings.__init__">
+<tt class="descname">__init__</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.config.ConfigSettings.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="ripyl.config.ConfigSettings.cython_active">
 <tt class="descname">cython_active</tt><a class="headerlink" href="#ripyl.config.ConfigSettings.cython_active" title="Permalink to this definition">¶</a></dt>
@@ -111,6 +117,25 @@
 that can be swapped at will. This allows simplified monkeypatching for replacing
 python code with Cython equivalents.</p>
 <dl class="method">
+<dt id="ripyl.config.PatchObject.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>py_mname</em>, <em>obj_name</em>, <em>obj</em>, <em>orig_obj</em><big>)</big><a class="headerlink" href="#ripyl.config.PatchObject.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>py_mname</strong> (<em>string</em>) &#8211; The name of the module containing the original python object in dotted notation</li>
+<li><strong>obj_name</strong> (<em>string</em>) &#8211; The name of the object to be patched</li>
+<li><strong>obj</strong> (<em>function or class object</em>) &#8211; Reference to the replacement object patched over the original</li>
+<li><strong>orig_obj</strong> (<em>function or class object</em>) &#8211; Reference to the original object</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="ripyl.config.PatchObject.activate">
 <tt class="descname">activate</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.config.PatchObject.activate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply the monkeypatch over the orignal object</p>
@@ -139,6 +164,28 @@ python code with Cython equivalents.</p>
 <em class="property">class </em><tt class="descclassname">ripyl.decode.</tt><tt class="descname">EdgeSequence</tt><big>(</big><em>edges</em>, <em>time_step</em>, <em>start_time=None</em><big>)</big><a class="headerlink" href="#ripyl.decode.EdgeSequence" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Utility class to walk through an edge iterator in arbitrary time steps</p>
+<dl class="method">
+<dt id="ripyl.decode.EdgeSequence.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>edges</em>, <em>time_step</em>, <em>start_time=None</em><big>)</big><a class="headerlink" href="#ripyl.decode.EdgeSequence.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>edges</strong> (<em>sequence of (float, int) tuples</em>) &#8211; An iterable of 2-tuples representing each edge transition.
+The 2-tuples <em>must</em> be in the absolute time form (time, logic level).</li>
+<li><strong>time_step</strong> (<em>float</em>) &#8211; The default time step for advance() when it is called
+without an argument.</li>
+<li><strong>start_time</strong> (<em>float</em>) &#8211; The initial starting time for the sequence.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>:param  :
+:raises:  StreamError when there are less than two elements to the edges iterable</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="ripyl.decode.EdgeSequence.advance">
 <tt class="descname">advance</tt><big>(</big><em>time_step=None</em><big>)</big><a class="headerlink" href="#ripyl.decode.EdgeSequence.advance" title="Permalink to this definition">¶</a></dt>
@@ -194,6 +241,25 @@ time_step from the constructor is used.</td>
 <em class="property">class </em><tt class="descclassname">ripyl.decode.</tt><tt class="descname">MultiEdgeSequence</tt><big>(</big><em>edge_sets</em>, <em>time_step</em>, <em>start_time=None</em><big>)</big><a class="headerlink" href="#ripyl.decode.MultiEdgeSequence" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Utility class to walk through a group of edge iterators in arbitrary time steps</p>
+<dl class="method">
+<dt id="ripyl.decode.MultiEdgeSequence.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>edge_sets</em>, <em>time_step</em>, <em>start_time=None</em><big>)</big><a class="headerlink" href="#ripyl.decode.MultiEdgeSequence.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>edge_sets</strong> (<em>dict</em>) &#8211; A dict of edge sequence iterators keyed by the string name of the channel</li>
+<li><strong>time_step</strong> (<em>float</em>) &#8211; The default time step for advance() when it is called
+without an argument.</li>
+<li><strong>start_time</strong> (<em>float</em>) &#8211; The initial starting time for the sequence.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="method">
 <dt id="ripyl.decode.MultiEdgeSequence.advance">
 <tt class="descname">advance</tt><big>(</big><em>time_step=None</em><big>)</big><a class="headerlink" href="#ripyl.decode.MultiEdgeSequence.advance" title="Permalink to this definition">¶</a></dt>
@@ -330,6 +396,29 @@ This should be less than max_samples.</div></blockquote>
 stream and a tuple of the detected logic levels of the samples.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Raises :</th><td class="field-body">AutoLevelError if less than two peaks are found in the sample histogram.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.decode.expand_logic_levels">
+<tt class="descclassname">ripyl.decode.</tt><tt class="descname">expand_logic_levels</tt><big>(</big><em>logic_levels</em>, <em>count</em><big>)</big><a class="headerlink" href="#ripyl.decode.expand_logic_levels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate evenly spaced logic levels</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>logic_levels</strong> (<em>(float, float)</em>) &#8211; A 2-tuple (low, high) representing the min and max logic level to expand on</li>
+<li><strong>count</strong> (<em>int</em>) &#8211; The number of logic levels in the result. If the value is less than 3, the
+result is the same as the sequence passed as logic_levels.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A list of logic levels with count length representing each logic level
+evenly spaced between logic_levels[0] and logic_levels[1].</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -648,7 +737,7 @@ the center value of each bin.</td>
 
 <dl class="function">
 <dt id="ripyl.decode.gen_hyst_thresholds">
-<tt class="descclassname">ripyl.decode.</tt><tt class="descname">gen_hyst_thresholds</tt><big>(</big><em>logic_levels</em>, <em>hysteresis=0.1</em><big>)</big><a class="headerlink" href="#ripyl.decode.gen_hyst_thresholds" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ripyl.decode.</tt><tt class="descname">gen_hyst_thresholds</tt><big>(</big><em>logic_levels</em>, <em>expand=None</em>, <em>hysteresis=0.1</em><big>)</big><a class="headerlink" href="#ripyl.decode.gen_hyst_thresholds" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate hysteresis thresholds for find_multi_edges()</p>
 <p>This function computes the hysteresis thresholds for multi-level edge finding
 with find_multi_edges().</p>
@@ -658,7 +747,8 @@ with find_multi_edges().</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>logic_levels</strong> (<em>sequence of float</em>) &#8211; A sequence of the nominal voltage levels for each logic state sorted
-in ascending order.</li>
+in ascending order or the (low, high) pair when expansion is used.</li>
+<li><strong>expand</strong> (<em>int or None</em>) &#8211; When not None, the number of logic levels to expand the provided logic_levels into.</li>
 <li><strong>hysteresis</strong> (<em>float</em>) &#8211; A value between 0.0 and 1.0 representing the amount of hysteresis the use for
 detecting valid edge crossings.</li>
 </ul>
@@ -696,6 +786,107 @@ detected edges.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first last">StreamError if the stream is empty</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ripyl.manchester">
+<span id="manchester-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">manchester</span></tt> Module<a class="headerlink" href="#module-ripyl.manchester" title="Permalink to this headline">¶</a></h2>
+<p>Manchester encoding utilities</p>
+<dl class="class">
+<dt id="ripyl.manchester.ManchesterStates">
+<em class="property">class </em><tt class="descclassname">ripyl.manchester.</tt><tt class="descname">ManchesterStates</tt><a class="headerlink" href="#ripyl.manchester.ManchesterStates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ripyl.util.html#ripyl.util.enum.Enum" title="ripyl.util.enum.Enum"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.util.enum.Enum</span></tt></a></p>
+<p>Enumeration of manchester states</p>
+<dl class="attribute">
+<dt id="ripyl.manchester.ManchesterStates.High">
+<tt class="descname">High</tt><em class="property"> = 3</em><a class="headerlink" href="#ripyl.manchester.ManchesterStates.High" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.manchester.ManchesterStates.Idle">
+<tt class="descname">Idle</tt><em class="property"> = 4</em><a class="headerlink" href="#ripyl.manchester.ManchesterStates.Idle" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.manchester.ManchesterStates.Low">
+<tt class="descname">Low</tt><em class="property"> = 2</em><a class="headerlink" href="#ripyl.manchester.ManchesterStates.Low" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.manchester.ManchesterStates.One">
+<tt class="descname">One</tt><em class="property"> = 1</em><a class="headerlink" href="#ripyl.manchester.ManchesterStates.One" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.manchester.ManchesterStates.Zero">
+<tt class="descname">Zero</tt><em class="property"> = 0</em><a class="headerlink" href="#ripyl.manchester.ManchesterStates.Zero" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.manchester.diff_encode">
+<tt class="descclassname">ripyl.manchester.</tt><tt class="descname">diff_encode</tt><big>(</big><em>bits</em><big>)</big><a class="headerlink" href="#ripyl.manchester.diff_encode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert from unipolar Manchester states (0, Idle, 1) to differential (-1, 0, 1) encoding</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>bits</strong> (<em>iterable of (float, int)</em>) &#8211; An edge stream to convert to differential form.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">An iterator yielding  an edge stream of differentially coded states.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.manchester.manchester_decode">
+<tt class="descclassname">ripyl.manchester.</tt><tt class="descname">manchester_decode</tt><big>(</big><em>edges</em>, <em>bit_period</em>, <em>falling=0</em>, <em>combine_bits=False</em><big>)</big><a class="headerlink" href="#ripyl.manchester.manchester_decode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert differential coded edges to manchester states</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>edges</strong> (<em>iterable of (float, int)</em>) &#8211; An edge stream of differential states (-1, 0, 1) representing Manchester
+coded bits.</li>
+<li><strong>bit_period</strong> (<em>float</em>) &#8211; The period of a single bit.</li>
+<li><strong>falling</strong> (<em>int</em>) &#8211; The bit encoding for a falling edge. Either 0 or 1.</li>
+<li><strong>combine_bits</strong> (<em>bool</em>) &#8211; When True, the output states will only be yielded when a different state
+occurs. When False, a state is yielded for each bit or half-bit.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  a stream of Manchester states in (float, int) form.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.manchester.manchester_encode">
+<tt class="descclassname">ripyl.manchester.</tt><tt class="descname">manchester_encode</tt><big>(</big><em>states</em>, <em>bit_period</em>, <em>falling=0</em>, <em>idle_start=0.0</em>, <em>idle_end=0.0</em><big>)</big><a class="headerlink" href="#ripyl.manchester.manchester_encode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert Manchester states to a stream of unipolar (0, 1, Idle) states</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>states</strong> (<em>iterable of ManchesterState</em>) &#8211; A series of ManchesterStates to encode.</li>
+<li><strong>bit_period</strong> (<em>float</em>) &#8211; The period of a single bit.</li>
+<li><strong>falling</strong> (<em>int</em>) &#8211; The bit encoding for a falling edge. Either 0 or 1.</li>
+<li><strong>idle_start</strong> (<em>float</em>) &#8211; The amount of idle time before the transmission of states begins.</li>
+<li><strong>idle_end</strong> (<em>float</em>) &#8211; The amount of idle time after the last state.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  an edge stream of encoded states including Idle.</p>
 </td>
 </tr>
 </tbody>
@@ -1154,6 +1345,11 @@ be a positive value.</li>
 <dd></dd></dl>
 
 <dl class="attribute">
+<dt id="ripyl.streaming.AnnotationFormat.Small">
+<tt class="descname">Small</tt><em class="property"> = 9</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.Small" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="ripyl.streaming.AnnotationFormat.String">
 <tt class="descname">String</tt><em class="property"> = 3</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.String" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1170,6 +1366,11 @@ be a positive value.</li>
 <em class="property">exception </em><tt class="descclassname">ripyl.streaming.</tt><tt class="descname">AutoLevelError</tt><big>(</big><em>msg='Unable to find avg. logic levels of waveform'</em><big>)</big><a class="headerlink" href="#ripyl.streaming.AutoLevelError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#ripyl.streaming.StreamError" title="ripyl.streaming.StreamError"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamError</span></tt></a></p>
 <p>Custom exception class auto-level errors</p>
+<dl class="method">
+<dt id="ripyl.streaming.AutoLevelError.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>msg='Unable to find avg. logic levels of waveform'</em><big>)</big><a class="headerlink" href="#ripyl.streaming.AutoLevelError.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -1177,6 +1378,11 @@ be a positive value.</li>
 <em class="property">class </em><tt class="descclassname">ripyl.streaming.</tt><tt class="descname">ChunkExtractor</tt><big>(</big><em>stream</em><big>)</big><a class="headerlink" href="#ripyl.streaming.ChunkExtractor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Utility class that pulls arbitrarily sized chunks from a sample stream</p>
+<dl class="method">
+<dt id="ripyl.streaming.ChunkExtractor.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>stream</em><big>)</big><a class="headerlink" href="#ripyl.streaming.ChunkExtractor.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="ripyl.streaming.ChunkExtractor.buffered_chunk">
 <tt class="descname">buffered_chunk</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.streaming.ChunkExtractor.buffered_chunk" title="Permalink to this definition">¶</a></dt>
@@ -1230,6 +1436,11 @@ remaining then the array is sized to hold only those samples.</td>
 <p>&#8216;Sample stream object</p>
 <p>This represents a &#8220;chunk&#8221; of samples contained in a numpy array
 stored in the samples attribute.</p>
+<dl class="method">
+<dt id="ripyl.streaming.SampleChunk.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>samples</em>, <em>start_time</em>, <em>sample_period</em><big>)</big><a class="headerlink" href="#ripyl.streaming.SampleChunk.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="exception">
@@ -1244,6 +1455,11 @@ stored in the samples attribute.</p>
 <em class="property">class </em><tt class="descclassname">ripyl.streaming.</tt><tt class="descname">StreamEvent</tt><big>(</big><em>time</em>, <em>data=None</em>, <em>kind='unknown event'</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.streaming.StreamEvent" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#ripyl.streaming.StreamRecord" title="ripyl.streaming.StreamRecord"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamRecord</span></tt></a></p>
 <p>A stream element that occurs at a specific point in time</p>
+<dl class="method">
+<dt id="ripyl.streaming.StreamEvent.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>time</em>, <em>data=None</em>, <em>kind='unknown event'</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.streaming.StreamEvent.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="ripyl.streaming.StreamEvent.summary">
 <tt class="descname">summary</tt><big>(</big><em>a=None</em>, <em>depth=0</em><big>)</big><a class="headerlink" href="#ripyl.streaming.StreamEvent.summary" title="Permalink to this definition">¶</a></dt>
@@ -1284,6 +1500,11 @@ stored in the samples attribute.</p>
 </tbody>
 </table>
 <p>:param  :</p>
+<dl class="method">
+<dt id="ripyl.streaming.StreamRecord.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>kind='unknown'</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.streaming.StreamRecord.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="ripyl.streaming.StreamRecord.annotate">
 <tt class="descname">annotate</tt><big>(</big><em>style=None</em>, <em>fields=None</em>, <em>data_format=2</em><big>)</big><a class="headerlink" href="#ripyl.streaming.StreamRecord.annotate" title="Permalink to this definition">¶</a></dt>
@@ -1362,6 +1583,11 @@ The special field &#8216;value&#8217; is a string that will override any other s
 <em class="property">class </em><tt class="descclassname">ripyl.streaming.</tt><tt class="descname">StreamSegment</tt><big>(</big><em>time_bounds</em>, <em>data=None</em>, <em>kind='unknown segment'</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.streaming.StreamSegment" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#ripyl.streaming.StreamRecord" title="ripyl.streaming.StreamRecord"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamRecord</span></tt></a></p>
 <p>A stream element that spans two points in time</p>
+<dl class="method">
+<dt id="ripyl.streaming.StreamSegment.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>time_bounds</em>, <em>data=None</em>, <em>kind='unknown segment'</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.streaming.StreamSegment.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="ripyl.streaming.StreamSegment.end_time">
 <tt class="descname">end_time</tt><a class="headerlink" href="#ripyl.streaming.StreamSegment.end_time" title="Permalink to this definition">¶</a></dt>
@@ -1677,11 +1903,18 @@ This generator will terminate if the number of output samples is specified.
 <h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="ripyl.io.html">io Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.io.html#id1"><tt class="docutils literal"><span class="pre">io</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.io.html#module-ripyl.io.vcd"><tt class="docutils literal"><span class="pre">vcd</span></tt> Module</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="ripyl.protocol.html">protocol Package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#id1"><tt class="docutils literal"><span class="pre">protocol</span></tt> Package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.can"><tt class="docutils literal"><span class="pre">can</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.ethernet"><tt class="docutils literal"><span class="pre">ethernet</span></tt> Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.i2c"><tt class="docutils literal"><span class="pre">i2c</span></tt> Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.iso_k_line"><tt class="docutils literal"><span class="pre">iso_k_line</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.j1850"><tt class="docutils literal"><span class="pre">j1850</span></tt> Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.lin"><tt class="docutils literal"><span class="pre">lin</span></tt> Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.lm73"><tt class="docutils literal"><span class="pre">lm73</span></tt> Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.obd2"><tt class="docutils literal"><span class="pre">obd2</span></tt> Module</a></li>
@@ -1689,6 +1922,7 @@ This generator will terminate if the number of output samples is specified.
 <li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.sagem_ecu"><tt class="docutils literal"><span class="pre">sagem_ecu</span></tt> Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.spi"><tt class="docutils literal"><span class="pre">spi</span></tt> Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.uart"><tt class="docutils literal"><span class="pre">uart</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#usb-alt-stuffing-module"><tt class="docutils literal"><span class="pre">usb.alt_stuffing</span></tt> Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.usb"><tt class="docutils literal"><span class="pre">usb</span></tt> Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.usb_transact"><tt class="docutils literal"><span class="pre">usb_transact</span></tt> Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#subpackages">Subpackages</a><ul>
@@ -1710,7 +1944,7 @@ This generator will terminate if the number of output samples is specified.
 <li class="toctree-l2"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.bitops"><tt class="docutils literal"><span class="pre">bitops</span></tt> Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.eng"><tt class="docutils literal"><span class="pre">eng</span></tt> Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.enum"><tt class="docutils literal"><span class="pre">enum</span></tt> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.util.html#equality-module"><tt class="docutils literal"><span class="pre">equality</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.equality"><tt class="docutils literal"><span class="pre">equality</span></tt> Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.plot"><tt class="docutils literal"><span class="pre">plot</span></tt> Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.stats"><tt class="docutils literal"><span class="pre">stats</span></tt> Module</a></li>
 </ul>
@@ -1735,6 +1969,7 @@ This generator will terminate if the number of output samples is specified.
 <li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">ripyl</span></tt> Package</a></li>
 <li><a class="reference internal" href="#module-ripyl.config"><tt class="docutils literal"><span class="pre">config</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.decode"><tt class="docutils literal"><span class="pre">decode</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-ripyl.manchester"><tt class="docutils literal"><span class="pre">manchester</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.sigproc"><tt class="docutils literal"><span class="pre">sigproc</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.streaming"><tt class="docutils literal"><span class="pre">streaming</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.wave_synth"><tt class="docutils literal"><span class="pre">wave_synth</span></tt> Module</a></li>
@@ -1749,8 +1984,8 @@ This generator will terminate if the number of output samples is specified.
   <p class="topless"><a href="modules.html"
                         title="previous chapter">ripyl</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="ripyl.protocol.html"
-                        title="next chapter">protocol Package</a></p>
+  <p class="topless"><a href="ripyl.io.html"
+                        title="next chapter">io Package</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../_sources/apidoc/ripyl.txt"
@@ -1783,7 +2018,7 @@ This generator will terminate if the number of output samples is specified.
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="ripyl.protocol.html" title="protocol Package"
+          <a href="ripyl.io.html" title="io Package"
              >next</a> |</li>
         <li class="right" >
           <a href="modules.html" title="ripyl"
@@ -1792,9 +2027,22 @@ This generator will terminate if the number of output samples is specified.
           <li><a href="modules.html" >ripyl</a> &raquo;</li> 
       </ul>
     </div>
+
     <div class="footer">
         &copy; Copyright 2013, Kevin Thibedeau.
       Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
     </div>
+
+<script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-43149311-1', 'google.com');
+  ga('send', 'pageview');
+
+</script>
+
   </body>
 </html>
