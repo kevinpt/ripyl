@@ -2,13 +2,14 @@
 Ripyl change log
 ================
 
-
-vNext
-========
+vNext (2)
+=================
 
   Changes
   -------
   * Added VCD file output for saving synthesized waveforms
+  * Added Ethernet 10BaseT and J1850 protocols
+  * Improved decode.find_logic_levels() function to be more reliable.
   * Improved CAN support with spec. accurate resynchronization
 
 v1.2 / 2013-10-18
