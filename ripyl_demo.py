@@ -35,7 +35,9 @@ import ripyl.protocol.infrared as ir
 import ripyl.sigproc as sigp
 import ripyl.streaming as stream
 import ripyl.util.eng as eng
+import test.test_support as tsup
 from ripyl.sigproc import min_rise_time
+from ripyl.util.color import note, success, error
 
 try:
     import matplotlib
@@ -49,7 +51,7 @@ if matplotlib_exists:
 def main():
     '''Entry point for script'''
 
-    protocols = ('uart', 'ethernet', 'i2c', 'lm73', 'spi', 'usb', 'usb-diff', 'hsic', 'ps2', \
+    protocols = ('uart', 'ethernet', 'i2c', 'lm73', 'spi', 'i2s', 'usb', 'usb-diff', 'hsic', 'ps2', \
                 'kline', 'rc5', 'rc6', 'nec', 'sirc', 'can', 'lin', 'j1850', 'j1850-pwm')
 
     usage = '''%prog [-p PROTOCOL] [-n] [-m MSG]
@@ -205,6 +207,11 @@ def demo_usb(options):
         
         # Capture the samples from the iterator
         nsy_dd = list(nsy_dd_it)
+        #samples, start_time, period = stream.extract_all_samples(nsy_dd)
+        #samples = list(samples)
+        #samples = samples[100:]
+        #nsy_dd = list(stream.samples_to_sample_stream(samples, period, start_time))
+
         
         # Decode the samples
         decode_success = True
@@ -373,6 +380,105 @@ def demo_spi(options):
 
     report_results(data_records, byte_msg, protocol_params, wave_params, decode_success, lambda d, o: (d.data, o))
     channels = OrderedDict([('CS (V)', nsy_cs), ('CLK (V)', nsy_clk), ('MOSI / MISO (V)', nsy_data_io)])
+    plot_channels(channels, records, options, plot_params)
+
+
+
+def demo_i2s(options):
+    import ripyl.protocol.i2s as i2s
+    print('I2S protocol\n')
+    
+    # I2S params
+    audio_sample_rate = 5000 / 32.0 #44100
+    word_size = 8
+    frame_size = 16
+    cpol = 0
+    wspol = 0
+    channels = 2
+
+    clock_freq = audio_sample_rate * channels * frame_size
+    
+    # Sampled waveform params
+    sample_rate = clock_freq * 100.0
+    rise_time = min_rise_time(sample_rate) * 10.0 # 10x min. rise time
+    noise_snr = options.snr_db
+    
+    #message = options.msg
+    #byte_msg = bytearray(message.encode('latin1')) # Get raw bytes as integers
+    samples = i2s.mono_to_stereo([0xA5, 1, 0xD1, 3,4, 0xC5])
+    #samples = [0xA5, 1, 0xD1, 3,4, 0xCA, 0x55, 0x55]
+
+    idle_start = 0.0
+    idle_start = 1e-3
+    idle_end = 1e-3
+
+    # Synthesize the waveform edge stream
+    # This can be fed directly into i2s_decode() if an analog waveform is not needed
+    #clk, data_io, cs = spi.spi_synth(byte_msg, word_size, clock_freq, cpol, cpha, idle_start=idle_start)
+    sck, sd, ws = i2s.i2s_synth(samples, word_size, frame_size, audio_sample_rate, \
+        cpol, wspol, channels=channels, msb_justified=True, i2s_variant=i2s.I2SVariant.Standard, \
+        data_offset=1, idle_start=idle_start, idle_end=idle_end)
+
+    # Convert to a sample stream with band-limited edges and noise
+    cln_sck_it = sigp.synth_wave(sck, sample_rate, rise_time)
+    cln_sd_it = sigp.synth_wave(sd, sample_rate, rise_time)
+    cln_ws_it = sigp.synth_wave(ws, sample_rate, rise_time)
+    
+    nsy_sck_it = sigp.amplify(sigp.noisify(cln_sck_it, snr_db=noise_snr), gain=3.3, offset=0.0)
+    nsy_sd_it = sigp.amplify(sigp.noisify(cln_sd_it, snr_db=noise_snr), gain=3.3, offset=0.0)
+    nsy_ws_it = sigp.amplify(sigp.noisify(cln_ws_it, snr_db=noise_snr), gain=3.3, offset=0.0)
+    
+    if options.dropout is not None:
+        nsy_sd_it = sigp.dropout(nsy_sd_it, options.dropout[0], options.dropout[1], \
+            options.dropout_level)
+    
+    # Capture the samples from the iterator
+    nsy_sck = list(nsy_sck_it)
+    nsy_sd = list(nsy_sd_it)
+    nsy_ws = list(nsy_ws_it)
+    
+    # Decode the samples
+    #decode_success = True
+    decode_success = False
+    records = []
+    try:
+        i2s.i2s_decode(iter(nsy_sck), iter(nsy_sd), iter(nsy_ws), word_size, frame_size, cpol, \
+            wspol, channels=channels, data_offset=1)
+        #records_it = spi.spi_decode(iter(nsy_clk), iter(nsy_data_io), iter(nsy_cs), cpol, cpha)
+        #records = list(records_it)
+        pass
+        
+    except stream.StreamError as e:
+        print('Decode failed:\n  {}'.format(e))
+        decode_success = False
+
+
+    protocol_params = {
+        'clock frequency': eng.eng_si(clock_freq, 'Hz'),
+        'word size': word_size,
+        'frame_size': frame_size,
+        'cpol': cpol,
+        'wspol': wspol
+    }
+
+    wave_params = {
+        'sample rate': eng.eng_si(sample_rate, 'Hz'),
+        'rise time': eng.eng_si(rise_time, 's', 1),
+        'SNR': str(options.snr_db) + ' dB'
+    }
+
+    plot_params = {
+        'default_title': 'I2S Simulation',
+        'label_format': stream.AnnotationFormat.Hex
+    }
+
+    
+    # Filter out StreamEvent objects
+    #data_records = [r for r in records if isinstance(r, stream.StreamSegment)]
+    data_records = []
+
+    #report_results(data_records, byte_msg, protocol_params, wave_params, decode_success, lambda d, o: (d.data, o))
+    channels = OrderedDict([('SCK (V)', nsy_sck), ('WS (V)', nsy_ws), ('SD (V)', nsy_sd)])
     plot_channels(channels, records, options, plot_params)
 
 
@@ -1134,6 +1240,11 @@ def demo_ethernet(options):
     
     # Capture the samples from the iterator
     noisy_samples = list(noisy_samples_it)
+
+
+    ether_samples, sample_period, start_time = tsup.read_bin_file('test/data/ether_10bt_39.bin')
+    ether_it = stream.samples_to_sample_stream(ether_samples, sample_period, start_time)
+    noisy_samples = list(ether_it)
     
 
     # Decode the samples
@@ -1255,7 +1366,6 @@ def demo_j1850_pwm(options):
     p, m = j1850.j1850_pwm_synth(frames, breaks=breaks, idle_start=50.0e-6, \
                                     frame_interval=(12 * 8 * 100.0e-9), idle_end=2.0e-6)
 
-    
     # Convert to a sample stream with band-limited edges and noise
     clean_p_it = sigp.synth_wave(p, sample_rate, rise_time, tau_factor=0.1)
     clean_m_it = sigp.synth_wave(m, sample_rate, rise_time, tau_factor=0.1)
@@ -1269,6 +1379,14 @@ def demo_j1850_pwm(options):
     # Capture the samples from the iterator
     noisy_p = list(noisy_p_it)
     noisy_m = list(noisy_m_it)
+
+
+    #dp_samples, sample_period, start_time = tsup.read_bin_file('test/data/j1850_1p.bin')
+    #dp_it = stream.samples_to_sample_stream(dp_samples, sample_period, start_time)
+    #dm_samples, sample_period, start_time = tsup.read_bin_file('test/data/j1850_1m.bin')
+    #dm_it = stream.samples_to_sample_stream(dm_samples, sample_period, start_time)
+    #noisy_p = list(dm_it)
+    #noisy_m = list(dp_it)
     
 
     # Decode the samples
@@ -1364,13 +1482,13 @@ def report_results(decoded_recs, orig_messages, protocol_params, wave_params, de
     print('\nProtocol parameters:')
     print('  Messages:')
     for msg in orig_messages:
-        print('   ', msg)
+        print(note('   {}'.format(msg)))
     for k, v in protocol_params.iteritems():
-        print( '  {}: {}'.format(k, v))
+        print(note('  {}: {}'.format(k, v)))
 
     print('Waveform parameters:')
     for k, v in wave_params.iteritems():
-        print( '  {}: {}'.format(k, v))
+        print(note('  {}: {}'.format(k, v)))
 
 
     if decode_success and extract_func is not None:
@@ -1380,15 +1498,19 @@ def report_results(decoded_recs, orig_messages, protocol_params, wave_params, de
         for dmsg, omsg in [extract_func(d, o) for d, o in zip(decoded_recs, orig_messages)]:
             if dmsg != omsg:
                 msg_match = False
-                m_flag =  ' < MISMATCH'
+                #m_flag =  ' < MISMATCH'
+                msg = error('  {} < MISMATCH'.format(dmsg))
             else:
-                m_flag = ''
-            print('  {}{}'.format(dmsg, m_flag))
+                #m_flag = ''
+                msg = note('  {}'.format(dmsg))
+
+            print(msg)
+            #print('  {}{}'.format(dmsg, m_flag))
 
         if msg_match:
-            print('  (matches input message)')
+            print(success('  (matches input message)'))
         else:
-            print('  (MISMATCH to input message)')
+            print(error('  (MISMATCH to input message)'))
 
 
         
