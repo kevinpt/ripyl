@@ -337,7 +337,7 @@ for equality to be determined.</p>
 
 <dl class="method">
 <dt id="ripyl.util.plot.Plotter.plot">
-<tt class="descname">plot</tt><big>(</big><em>channels</em>, <em>annotations=None</em>, <em>title=''</em>, <em>label_format=5</em>, <em>show_names=False</em>, <em>ylim=None</em>, <em>xlim=None</em><big>)</big><a class="headerlink" href="#ripyl.util.plot.Plotter.plot" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">plot</tt><big>(</big><em>channels</em>, <em>annotations</em>, <em>title=''</em>, <em>label_format=5</em>, <em>show_names=False</em>, <em>ylim=None</em><big>)</big><a class="headerlink" href="#ripyl.util.plot.Plotter.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot annotated waveform data</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -346,13 +346,12 @@ for equality to be determined.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>channels</strong> (<em>dict of string:sample stream</em>) &#8211; A dict of waveform sample data keyed by the string label
 used for each channel&#8217;s vertical axis.</li>
-<li><strong>annotations</strong> (<em>sequence of StreamRecord or None</em>) &#8211; The annotation data produced by a protocol decoder</li>
+<li><strong>annotations</strong> (<em>sequence of StreamRecord</em>) &#8211; The annotation data produced by a protocol decoder</li>
 <li><strong>title</strong> (<em>string</em>) &#8211; Title for the plot</li>
 <li><strong>label_format</strong> (<em>AnnotationFormat</em>) &#8211; data format to apply for annotation records with a data_format attribute
 equal to AnnotationFormat.General</li>
 <li><strong>show_names</strong> (<em>bool</em>) &#8211; Show the field names for each annotation value</li>
 <li><strong>ylim</strong> (<em>pair of float or None</em>) &#8211; Set lower and upper bound for the y-axes</li>
-<li><strong>xlim</strong> (<em>pair of float or None</em>) &#8211; Set lower and upper bound for the x-axis</li>
 </ul>
 </td>
 </tr>

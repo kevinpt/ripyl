@@ -29,7 +29,7 @@
     <link rel="top" title="Ripyl 1.2 documentation" href="../index.html" />
     <link rel="up" title="ripyl Package" href="ripyl.html" />
     <link rel="next" title="infrared Package" href="ripyl.protocol.infrared.html" />
-    <link rel="prev" title="io Package" href="ripyl.io.html" /> 
+    <link rel="prev" title="ripyl Package" href="ripyl.html" /> 
   </head>
   <body>
     <div class="related">
@@ -45,7 +45,7 @@
           <a href="ripyl.protocol.infrared.html" title="infrared Package"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="ripyl.io.html" title="io Package"
+          <a href="ripyl.html" title="ripyl Package"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li>
           <li><a href="modules.html" >ripyl</a> &raquo;</li>
@@ -326,13 +326,13 @@
 <dd></dd></dl>
 
 <dl class="attribute">
-<dt id="ripyl.protocol.can.CANStreamStatus.CRCError">
-<tt class="descname">CRCError</tt><em class="property"> = 203</em><a class="headerlink" href="#ripyl.protocol.can.CANStreamStatus.CRCError" title="Permalink to this definition">¶</a></dt>
+<dt id="ripyl.protocol.can.CANStreamStatus.BitStuffingError">
+<tt class="descname">BitStuffingError</tt><em class="property"> = 202</em><a class="headerlink" href="#ripyl.protocol.can.CANStreamStatus.BitStuffingError" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
-<dt id="ripyl.protocol.can.CANStreamStatus.FormError">
-<tt class="descname">FormError</tt><em class="property"> = 202</em><a class="headerlink" href="#ripyl.protocol.can.CANStreamStatus.FormError" title="Permalink to this definition">¶</a></dt>
+<dt id="ripyl.protocol.can.CANStreamStatus.CRCError">
+<tt class="descname">CRCError</tt><em class="property"> = 203</em><a class="headerlink" href="#ripyl.protocol.can.CANStreamStatus.CRCError" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -344,27 +344,13 @@
 
 <dl class="class">
 <dt id="ripyl.protocol.can.CANTiming">
-<em class="property">class </em><tt class="descclassname">ripyl.protocol.can.</tt><tt class="descname">CANTiming</tt><big>(</big><em>prop</em>, <em>p1</em>, <em>ipt=2</em>, <em>resync_jump_quanta=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.can.CANTiming" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.can.</tt><tt class="descname">CANTiming</tt><big>(</big><em>prop</em>, <em>p1</em>, <em>ipt=2</em>, <em>resync_jump=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.can.CANTiming" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
 <p>Represent CAN bit timing and adaptive sampling point info</p>
 <dl class="method">
 <dt id="ripyl.protocol.can.CANTiming.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>prop</em>, <em>p1</em>, <em>ipt=2</em>, <em>resync_jump_quanta=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.can.CANTiming.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>prop</strong> (<em>int</em>) &#8211; Propagataion time in quanta.</li>
-<li><strong>p1</strong> (<em>int</em>) &#8211; Phase segment 1 time in quanta.</li>
-<li><strong>ipt</strong> (<em>int</em>) &#8211; Information Processing Time in quanta.</li>
-<li><strong>resync_jump_quanta</strong> (<em>int or None</em>) &#8211; The number of quanta to jump by on a resync. Default is minimum of 4 and p1.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<tt class="descname">__init__</tt><big>(</big><em>prop</em>, <em>p1</em>, <em>ipt=2</em>, <em>resync_jump=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.can.CANTiming.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ripyl.protocol.can.CANTiming.bit_period">
@@ -375,18 +361,12 @@
 <dl class="attribute">
 <dt id="ripyl.protocol.can.CANTiming.post_sample_delay">
 <tt class="descname">post_sample_delay</tt><a class="headerlink" href="#ripyl.protocol.can.CANTiming.post_sample_delay" title="Permalink to this definition">¶</a></dt>
-<dd><p>The delay from the sample point to the end of the bit</p>
+<dd><p>The delay from the sample point to the of the bit</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="ripyl.protocol.can.CANTiming.resync_jump">
 <tt class="descname">resync_jump</tt><a class="headerlink" href="#ripyl.protocol.can.CANTiming.resync_jump" title="Permalink to this definition">¶</a></dt>
-<dd><p>Time span for resync jump</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.can.CANTiming.resync_jump_quanta">
-<tt class="descname">resync_jump_quanta</tt><a class="headerlink" href="#ripyl.protocol.can.CANTiming.resync_jump_quanta" title="Permalink to this definition">¶</a></dt>
 <dd><p>Number of quanta to jump for resync</p>
 </dd></dl>
 
@@ -428,7 +408,7 @@
 
 <dl class="function">
 <dt id="ripyl.protocol.can.can_decode">
-<tt class="descclassname">ripyl.protocol.can.</tt><tt class="descname">can_decode</tt><big>(</big><em>can</em>, <em>polarity=1</em>, <em>bit_rate=None</em>, <em>bit_timing=None</em>, <em>coerce_rates=None</em>, <em>logic_levels=None</em>, <em>stream_type=1</em>, <em>decode_info=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.can.can_decode" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ripyl.protocol.can.</tt><tt class="descname">can_decode</tt><big>(</big><em>can</em>, <em>polarity=1</em>, <em>bit_rate=None</em>, <em>coerce_rates=None</em>, <em>logic_levels=None</em>, <em>stream_type=1</em><big>)</big><a class="headerlink" href="#ripyl.protocol.can.can_decode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Decode a CAN data stream</p>
 <p>This is a generator function that can be used in a pipeline of waveform
 procesing operations.</p>
@@ -451,8 +431,6 @@ when using a differential input.</li>
 <li><strong>bit_rate</strong> (<em>number or None</em>) &#8211; The bit rate of the stream. If None, the first 50 edges will be analyzed to
 automatically determine the most likely bit rate for the stream. On average
 50 edges will occur after 11 bytes have been captured.</li>
-<li><strong>bit_timing</strong> (<em>CANTiming or None</em>) &#8211; An optional CANTiming object that specifies the time quanta for each bit phase.
-If None, a default timing object is used with prop. delay = 1q and p1 &amp; p2 = 4q.</li>
 <li><strong>coerce_rates</strong> (<em>sequence of number or None</em>) &#8211; An optional list of standard bit rates to coerce the automatically detected
 bit rate to.</li>
 <li><strong>logic_levels</strong> (<em>(float, float) or None</em>) &#8211; Optional pair that indicates (low, high) logic levels of the sample
@@ -460,8 +438,6 @@ stream. When present, auto level detection is disabled. This has no effect on
 edge streams.</li>
 <li><strong>stream_type</strong> (<em>streaming.StreamType</em>) &#8211; A StreamType value indicating that the can parameter represents either Samples
 or Edges</li>
-<li><strong>decode_info</strong> (<em>dict or None</em>) &#8211; An optional dictionary object that is used to monitor the results of
-automatic parameter analysis and retrieve bit timing.</li>
 </ul>
 </td>
 </tr>
@@ -519,7 +495,7 @@ The value is applied to the range of bits specified for the field.</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>frames</strong> (<em>sequence of CANFrame compatible objects</em>) &#8211; Frames to be synthesized.</li>
 <li><strong>bit_rate</strong> (<em>number</em>) &#8211; The frequency of the clock generator</li>
-<li><strong>idle_start</strong> (<em>float</em>) &#8211; The amount of idle time before the transmission of frames begins.</li>
+<li><strong>idle_start</strong> (<em>float</em>) &#8211; The amount of idle time before the transmission of framesbegins.</li>
 <li><strong>idle_end</strong> (<em>float</em>) &#8211; The amount of idle time after the last frame.</li>
 </ul>
 </td>
@@ -530,354 +506,6 @@ is the initial state of the stream.</p>
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-</div>
-<div class="section" id="module-ripyl.protocol.ethernet">
-<span id="ethernet-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">ethernet</span></tt> Module<a class="headerlink" href="#module-ripyl.protocol.ethernet" title="Permalink to this headline">¶</a></h2>
-<p>Ethernet protocol decoder</p>
-<dl class="class">
-<dt id="ripyl.protocol.ethernet.EthernetFrame">
-<em class="property">class </em><tt class="descclassname">ripyl.protocol.ethernet.</tt><tt class="descname">EthernetFrame</tt><big>(</big><em>dest</em>, <em>source</em>, <em>data</em>, <em>length_type=None</em>, <em>tags=None</em>, <em>crc=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.ethernet.EthernetFrame" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
-<p>Ethernet frame object</p>
-<dl class="method">
-<dt id="ripyl.protocol.ethernet.EthernetFrame.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>dest</em>, <em>source</em>, <em>data</em>, <em>length_type=None</em>, <em>tags=None</em>, <em>crc=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.ethernet.EthernetFrame.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>dest</strong> (<em>MACAddr, str, or sequence of int</em>) &#8211; The destination address of the frame.</li>
-<li><strong>source</strong> (<em>MACAddr, str, or sequence of int</em>) &#8211; The source address of the frame.</li>
-<li><strong>data</strong> (<em>sequence of int</em>) &#8211; The data for the frame. Padding is not necessary.</li>
-<li><strong>length_type</strong> (<em>int or None</em>) &#8211; The Ethertype / length field. Ethertypes should be &gt;= 0x600.</li>
-<li><strong>tags</strong> (<em>sequence of EthernetTag or None</em>) &#8211; Optional sequence of 802.1Q tags to insert into frame.</li>
-<li><strong>crc</strong> (<em>int or None</em>) &#8211; The decoded CRC for the frame. Leave as None to generate CRC automatically.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="ripyl.protocol.ethernet.EthernetFrame.bit_stream">
-<tt class="descname">bit_stream</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.protocol.ethernet.EthernetFrame.bit_stream" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the sequence of raw bits for the frame.</p>
-<p>This includes the SOF and SFD at the start and the IDL phase at end of frame.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.ethernet.EthernetFrame.bytes">
-<tt class="descname">bytes</tt><a class="headerlink" href="#ripyl.protocol.ethernet.EthernetFrame.bytes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the bytes for this frame.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A series of bytes representing the header, payload, and crc. this does not</td>
-</tr>
-</tbody>
-</table>
-<p>include the SOF and SFD sequence.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.ethernet.EthernetFrame.crc">
-<tt class="descname">crc</tt><a class="headerlink" href="#ripyl.protocol.ethernet.EthernetFrame.crc" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ripyl.protocol.ethernet.EthernetFrame.crc_is_valid">
-<tt class="descname">crc_is_valid</tt><big>(</big><em>recv_crc=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.ethernet.EthernetFrame.crc_is_valid" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check if a decoded CRC is valid.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>recv_crc</strong> (<em>int or None</em>) &#8211; The decoded CRC to check against. If None, the CRC passed in the constructor is used.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True when the crc is correct.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.ethernet.EthernetFrame.length_type">
-<tt class="descname">length_type</tt><a class="headerlink" href="#ripyl.protocol.ethernet.EthernetFrame.length_type" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ripyl.protocol.ethernet.EthernetLinkCode">
-<em class="property">class </em><tt class="descclassname">ripyl.protocol.ethernet.</tt><tt class="descname">EthernetLinkCode</tt><big>(</big><em>selector</em>, <em>tech_ability</em>, <em>rem_fault</em>, <em>ack</em>, <em>next_page</em><big>)</big><a class="headerlink" href="#ripyl.protocol.ethernet.EthernetLinkCode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
-<p>Representation of the pulses in a 100Mbps Ethernet autonegotiation</p>
-<dl class="method">
-<dt id="ripyl.protocol.ethernet.EthernetLinkCode.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>selector</em>, <em>tech_ability</em>, <em>rem_fault</em>, <em>ack</em>, <em>next_page</em><big>)</big><a class="headerlink" href="#ripyl.protocol.ethernet.EthernetLinkCode.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>selector</strong> (<em>int</em>) &#8211; Identify which standard is in use</li>
-<li><strong>tech_ability</strong> (<em>int</em>) &#8211; Technology ability. Identifies posible modes of operation.</li>
-<li><strong>rem_fault</strong> (<em>int or bool</em>) &#8211; Flag indicating a link failure</li>
-<li><strong>ack</strong> (<em>int or bool</em>) &#8211; Flag to indicate reception of the base link code word.</li>
-<li><strong>next_page</strong> (<em>int or bool</em>) &#8211; Flag to indicate intention to send other link code words.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.ethernet.EthernetLinkCode.word">
-<tt class="descname">word</tt><a class="headerlink" href="#ripyl.protocol.ethernet.EthernetLinkCode.word" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate 16-bit word from the fields</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ripyl.protocol.ethernet.EthernetLinkTest">
-<em class="property">class </em><tt class="descclassname">ripyl.protocol.ethernet.</tt><tt class="descname">EthernetLinkTest</tt><big>(</big><em>link_code=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.ethernet.EthernetLinkTest" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
-<p>An link test pulse or auto-negotiation pulse stream</p>
-<dl class="method">
-<dt id="ripyl.protocol.ethernet.EthernetLinkTest.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>link_code=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.ethernet.EthernetLinkTest.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>link_code</strong> (<em>int or None</em>) &#8211; </td>
-</tr>
-</tbody>
-</table>
-<p>When None, this object represents a single link test pulse.
-When an int, this object represents a series of pulses for the link code</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ripyl.protocol.ethernet.EthernetLinkTest.edges">
-<tt class="descname">edges</tt><big>(</big><em>bit_period</em><big>)</big><a class="headerlink" href="#ripyl.protocol.ethernet.EthernetLinkTest.edges" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the edges for this object</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>bit_period</strong> (<em>float</em>) &#8211; The period of a single bit.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A list of (float, int) edges representing the pulse(s) for this object</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ripyl.protocol.ethernet.EthernetStreamFrame">
-<em class="property">class </em><tt class="descclassname">ripyl.protocol.ethernet.</tt><tt class="descname">EthernetStreamFrame</tt><big>(</big><em>bounds</em>, <em>frame</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.ethernet.EthernetStreamFrame" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="ripyl.html#ripyl.streaming.StreamSegment" title="ripyl.streaming.StreamSegment"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamSegment</span></tt></a></p>
-<p>Encapsulates an EthernetFrame object into a StreamSegment</p>
-<dl class="method">
-<dt id="ripyl.protocol.ethernet.EthernetStreamFrame.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>bounds</em>, <em>frame</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.ethernet.EthernetStreamFrame.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ripyl.protocol.ethernet.EthernetStreamStatus">
-<em class="property">class </em><tt class="descclassname">ripyl.protocol.ethernet.</tt><tt class="descname">EthernetStreamStatus</tt><a class="headerlink" href="#ripyl.protocol.ethernet.EthernetStreamStatus" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="ripyl.util.html#ripyl.util.enum.Enum" title="ripyl.util.enum.Enum"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.util.enum.Enum</span></tt></a></p>
-<p>Enumeration for EthernetStreamFrame status codes</p>
-<dl class="attribute">
-<dt id="ripyl.protocol.ethernet.EthernetStreamStatus.CRCError">
-<tt class="descname">CRCError</tt><em class="property"> = 201</em><a class="headerlink" href="#ripyl.protocol.ethernet.EthernetStreamStatus.CRCError" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ripyl.protocol.ethernet.EthernetTag">
-<em class="property">class </em><tt class="descclassname">ripyl.protocol.ethernet.</tt><tt class="descname">EthernetTag</tt><big>(</big><em>tpid</em>, <em>tci</em><big>)</big><a class="headerlink" href="#ripyl.protocol.ethernet.EthernetTag" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
-<p>Tag object representing 802.1Q tag</p>
-<dl class="method">
-<dt id="ripyl.protocol.ethernet.EthernetTag.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>tpid</em>, <em>tci</em><big>)</big><a class="headerlink" href="#ripyl.protocol.ethernet.EthernetTag.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.ethernet.EthernetTag.bytes">
-<tt class="descname">bytes</tt><a class="headerlink" href="#ripyl.protocol.ethernet.EthernetTag.bytes" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.ethernet.EthernetTag.dei">
-<tt class="descname">dei</tt><a class="headerlink" href="#ripyl.protocol.ethernet.EthernetTag.dei" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.ethernet.EthernetTag.pcp">
-<tt class="descname">pcp</tt><a class="headerlink" href="#ripyl.protocol.ethernet.EthernetTag.pcp" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.ethernet.EthernetTag.vid">
-<tt class="descname">vid</tt><a class="headerlink" href="#ripyl.protocol.ethernet.EthernetTag.vid" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ripyl.protocol.ethernet.MACAddr">
-<em class="property">class </em><tt class="descclassname">ripyl.protocol.ethernet.</tt><tt class="descname">MACAddr</tt><big>(</big><em>addr</em><big>)</big><a class="headerlink" href="#ripyl.protocol.ethernet.MACAddr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
-<p>Ethernet MAC address</p>
-<dl class="method">
-<dt id="ripyl.protocol.ethernet.MACAddr.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>addr</em><big>)</big><a class="headerlink" href="#ripyl.protocol.ethernet.MACAddr.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>addr</strong> (<em>str or sequence of int</em>) &#8211; The address can be specified as in two formats: a list of int or a string. The string
-is a series of hex digits with optional colon separators on byteboundaries.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Raises :</th><td class="field-body">ValueError if the address does not contain 6 bytes.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="ripyl.protocol.ethernet.add_overshoot">
-<tt class="descclassname">ripyl.protocol.ethernet.</tt><tt class="descname">add_overshoot</tt><big>(</big><em>bits</em>, <em>duration</em>, <em>overshoot=0.75</em>, <em>undershoot=0.8</em><big>)</big><a class="headerlink" href="#ripyl.protocol.ethernet.add_overshoot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add simulated overshoot to an edge stream</p>
-<p>This function is intended to simulate the overshoot behavior produced by the
-output drivers and magnetics of 10Base-T ethernet. This is done crudely by scaling
-the edge stream values by the overshoot and undershoot factors. This results in a
-non-standard edge stream that can be processed by synth_wave() to create a
-realistic sampled waveform but is otherwise not useful.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>bits</strong> (<em>iterable of (float, int)</em>) &#8211; A differential edge stream to add overshoot to.</li>
-<li><strong>duration</strong> (<em>float</em>) &#8211; The amount of time to add overshoot after each edge transition.</li>
-<li><strong>overshoot</strong> (<em>float</em>) &#8211; The fraction of a high-level that the overshoot extends past.</li>
-<li><strong>undershoot</strong> (<em>float</em>) &#8211; The fraction of the overshoot that the undershoot extends past. Only used for
-transitions to idle.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  an edge stream with overshoot transitions inserted.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="ripyl.protocol.ethernet.ethernet_decode">
-<tt class="descclassname">ripyl.protocol.ethernet.</tt><tt class="descname">ethernet_decode</tt><big>(</big><em>rxtx</em>, <em>tag_ethertypes=None</em>, <em>logic_levels=None</em>, <em>stream_type=1</em><big>)</big><a class="headerlink" href="#ripyl.protocol.ethernet.ethernet_decode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Decode an ethernet data stream</p>
-<p>This is a generator function that can be used in a pipeline of waveform
-procesing operations.</p>
-<p>Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
-of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
-parameter. Sample streams will be analyzed to find edge transitions representing
-0 and 1 logic states of the waveforms. With sample streams, an initial block of data
-is consumed to determine the most likely logic levels in the signal.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>rxtx</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream representing a differential ethernet signal.</li>
-<li><strong>tag_ethertypes</strong> (<em>sequence of int or None</em>) &#8211; The ethertypes to use for identifying 802.1Q tags. Default is 0x8100, 0x88a8, and 0x9100.</li>
-<li><strong>logic_levels</strong> (<em>(float, float) or None</em>) &#8211; Optional pair that indicates (low, high) logic levels of the sample
-stream. When present, auto level detection is disabled. This has no effect on
-edge streams.</li>
-<li><strong>stream_type</strong> (<em>streaming.StreamType</em>) &#8211; A StreamType value indicating that the can parameter represents either Samples
-or Edges</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An iterator yielding  a series of EthernetStreamFrame objects. Each frame contains subrecords marking the location
-of sub-elements within the frame. CRC errors are recorded as an error status in their
-respective subrecords.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first">AutoLevelError if stream_type = Samples and the logic levels cannot
-be determined.</p>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Raises :</th><td class="field-body"><p class="first last">StreamError if ethernet speed cannot be determined.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="ripyl.protocol.ethernet.ethernet_synth">
-<tt class="descclassname">ripyl.protocol.ethernet.</tt><tt class="descname">ethernet_synth</tt><big>(</big><em>frames</em>, <em>overshoot=None</em>, <em>idle_start=0.0</em>, <em>frame_interval=0.0</em>, <em>idle_end=0.0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.ethernet.ethernet_synth" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate synthesized Ethernet frames</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>frames</strong> (<em>sequence of EthernetFrame</em>) &#8211; Frames to be synthesized.</li>
-<li><strong>overshoot</strong> (<em>None or (float, float)</em>) &#8211; When a pair of floats is provided these indicate the overshoot parameters to add
-to the waveform. The first number is the fraction of a bit period that the overshoot
-covers. This should be less than 0.5. The second number is the fraction of a high-level
-that the overshoot extends past. When used, the edge stream must be converted to a
-sample stream with low-pass filtering by synth_wave() before it accurately represents
-overshoot.</li>
-<li><strong>idle_start</strong> (<em>float</em>) &#8211; The amount of idle time before the transmission of frames begins.</li>
-<li><strong>frame_interval</strong> (<em>float</em>) &#8211; The amount of time between frames.</li>
-<li><strong>idle_end</strong> (<em>float</em>) &#8211; The amount of idle time after the last frame.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  an edge stream of (float, int) pairs. The first element in the iterator
-is the initial state of the stream.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="ripyl.protocol.ethernet.table_ethernet_crc32">
-<tt class="descclassname">ripyl.protocol.ethernet.</tt><tt class="descname">table_ethernet_crc32</tt><big>(</big><em>d</em><big>)</big><a class="headerlink" href="#ripyl.protocol.ethernet.table_ethernet_crc32" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate Ethernet CRC-32 on data</p>
-<p>This is a table-based byte-wise implementation</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>d</strong> (<em>sequence of int</em>) &#8211; Array of integers representing bytes</td>
-</tr>
-</tbody>
-</table>
-<p>:param  :
-:returns: An integer with the crc value.</p>
 </dd></dl>
 
 </div>
@@ -991,16 +619,6 @@ is the initial state of the stream.</p>
 </tbody>
 </table>
 </dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.i2c.I2CTransfer.end_time">
-<tt class="descname">end_time</tt><a class="headerlink" href="#ripyl.protocol.i2c.I2CTransfer.end_time" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.i2c.I2CTransfer.start_time">
-<tt class="descname">start_time</tt><a class="headerlink" href="#ripyl.protocol.i2c.I2CTransfer.start_time" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 </dd></dl>
 
@@ -1448,449 +1066,6 @@ is the initial state of the stream.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="module-ripyl.protocol.j1850">
-<span id="j1850-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">j1850</span></tt> Module<a class="headerlink" href="#module-ripyl.protocol.j1850" title="Permalink to this headline">¶</a></h2>
-<p>J1850 protocol decoder</p>
-<dl class="class">
-<dt id="ripyl.protocol.j1850.J1850Break">
-<em class="property">class </em><tt class="descclassname">ripyl.protocol.j1850.</tt><tt class="descname">J1850Break</tt><a class="headerlink" href="#ripyl.protocol.j1850.J1850Break" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
-<p>Representation of a J1850 break condition</p>
-<dl class="method">
-<dt id="ripyl.protocol.j1850.J1850Break.__init__">
-<tt class="descname">__init__</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.protocol.j1850.J1850Break.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ripyl.protocol.j1850.J1850Frame">
-<em class="property">class </em><tt class="descclassname">ripyl.protocol.j1850.</tt><tt class="descname">J1850Frame</tt><big>(</big><em>priority</em>, <em>msg_type</em>, <em>data</em>, <em>target=None</em>, <em>source=None</em>, <em>ifr_data=None</em>, <em>crc=None</em>, <em>ifr_crc=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.j1850.J1850Frame" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
-<p>Base class for J1850 frames</p>
-<dl class="method">
-<dt id="ripyl.protocol.j1850.J1850Frame.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>priority</em>, <em>msg_type</em>, <em>data</em>, <em>target=None</em>, <em>source=None</em>, <em>ifr_data=None</em>, <em>crc=None</em>, <em>ifr_crc=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.j1850.J1850Frame.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>priority</strong> (<em>int</em>) &#8211; The 3-bit frame priority field. Lower values have higher priority.</li>
-<li><strong>msg_type</strong> (<em>J1850MT</em>) &#8211; Message type.</li>
-<li><strong>data</strong> (<em>sequence of int or None</em>) &#8211; Data bytes for the frame.</li>
-<li><strong>target</strong> (<em>int</em>) &#8211; Target address or function.</li>
-<li><strong>source</strong> (<em>int</em>) &#8211; Source address.</li>
-<li><strong>ifr_data</strong> (<em>sequence of int or None</em>) &#8211; Optional data for the In-Frame Response.</li>
-<li><strong>crc</strong> (<em>int or None</em>) &#8211; CRC for the data bytes and header.</li>
-<li><strong>ifr_crc</strong> (<em>int or None</em>) &#8211; CRC for the IFR (FunctionRead message type only)</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.j1850.J1850Frame.bytes">
-<tt class="descname">bytes</tt><a class="headerlink" href="#ripyl.protocol.j1850.J1850Frame.bytes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the bytes for this frame. Does not include IFR.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.j1850.J1850Frame.crc">
-<tt class="descname">crc</tt><a class="headerlink" href="#ripyl.protocol.j1850.J1850Frame.crc" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ripyl.protocol.j1850.J1850Frame.crc_is_valid">
-<tt class="descname">crc_is_valid</tt><big>(</big><em>recv_crc=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.j1850.J1850Frame.crc_is_valid" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check if a decoded CRC is valid.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>recv_crc</strong> (<em>int or None</em>) &#8211; The decoded CRC to check against. If None, the CRC passed in the constructor is used.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True when the crc is correct.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.j1850.J1850Frame.ifr_bytes">
-<tt class="descname">ifr_bytes</tt><a class="headerlink" href="#ripyl.protocol.j1850.J1850Frame.ifr_bytes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the IFR bytes for this frame.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.j1850.J1850Frame.ifr_crc">
-<tt class="descname">ifr_crc</tt><a class="headerlink" href="#ripyl.protocol.j1850.J1850Frame.ifr_crc" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="ripyl.protocol.j1850.J1850Frame.ifr_crc_is_valid">
-<tt class="descname">ifr_crc_is_valid</tt><big>(</big><em>recv_crc=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.j1850.J1850Frame.ifr_crc_is_valid" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check if a decoded IFR CRC is valid.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>recv_crc</strong> (<em>int or None</em>) &#8211; The decoded CRC to check against. If None, the CRC passed in the constructor is used.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True when the crc is correct.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ripyl.protocol.j1850.J1850MT">
-<em class="property">class </em><tt class="descclassname">ripyl.protocol.j1850.</tt><tt class="descname">J1850MT</tt><a class="headerlink" href="#ripyl.protocol.j1850.J1850MT" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="ripyl.util.html#ripyl.util.enum.Enum" title="ripyl.util.enum.Enum"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.util.enum.Enum</span></tt></a></p>
-<p>Enumeration of J1850 message types (last 4 bits of header byte)</p>
-<dl class="attribute">
-<dt id="ripyl.protocol.j1850.J1850MT.Ack">
-<tt class="descname">Ack</tt><em class="property"> = 14</em><a class="headerlink" href="#ripyl.protocol.j1850.J1850MT.Ack" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.j1850.J1850MT.Broadcast">
-<tt class="descname">Broadcast</tt><em class="property"> = 1</em><a class="headerlink" href="#ripyl.protocol.j1850.J1850MT.Broadcast" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.j1850.J1850MT.Function">
-<tt class="descname">Function</tt><em class="property"> = 0</em><a class="headerlink" href="#ripyl.protocol.j1850.J1850MT.Function" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.j1850.J1850MT.FunctionCmd">
-<tt class="descname">FunctionCmd</tt><em class="property"> = 8</em><a class="headerlink" href="#ripyl.protocol.j1850.J1850MT.FunctionCmd" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.j1850.J1850MT.FunctionExtCmd">
-<tt class="descname">FunctionExtCmd</tt><em class="property"> = 10</em><a class="headerlink" href="#ripyl.protocol.j1850.J1850MT.FunctionExtCmd" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.j1850.J1850MT.FunctionExtRqst">
-<tt class="descname">FunctionExtRqst</tt><em class="property"> = 11</em><a class="headerlink" href="#ripyl.protocol.j1850.J1850MT.FunctionExtRqst" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.j1850.J1850MT.FunctionQuery">
-<tt class="descname">FunctionQuery</tt><em class="property"> = 2</em><a class="headerlink" href="#ripyl.protocol.j1850.J1850MT.FunctionQuery" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.j1850.J1850MT.FunctionRead">
-<tt class="descname">FunctionRead</tt><em class="property"> = 3</em><a class="headerlink" href="#ripyl.protocol.j1850.J1850MT.FunctionRead" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.j1850.J1850MT.FunctionRqst">
-<tt class="descname">FunctionRqst</tt><em class="property"> = 9</em><a class="headerlink" href="#ripyl.protocol.j1850.J1850MT.FunctionRqst" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.j1850.J1850MT.NodeToNode">
-<tt class="descname">NodeToNode</tt><em class="property"> = 12</em><a class="headerlink" href="#ripyl.protocol.j1850.J1850MT.NodeToNode" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.j1850.J1850MT.NodeToNodeIFR">
-<tt class="descname">NodeToNodeIFR</tt><em class="property"> = 4</em><a class="headerlink" href="#ripyl.protocol.j1850.J1850MT.NodeToNodeIFR" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.j1850.J1850MT.Reserved13">
-<tt class="descname">Reserved13</tt><em class="property"> = 13</em><a class="headerlink" href="#ripyl.protocol.j1850.J1850MT.Reserved13" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.j1850.J1850MT.Reserved15">
-<tt class="descname">Reserved15</tt><em class="property"> = 15</em><a class="headerlink" href="#ripyl.protocol.j1850.J1850MT.Reserved15" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.j1850.J1850MT.Reserved5">
-<tt class="descname">Reserved5</tt><em class="property"> = 5</em><a class="headerlink" href="#ripyl.protocol.j1850.J1850MT.Reserved5" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.j1850.J1850MT.Reserved6">
-<tt class="descname">Reserved6</tt><em class="property"> = 6</em><a class="headerlink" href="#ripyl.protocol.j1850.J1850MT.Reserved6" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.j1850.J1850MT.Reserved7">
-<tt class="descname">Reserved7</tt><em class="property"> = 7</em><a class="headerlink" href="#ripyl.protocol.j1850.J1850MT.Reserved7" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ripyl.protocol.j1850.J1850StreamFrame">
-<em class="property">class </em><tt class="descclassname">ripyl.protocol.j1850.</tt><tt class="descname">J1850StreamFrame</tt><big>(</big><em>bounds</em>, <em>frame</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.j1850.J1850StreamFrame" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="ripyl.html#ripyl.streaming.StreamSegment" title="ripyl.streaming.StreamSegment"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamSegment</span></tt></a></p>
-<p>Encapsulates a J1850Frame object into a StreamSegment</p>
-<dl class="method">
-<dt id="ripyl.protocol.j1850.J1850StreamFrame.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>bounds</em>, <em>frame</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.j1850.J1850StreamFrame.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ripyl.protocol.j1850.J1850StreamStatus">
-<em class="property">class </em><tt class="descclassname">ripyl.protocol.j1850.</tt><tt class="descname">J1850StreamStatus</tt><a class="headerlink" href="#ripyl.protocol.j1850.J1850StreamStatus" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="ripyl.util.html#ripyl.util.enum.Enum" title="ripyl.util.enum.Enum"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.util.enum.Enum</span></tt></a></p>
-<p>Enumeration for J1850StreamFrame status codes</p>
-<dl class="attribute">
-<dt id="ripyl.protocol.j1850.J1850StreamStatus.CRCError">
-<tt class="descname">CRCError</tt><em class="property"> = 201</em><a class="headerlink" href="#ripyl.protocol.j1850.J1850StreamStatus.CRCError" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ripyl.protocol.j1850.VPWNormBitStyle">
-<em class="property">class </em><tt class="descclassname">ripyl.protocol.j1850.</tt><tt class="descname">VPWNormBitStyle</tt><a class="headerlink" href="#ripyl.protocol.j1850.VPWNormBitStyle" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="ripyl.util.html#ripyl.util.enum.Enum" title="ripyl.util.enum.Enum"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.util.enum.Enum</span></tt></a></p>
-<p>Enumeration of VPW normalization bit coding scheme</p>
-<dl class="attribute">
-<dt id="ripyl.protocol.j1850.VPWNormBitStyle.GM">
-<tt class="descname">GM</tt><em class="property"> = 2</em><a class="headerlink" href="#ripyl.protocol.j1850.VPWNormBitStyle.GM" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.j1850.VPWNormBitStyle.SAE">
-<tt class="descname">SAE</tt><em class="property"> = 1</em><a class="headerlink" href="#ripyl.protocol.j1850.VPWNormBitStyle.SAE" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="ripyl.protocol.j1850.j1850_pwm_decode">
-<tt class="descclassname">ripyl.protocol.j1850.</tt><tt class="descname">j1850_pwm_decode</tt><big>(</big><em>pwm</em>, <em>logic_levels=None</em>, <em>stream_type=1</em><big>)</big><a class="headerlink" href="#ripyl.protocol.j1850.j1850_pwm_decode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Decode a J1850 PWM data stream</p>
-<p>This decodes the Pulse Width Modulated version of J1850 (Ford).</p>
-<p>This is a generator function that can be used in a pipeline of waveform
-procesing operations.</p>
-<p>Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
-of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
-parameter. Sample streams will be analyzed to find edge transitions representing
-0 and 1 logic states of the waveforms. With sample streams, an initial block of data
-is consumed to determine the most likely logic levels in the signal.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>pwm</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream representing a PWM Bus+ signal or the differential
-Bus+ - Bus-.</li>
-<li><strong>logic_levels</strong> (<em>(float, float) or None</em>) &#8211; Optional pair that indicates (low, high) logic levels of the sample
-stream. When present, auto level detection is disabled. This has no effect on
-edge streams.</li>
-<li><strong>stream_type</strong> (<em>streaming.StreamType</em>) &#8211; A StreamType value indicating that the can parameter represents either Samples
-or Edges</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An iterator yielding  a series of J1850StreamFrame objects. Each frame contains subrecords marking the location
-of sub-elements within the frame. CRC errors are recorded as an error status in their
-respective subrecords.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first last">AutoLevelError if stream_type = Samples and the logic levels cannot
-be determined.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="ripyl.protocol.j1850.j1850_pwm_synth">
-<tt class="descclassname">ripyl.protocol.j1850.</tt><tt class="descname">j1850_pwm_synth</tt><big>(</big><em>frames</em>, <em>breaks=None</em>, <em>idle_start=0.0</em>, <em>frame_interval=0.0</em>, <em>idle_end=0.0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.j1850.j1850_pwm_synth" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate synthesized J1850 PWM data streams</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>frames</strong> (<em>sequence of J1850Frame or J1850Break</em>) &#8211; Frames to be synthesized.</li>
-<li><strong>breaks</strong> (<em>sequence of (int, float)</em>) &#8211; A set of tuples that identify which frames are interrupted by a break condition.
-The first int portion of the tuple identifies the frame index and the second float
-is the percentage (0.0 to 1.0) of the total frame that is generated before the break.</li>
-<li><strong>idle_start</strong> (<em>float</em>) &#8211; The amount of idle time before the transmission of frames begins.</li>
-<li><strong>frame_interval</strong> (<em>float</em>) &#8211; The amount of time between frames.</li>
-<li><strong>idle_end</strong> (<em>float</em>) &#8211; The amount of idle time after the last frame.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  an edge stream of (float, int) pairs. The first element in the iterator
-is the initial state of the stream.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="ripyl.protocol.j1850.j1850_vpw_decode">
-<tt class="descclassname">ripyl.protocol.j1850.</tt><tt class="descname">j1850_vpw_decode</tt><big>(</big><em>vpw</em>, <em>norm_bit=1</em>, <em>logic_levels=None</em>, <em>stream_type=1</em><big>)</big><a class="headerlink" href="#ripyl.protocol.j1850.j1850_vpw_decode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Decode a J1850 VPW data stream</p>
-<p>This decodes the Variable Pulse Width version of J1850 (GM &amp; Chrysler).</p>
-<p>This is a generator function that can be used in a pipeline of waveform
-procesing operations.</p>
-<p>Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
-of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
-parameter. Sample streams will be analyzed to find edge transitions representing
-0 and 1 logic states of the waveforms. With sample streams, an initial block of data
-is consumed to determine the most likely logic levels in the signal.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>vpw</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream representing a VPW data signal.</li>
-<li><strong>norm_bit</strong> (<em>VPWNormBitStyle</em>) &#8211; How to interpret the normalization bit for In-Frame Response. Either standard SAE
-style or the GM specific variant. This determines whether the IFR is expected to
-have a CRC independently from the message type.</li>
-<li><strong>logic_levels</strong> (<em>(float, float) or None</em>) &#8211; Optional pair that indicates (low, high) logic levels of the sample
-stream. When present, auto level detection is disabled. This has no effect on
-edge streams.</li>
-<li><strong>stream_type</strong> (<em>streaming.StreamType</em>) &#8211; A StreamType value indicating that the can parameter represents either Samples
-or Edges</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An iterator yielding  a series of J1850StreamFrame objects. Each frame contains subrecords marking the location
-of sub-elements within the frame. CRC errors are recorded as an error status in their
-respective subrecords.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body"><p class="first last">AutoLevelError if stream_type = Samples and the logic levels cannot
-be determined.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="ripyl.protocol.j1850.j1850_vpw_synth">
-<tt class="descclassname">ripyl.protocol.j1850.</tt><tt class="descname">j1850_vpw_synth</tt><big>(</big><em>frames</em>, <em>norm_bit=1</em>, <em>breaks=None</em>, <em>idle_start=0.0</em>, <em>frame_interval=0.0</em>, <em>idle_end=0.0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.j1850.j1850_vpw_synth" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate synthesized J1850 VPW data streams</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>frames</strong> (<em>sequence of J1850Frame or J1850Break</em>) &#8211; Frames to be synthesized.</li>
-<li><strong>norm_bit</strong> (<em>VPWNormBitStyle</em>) &#8211; How to interpret the normalization bit for In-Frame Response. Either standard SAE
-style or the GM specific variant. This determines whether the IFR is expected to
-have a CRC independently from the message type.</li>
-<li><strong>breaks</strong> (<em>sequence of (int, float)</em>) &#8211; A set of tuples that identify which frames are interrupted by a break condition.
-The first int portion of the tuple identifies the frame index and the second float
-is the percentage (0.0 to 1.0) of the total frame that is generated before the break.</li>
-<li><strong>idle_start</strong> (<em>float</em>) &#8211; The amount of idle time before the transmission of frames begins.</li>
-<li><strong>frame_interval</strong> (<em>float</em>) &#8211; The amount of time between frames.</li>
-<li><strong>idle_end</strong> (<em>float</em>) &#8211; The amount of idle time after the last frame.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  an edge stream of (float, int) pairs. The first element in the iterator
-is the initial state of the stream.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="ripyl.protocol.j1850.pwm_encode">
-<tt class="descclassname">ripyl.protocol.j1850.</tt><tt class="descname">pwm_encode</tt><big>(</big><em>bytes</em>, <em>start_time</em>, <em>bit_slice</em><big>)</big><a class="headerlink" href="#ripyl.protocol.j1850.pwm_encode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert bytes to a PWM edge sequence</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>bytes</strong> (<em>sequence of int</em>) &#8211; The bytes to encode</li>
-<li><strong>start_time</strong> (<em>float</em>) &#8211; The Start time for the first edge</li>
-<li><strong>bit_slice</strong> (<em>float</em>) &#8211; The time for 1/3 of a bit period.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A list of (float, int) edge pairs.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="ripyl.protocol.j1850.single_to_diff">
-<tt class="descclassname">ripyl.protocol.j1850.</tt><tt class="descname">single_to_diff</tt><big>(</big><em>signal</em><big>)</big><a class="headerlink" href="#ripyl.protocol.j1850.single_to_diff" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert a single-ended edge stream to a differential pair</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>signal</strong> (<em>edge stream</em>) &#8211; The edges to convert to differential</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A pair of edge streams p and m representing the + and - differential pair.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="ripyl.protocol.j1850.table_j1850_crc8">
-<tt class="descclassname">ripyl.protocol.j1850.</tt><tt class="descname">table_j1850_crc8</tt><big>(</big><em>d</em><big>)</big><a class="headerlink" href="#ripyl.protocol.j1850.table_j1850_crc8" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate J1850 CRC-8 on data</p>
-<p>This is a table-based byte-wise implementation</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>d</strong> (<em>sequence of int</em>) &#8211; Array of integers representing bytes</td>
-</tr>
-</tbody>
-</table>
-<p>:param  :
-:returns: An integer with the crc value.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="ripyl.protocol.j1850.vpw_encode">
-<tt class="descclassname">ripyl.protocol.j1850.</tt><tt class="descname">vpw_encode</tt><big>(</big><em>bytes</em>, <em>start_time</em><big>)</big><a class="headerlink" href="#ripyl.protocol.j1850.vpw_encode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert bytes to a VPW edge sequence</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>bytes</strong> (<em>sequence of int</em>) &#8211; The bytes to encode</li>
-<li><strong>start_time</strong> (<em>float</em>) &#8211; The Start time for the first edge</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A list of (float, int) edge pairs.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</div>
 <div class="section" id="module-ripyl.protocol.lin">
 <span id="lin-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">lin</span></tt> Module<a class="headerlink" href="#module-ripyl.protocol.lin" title="Permalink to this headline">¶</a></h2>
 <p>LIN protocol decoder</p>
@@ -2245,21 +1420,6 @@ is the initial state of the stream.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="ripyl.protocol.lm73.LM73Transfer.end_time">
-<tt class="descname">end_time</tt><a class="headerlink" href="#ripyl.protocol.lm73.LM73Transfer.end_time" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.lm73.LM73Transfer.i2c_tfer">
-<tt class="descname">i2c_tfer</tt><a class="headerlink" href="#ripyl.protocol.lm73.LM73Transfer.i2c_tfer" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.protocol.lm73.LM73Transfer.start_time">
-<tt class="descname">start_time</tt><a class="headerlink" href="#ripyl.protocol.lm73.LM73Transfer.start_time" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
 <dt id="ripyl.protocol.lm73.LM73Transfer.temperature">
 <tt class="descname">temperature</tt><a class="headerlink" href="#ripyl.protocol.lm73.LM73Transfer.temperature" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the temperature in Celcius</p>
@@ -2276,21 +1436,15 @@ is the initial state of the stream.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="ripyl.protocol.lm73.convert_temp">
-<tt class="descclassname">ripyl.protocol.lm73.</tt><tt class="descname">convert_temp</tt><big>(</big><em>temperature</em><big>)</big><a class="headerlink" href="#ripyl.protocol.lm73.convert_temp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert a temperature to the LM73 encoding</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="ripyl.protocol.lm73.lm73_decode">
-<tt class="descclassname">ripyl.protocol.lm73.</tt><tt class="descname">lm73_decode</tt><big>(</big><em>i2c_stream</em>, <em>addresses=set([72</em>, <em>73</em>, <em>74</em>, <em>76</em>, <em>77</em>, <em>78])</em><big>)</big><a class="headerlink" href="#ripyl.protocol.lm73.lm73_decode" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ripyl.protocol.lm73.</tt><tt class="descname">lm73_decode</tt><big>(</big><em>stream</em>, <em>addresses=set([72</em>, <em>73</em>, <em>74</em>, <em>76</em>, <em>77</em>, <em>78])</em><big>)</big><a class="headerlink" href="#ripyl.protocol.lm73.lm73_decode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Decode an LM73 data stream</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>i2c_stream</strong> (<em>sequence of StreamRecord or I2CTransfer</em>) &#8211; An iterable representing either a stream of I2C StreamRecord objects or
+<li><strong>stream</strong> (<em>sequence of StreamRecord or I2CTransfer</em>) &#8211; An iterable representing either a stream of I2C StreamRecord objects or
 I2CTransfer objects produced by i2c_decode() or reconstruct_i2c_transfers() respectively.</li>
 <li><strong>addresses</strong> (<em>set of ints</em>) &#8211; A collection identifying the valid LM73 addresses to decode. All others are ignored.</li>
 </ul>
@@ -2810,7 +1964,7 @@ be determined.</p>
 
 <dl class="function">
 <dt id="ripyl.protocol.spi.spi_synth">
-<tt class="descclassname">ripyl.protocol.spi.</tt><tt class="descname">spi_synth</tt><big>(</big><em>data</em>, <em>word_size</em>, <em>clock_freq</em>, <em>cpol=0</em>, <em>cpha=0</em>, <em>lsb_first=True</em>, <em>idle_start=0.0</em>, <em>word_interval=0.0</em>, <em>idle_end=0.0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.spi.spi_synth" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">ripyl.protocol.spi.</tt><tt class="descname">spi_synth</tt><big>(</big><em>data</em>, <em>word_size</em>, <em>clock_freq</em>, <em>cpol=0</em>, <em>cpha=0</em>, <em>lsb_first=True</em>, <em>idle_start=0.0</em>, <em>word_interval=0.0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.spi.spi_synth" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate synthesized SPI waveform</p>
 <p>This function simulates a transmission of data over SPI.</p>
 <p>This is a generator function that can be used in a pipeline of waveform
@@ -2828,7 +1982,6 @@ procesing operations.</p>
 <li><strong>lsb_first</strong> (<em>bool</em>) &#8211; Flag indicating whether the Least Significant Bit is transmitted first.</li>
 <li><strong>idle_start</strong> (<em>float</em>) &#8211; The amount of idle time before the transmission of data begins</li>
 <li><strong>word_interval</strong> (<em>float</em>) &#8211; The amount of time between data words</li>
-<li><strong>idle_end</strong> (<em>float</em>) &#8211; The amount of idle time after the last transmission</li>
 </ul>
 </td>
 </tr>
@@ -3032,9 +2185,6 @@ tuples are edges where the txd state changes.</p>
 </table>
 </dd></dl>
 
-</div>
-<div class="section" id="usb-alt-stuffing-module">
-<h2><tt class="xref py py-mod docutils literal"><span class="pre">usb.alt_stuffing</span></tt> Module<a class="headerlink" href="#usb-alt-stuffing-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-ripyl.protocol.usb">
 <span id="usb-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">usb</span></tt> Module<a class="headerlink" href="#module-ripyl.protocol.usb" title="Permalink to this headline">¶</a></h2>
@@ -4045,10 +3195,8 @@ will SOF packets.</div></blockquote>
 <li><a class="reference internal" href="#">protocol Package</a><ul>
 <li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">protocol</span></tt> Package</a></li>
 <li><a class="reference internal" href="#module-ripyl.protocol.can"><tt class="docutils literal"><span class="pre">can</span></tt> Module</a></li>
-<li><a class="reference internal" href="#module-ripyl.protocol.ethernet"><tt class="docutils literal"><span class="pre">ethernet</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.protocol.i2c"><tt class="docutils literal"><span class="pre">i2c</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.protocol.iso_k_line"><tt class="docutils literal"><span class="pre">iso_k_line</span></tt> Module</a></li>
-<li><a class="reference internal" href="#module-ripyl.protocol.j1850"><tt class="docutils literal"><span class="pre">j1850</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.protocol.lin"><tt class="docutils literal"><span class="pre">lin</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.protocol.lm73"><tt class="docutils literal"><span class="pre">lm73</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.protocol.obd2"><tt class="docutils literal"><span class="pre">obd2</span></tt> Module</a></li>
@@ -4056,7 +3204,6 @@ will SOF packets.</div></blockquote>
 <li><a class="reference internal" href="#module-ripyl.protocol.sagem_ecu"><tt class="docutils literal"><span class="pre">sagem_ecu</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.protocol.spi"><tt class="docutils literal"><span class="pre">spi</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.protocol.uart"><tt class="docutils literal"><span class="pre">uart</span></tt> Module</a></li>
-<li><a class="reference internal" href="#usb-alt-stuffing-module"><tt class="docutils literal"><span class="pre">usb.alt_stuffing</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.protocol.usb"><tt class="docutils literal"><span class="pre">usb</span></tt> Module</a></li>
 <li><a class="reference internal" href="#module-ripyl.protocol.usb_transact"><tt class="docutils literal"><span class="pre">usb_transact</span></tt> Module</a></li>
 <li><a class="reference internal" href="#subpackages">Subpackages</a><ul>
@@ -4067,8 +3214,8 @@ will SOF packets.</div></blockquote>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="ripyl.io.html"
-                        title="previous chapter">io Package</a></p>
+  <p class="topless"><a href="ripyl.html"
+                        title="previous chapter">ripyl Package</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="ripyl.protocol.infrared.html"
                         title="next chapter">infrared Package</a></p>
@@ -4107,7 +3254,7 @@ will SOF packets.</div></blockquote>
           <a href="ripyl.protocol.infrared.html" title="infrared Package"
              >next</a> |</li>
         <li class="right" >
-          <a href="ripyl.io.html" title="io Package"
+          <a href="ripyl.html" title="ripyl Package"
              >previous</a> |</li>
         <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li>
           <li><a href="modules.html" >ripyl</a> &raquo;</li>
