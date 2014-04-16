@@ -1,0 +1,7 @@
+recursive-include doc *.html *.js *.css *.txt *.gif *.png *.rst *.py Makefile make.bat
+
+recursive-include test *.py *.bin *.txt
+prune test/data/no-dist
+
+include distribute_setup.py
+include LICENSE.txt

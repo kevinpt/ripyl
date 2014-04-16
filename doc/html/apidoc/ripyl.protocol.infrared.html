@@ -1,0 +1,669 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>infrared Package &mdash; Ripyl 1.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ripyl.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Ripyl 1.2 documentation" href="../index.html" />
+    <link rel="up" title="protocol Package" href="ripyl.protocol.html" />
+    <link rel="next" title="util Package" href="ripyl.util.html" />
+    <link rel="prev" title="protocol Package" href="ripyl.protocol.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ripyl.util.html" title="util Package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="ripyl.protocol.html" title="protocol Package"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li>
+          <li><a href="modules.html" >ripyl</a> &raquo;</li>
+          <li><a href="ripyl.html" >ripyl Package</a> &raquo;</li>
+          <li><a href="ripyl.protocol.html" accesskey="U">protocol Package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="infrared-package">
+<h1>infrared Package<a class="headerlink" href="#infrared-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">infrared</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-ripyl.protocol.infrared"></span><p>Infrared protocol package</p>
+</div>
+<div class="section" id="module-ripyl.protocol.infrared.ir_common">
+<span id="ir-common-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">ir_common</span></tt> Module<a class="headerlink" href="#module-ripyl.protocol.infrared.ir_common" title="Permalink to this headline">¶</a></h2>
+<p>Infrared decoder common utilities</p>
+<dl class="class">
+<dt id="ripyl.protocol.infrared.ir_common.IRConfig">
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.infrared.ir_common.</tt><tt class="descname">IRConfig</tt><a class="headerlink" href="#ripyl.protocol.infrared.ir_common.IRConfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ripyl.util.html#ripyl.util.enum.Enum" title="ripyl.util.enum.Enum"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.util.enum.Enum</span></tt></a></p>
+<p>Enumeration of configuration settings</p>
+<dl class="attribute">
+<dt id="ripyl.protocol.infrared.ir_common.IRConfig.IdleHigh">
+<tt class="descname">IdleHigh</tt><em class="property"> = 1</em><a class="headerlink" href="#ripyl.protocol.infrared.ir_common.IRConfig.IdleHigh" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.protocol.infrared.ir_common.IRConfig.IdleLow">
+<tt class="descname">IdleLow</tt><em class="property"> = 2</em><a class="headerlink" href="#ripyl.protocol.infrared.ir_common.IRConfig.IdleLow" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.protocol.infrared.ir_common.demodulate">
+<tt class="descclassname">ripyl.protocol.infrared.ir_common.</tt><tt class="descname">demodulate</tt><big>(</big><em>edges</em>, <em>carrier_freq</em>, <em>polarity=2</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.ir_common.demodulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Demodulate an edge stream</p>
+<p>This is a generator function.</p>
+<p>You can safely pass an unmodulated stream through this function without alteration</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>edges</strong> (<em>edge stream</em>) &#8211; The edge stream to modulate</li>
+<li><strong>carrier_freq</strong> (<em>float</em>) &#8211; The modulation frequency</li>
+<li><strong>polarity</strong> (<em>infrared.IRConfig</em>) &#8211; Set the polarity (idle state high or low)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  an edge stream.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.protocol.infrared.ir_common.modulate">
+<tt class="descclassname">ripyl.protocol.infrared.ir_common.</tt><tt class="descname">modulate</tt><big>(</big><em>edges</em>, <em>carrier_freq</em>, <em>duty_cycle=0.5</em>, <em>polarity=2</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.ir_common.modulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Modulate an edge stream</p>
+<p>This is a generator function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>edges</strong> (<em>edge stream</em>) &#8211; The edge stream to modulate</li>
+<li><strong>carrier_freq</strong> (<em>float</em>) &#8211; The modulation frequency</li>
+<li><strong>duty_cycle</strong> (<em>float</em>) &#8211; The duty cycle of the modulation</li>
+<li><strong>polarity</strong> (<em>infrared.IRConfig</em>) &#8211; Set the polarity (idle state high or low)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  an edge stream.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.protocol.infrared.ir_common.time_is_at_least">
+<tt class="descclassname">ripyl.protocol.infrared.ir_common.</tt><tt class="descname">time_is_at_least</tt><big>(</big><em>time</em>, <em>expected_value</em>, <em>epsilon</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.ir_common.time_is_at_least" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if a time value is greater than another</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>time</strong> (<em>float</em>) &#8211; The time to test</li>
+<li><strong>expected_value</strong> (<em>float</em>) &#8211; The value time should be greater than</li>
+<li><strong>epsilon</strong> (<em>float</em>) &#8211; The allowed difference between the time values</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Bool</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.protocol.infrared.ir_common.time_is_nearly">
+<tt class="descclassname">ripyl.protocol.infrared.ir_common.</tt><tt class="descname">time_is_nearly</tt><big>(</big><em>time</em>, <em>expected_value</em>, <em>epsilon</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.ir_common.time_is_nearly" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if a time value is approximately equal another</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>time</strong> (<em>float</em>) &#8211; The time to test</li>
+<li><strong>expected_value</strong> (<em>float</em>) &#8211; The value time should be equal to</li>
+<li><strong>epsilon</strong> (<em>float</em>) &#8211; The allowed difference between the time values</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Bool</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ripyl.protocol.infrared.nec">
+<span id="nec-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">nec</span></tt> Module<a class="headerlink" href="#module-ripyl.protocol.infrared.nec" title="Permalink to this headline">¶</a></h2>
+<p>NEC IR protocol decoder</p>
+<dl class="class">
+<dt id="ripyl.protocol.infrared.nec.NECMessage">
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.infrared.nec.</tt><tt class="descname">NECMessage</tt><big>(</big><em>cmd</em>, <em>addr_low</em>, <em>addr_high=None</em>, <em>cmd_inv=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.nec.NECMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>NEC infrared message</p>
+<dl class="method">
+<dt id="ripyl.protocol.infrared.nec.NECMessage.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>cmd</em>, <em>addr_low</em>, <em>addr_high=None</em>, <em>cmd_inv=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.nec.NECMessage.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ripyl.protocol.infrared.nec.NECMessage.is_valid">
+<tt class="descname">is_valid</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.nec.NECMessage.is_valid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if the command check byte is correct</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ripyl.protocol.infrared.nec.NECRepeat">
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.infrared.nec.</tt><tt class="descname">NECRepeat</tt><a class="headerlink" href="#ripyl.protocol.infrared.nec.NECRepeat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ripyl.protocol.infrared.nec.NECMessage" title="ripyl.protocol.infrared.nec.NECMessage"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.protocol.infrared.nec.NECMessage</span></tt></a></p>
+<p>NEC infrared repeat command</p>
+<dl class="method">
+<dt id="ripyl.protocol.infrared.nec.NECRepeat.__init__">
+<tt class="descname">__init__</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.nec.NECRepeat.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="ripyl.protocol.infrared.nec.NECRepeat.is_valid">
+<tt class="descname">is_valid</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.nec.NECRepeat.is_valid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ripyl.protocol.infrared.nec.NECStreamMessage">
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.infrared.nec.</tt><tt class="descname">NECStreamMessage</tt><big>(</big><em>bounds</em>, <em>data=None</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.nec.NECStreamMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ripyl.html#ripyl.streaming.StreamSegment" title="ripyl.streaming.StreamSegment"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamSegment</span></tt></a></p>
+<p>Message object for NEC data</p>
+<dl class="method">
+<dt id="ripyl.protocol.infrared.nec.NECStreamMessage.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>bounds</em>, <em>data=None</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.nec.NECStreamMessage.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.protocol.infrared.nec.nec_decode">
+<tt class="descclassname">ripyl.protocol.infrared.nec.</tt><tt class="descname">nec_decode</tt><big>(</big><em>ir_stream</em>, <em>carrier_freq=38000.0</em>, <em>polarity=2</em>, <em>logic_levels=None</em>, <em>stream_type=1</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.nec.nec_decode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decode NEC infrared protocol</p>
+<p>This is a generator function that can be used in a pipeline of waveform
+procesing operations.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ir_stream</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream of IR pulses. The type of stream is identified
+by the stream_type parameter. When this is a sample stream, an initial block
+of data is consumed to determine the most likely logic levels in the signal.
+This signal can be either modulated or demodulated.</li>
+<li><strong>carrier_freq</strong> (<em>float</em>) &#8211; The carrier frequency for modulation.</li>
+<li><strong>polarity</strong> (<em>infrared.IRConfig</em>) &#8211; Set the polarity (idle state high or low).</li>
+<li><strong>logic_levels</strong> (<em>(float, float) or None</em>) &#8211; Optional pair that indicates (low, high) logic levels of the sample
+stream. When present, auto level detection is disabled. This has no effect on
+edge streams.</li>
+<li><strong>stream_type</strong> (<em>streaming.StreamType</em>) &#8211; A StreamType value indicating that the ir_stream parameter represents either Samples
+or Edges.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>:param  :
+:returns: An iterator yielding  a series of NECStreamMessage objects.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body">AutoLevelError if stream_type = Samples and the logic levels cannot
+be determined.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.protocol.infrared.nec.nec_synth">
+<tt class="descclassname">ripyl.protocol.infrared.nec.</tt><tt class="descname">nec_synth</tt><big>(</big><em>messages</em>, <em>idle_start=0.0</em>, <em>message_interval=0.0425</em>, <em>idle_end=0.001</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.nec.nec_synth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate synthesized NEC Infrared waveforms</p>
+<p>This function simulates NEC IR pulses.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>messages</strong> (<em>sequence of NECMessage</em>) &#8211; Commands to be synthesized.</li>
+<li><strong>idle_start</strong> (<em>float</em>) &#8211; The amount of idle time before the transmission of messages begins.</li>
+<li><strong>message_interval</strong> (<em>float</em>) &#8211; The amount of time between messages.</li>
+<li><strong>idle_end</strong> (<em>float</em>) &#8211; The amount of idle time after the last message.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  an edge stream of (float, int) pairs. The first element in the iterator
+is the initial state of the stream.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ripyl.protocol.infrared.rc5">
+<span id="rc5-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">rc5</span></tt> Module<a class="headerlink" href="#module-ripyl.protocol.infrared.rc5" title="Permalink to this headline">¶</a></h2>
+<p>Philips RC-5 IR protocol decoder</p>
+<dl class="class">
+<dt id="ripyl.protocol.infrared.rc5.RC5Message">
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.infrared.rc5.</tt><tt class="descname">RC5Message</tt><big>(</big><em>cmd</em>, <em>addr</em>, <em>toggle</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.rc5.RC5Message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>RC-5 infrared message</p>
+<dl class="method">
+<dt id="ripyl.protocol.infrared.rc5.RC5Message.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>cmd</em>, <em>addr</em>, <em>toggle</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.rc5.RC5Message.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ripyl.protocol.infrared.rc5.RC5StreamMessage">
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.infrared.rc5.</tt><tt class="descname">RC5StreamMessage</tt><big>(</big><em>bounds</em>, <em>data=None</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.rc5.RC5StreamMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ripyl.html#ripyl.streaming.StreamSegment" title="ripyl.streaming.StreamSegment"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamSegment</span></tt></a></p>
+<p>Message object for RC-5 data</p>
+<dl class="method">
+<dt id="ripyl.protocol.infrared.rc5.RC5StreamMessage.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>bounds</em>, <em>data=None</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.rc5.RC5StreamMessage.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.protocol.infrared.rc5.rc5_decode">
+<tt class="descclassname">ripyl.protocol.infrared.rc5.</tt><tt class="descname">rc5_decode</tt><big>(</big><em>ir_stream</em>, <em>carrier_freq=36000.0</em>, <em>polarity=2</em>, <em>logic_levels=None</em>, <em>stream_type=1</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.rc5.rc5_decode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decode RC5 infrared protocol</p>
+<p>This is a generator function that can be used in a pipeline of waveform
+procesing operations.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ir_stream</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream of IR pulses. The type of stream is identified
+by the stream_type parameter. When this is a sample stream, an initial block
+of data is consumed to determine the most likely logic levels in the signal.
+This signal can be either modulated or demodulated.</li>
+<li><strong>carrier_freq</strong> (<em>float</em>) &#8211; The carrier frequency for modulation.</li>
+<li><strong>polarity</strong> (<em>infrared.IRConfig</em>) &#8211; Set the polarity (idle state high or low).</li>
+<li><strong>logic_levels</strong> (<em>(float, float) or None</em>) &#8211; Optional pair that indicates (low, high) logic levels of the sample
+stream. When present, auto level detection is disabled. This has no effect on
+edge streams.</li>
+<li><strong>stream_type</strong> (<em>streaming.StreamType</em>) &#8211; A StreamType value indicating that the ir_stream parameter represents either Samples
+or Edges.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>:param  :
+:returns: An iterator yielding  a series of RC5StreamMessage objects.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body">AutoLevelError if stream_type = Samples and the logic levels cannot
+be determined.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.protocol.infrared.rc5.rc5_synth">
+<tt class="descclassname">ripyl.protocol.infrared.rc5.</tt><tt class="descname">rc5_synth</tt><big>(</big><em>messages</em>, <em>idle_start=0.0</em>, <em>message_interval=0.089</em>, <em>idle_end=0.001</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.rc5.rc5_synth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate synthesized RC5 infrared waveforms</p>
+<p>This function simulates Philips RC5 IR pulses.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>messages</strong> (<em>sequence of RC5Message</em>) &#8211; Commands to be synthesized.</li>
+<li><strong>idle_start</strong> (<em>float</em>) &#8211; The amount of idle time before the transmission of messages begins.</li>
+<li><strong>message_interval</strong> (<em>float</em>) &#8211; The amount of time between messages.</li>
+<li><strong>idle_end</strong> (<em>float</em>) &#8211; The amount of idle time after the last message.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  an edge stream of (float, int) pairs. The first element in the iterator
+is the initial state of the stream.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ripyl.protocol.infrared.rc6">
+<span id="rc6-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">rc6</span></tt> Module<a class="headerlink" href="#module-ripyl.protocol.infrared.rc6" title="Permalink to this headline">¶</a></h2>
+<p>Philips RC-6 IR protocol decoder</p>
+<p>NOTE: There are no publicly available RC-6 documents describing the complete message format.
+Only mode-0 and mode-6 (RC6A) is properly supported by this decoder.</p>
+<dl class="class">
+<dt id="ripyl.protocol.infrared.rc6.RC6Message">
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.infrared.rc6.</tt><tt class="descname">RC6Message</tt><big>(</big><em>cmd</em>, <em>addr</em>, <em>toggle</em>, <em>mode=0</em>, <em>customer=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.rc6.RC6Message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>RC-6 infrared message</p>
+<dl class="method">
+<dt id="ripyl.protocol.infrared.rc6.RC6Message.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>cmd</em>, <em>addr</em>, <em>toggle</em>, <em>mode=0</em>, <em>customer=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.rc6.RC6Message.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ripyl.protocol.infrared.rc6.RC6StreamMessage">
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.infrared.rc6.</tt><tt class="descname">RC6StreamMessage</tt><big>(</big><em>bounds</em>, <em>data=None</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.rc6.RC6StreamMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ripyl.html#ripyl.streaming.StreamSegment" title="ripyl.streaming.StreamSegment"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamSegment</span></tt></a></p>
+<p>Message object for RC-6 data</p>
+<dl class="method">
+<dt id="ripyl.protocol.infrared.rc6.RC6StreamMessage.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>bounds</em>, <em>data=None</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.rc6.RC6StreamMessage.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.protocol.infrared.rc6.rc6_decode">
+<tt class="descclassname">ripyl.protocol.infrared.rc6.</tt><tt class="descname">rc6_decode</tt><big>(</big><em>ir_stream</em>, <em>carrier_freq=36000.0</em>, <em>polarity=2</em>, <em>logic_levels=None</em>, <em>stream_type=1</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.rc6.rc6_decode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decode RC6 infrared protocol</p>
+<p>This is a generator function that can be used in a pipeline of waveform
+procesing operations.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ir_stream</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream of IR pulses. The type of stream is identified
+by the stream_type parameter. When this is a sample stream, an initial block
+of data is consumed to determine the most likely logic levels in the signal.
+This signal can be either modulated or demodulated.</li>
+<li><strong>carrier_freq</strong> (<em>float</em>) &#8211; The carrier frequency for modulation.</li>
+<li><strong>polarity</strong> (<em>infrared.IRConfig</em>) &#8211; Set the polarity (idle state high or low).</li>
+<li><strong>logic_levels</strong> (<em>(float, float) or None</em>) &#8211; Optional pair that indicates (low, high) logic levels of the sample
+stream. When present, auto level detection is disabled. This has no effect on
+edge streams.</li>
+<li><strong>stream_type</strong> (<em>streaming.StreamType</em>) &#8211; A StreamType value indicating that the ir_stream parameter represents either Samples
+or Edges.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>:param  :
+:returns: An iterator yielding  a series of RC6StreamMessage objects.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body">AutoLevelError if stream_type = Samples and the logic levels cannot
+be determined.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.protocol.infrared.rc6.rc6_synth">
+<tt class="descclassname">ripyl.protocol.infrared.rc6.</tt><tt class="descname">rc6_synth</tt><big>(</big><em>messages</em>, <em>idle_start=0.0</em>, <em>message_interval=0.089</em>, <em>idle_end=0.001</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.rc6.rc6_synth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate synthesized RC6 infrared waveforms</p>
+<p>This function simulates Philips RC6 IR pulses.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>messages</strong> (<em>sequence of RC6Message</em>) &#8211; Commands to be synthesized.</li>
+<li><strong>idle_start</strong> (<em>float</em>) &#8211; The amount of idle time before the transmission of messages begins.</li>
+<li><strong>message_interval</strong> (<em>float</em>) &#8211; The amount of time between messages.</li>
+<li><strong>idle_end</strong> (<em>float</em>) &#8211; The amount of idle time after the last message.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  an edge stream of (float, int) pairs. The first element in the iterator
+is the initial state of the stream.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-ripyl.protocol.infrared.sirc">
+<span id="sirc-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">sirc</span></tt> Module<a class="headerlink" href="#module-ripyl.protocol.infrared.sirc" title="Permalink to this headline">¶</a></h2>
+<p>Sony SIRC IR protocol decoder</p>
+<dl class="class">
+<dt id="ripyl.protocol.infrared.sirc.SIRCMessage">
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.infrared.sirc.</tt><tt class="descname">SIRCMessage</tt><big>(</big><em>cmd</em>, <em>device</em>, <em>extended=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.sirc.SIRCMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>SIRC infrared message</p>
+<dl class="method">
+<dt id="ripyl.protocol.infrared.sirc.SIRCMessage.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>cmd</em>, <em>device</em>, <em>extended=None</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.sirc.SIRCMessage.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ripyl.protocol.infrared.sirc.SIRCStreamMessage">
+<em class="property">class </em><tt class="descclassname">ripyl.protocol.infrared.sirc.</tt><tt class="descname">SIRCStreamMessage</tt><big>(</big><em>bounds</em>, <em>data=None</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.sirc.SIRCStreamMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ripyl.html#ripyl.streaming.StreamSegment" title="ripyl.streaming.StreamSegment"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamSegment</span></tt></a></p>
+<p>Stream message object for SIRC data</p>
+<dl class="method">
+<dt id="ripyl.protocol.infrared.sirc.SIRCStreamMessage.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>bounds</em>, <em>data=None</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.sirc.SIRCStreamMessage.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.protocol.infrared.sirc.sirc_decode">
+<tt class="descclassname">ripyl.protocol.infrared.sirc.</tt><tt class="descname">sirc_decode</tt><big>(</big><em>ir_stream</em>, <em>carrier_freq=40000.0</em>, <em>polarity=2</em>, <em>logic_levels=None</em>, <em>stream_type=1</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.sirc.sirc_decode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decode Sony SIRC infrared protocol</p>
+<p>This is a generator function that can be used in a pipeline of waveform
+procesing operations.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>ir_stream</strong> (<em>iterable of SampleChunk objects or (float, int) pairs</em>) &#8211; A sample stream or edge stream of IR pulses. The type of stream is identified
+by the stream_type parameter. When this is a sample stream, an initial block
+of data is consumed to determine the most likely logic levels in the signal.
+This signal can be either modulated or demodulated.</li>
+<li><strong>carrier_freq</strong> (<em>float</em>) &#8211; The carrier frequency for modulation.</li>
+<li><strong>polarity</strong> (<em>infrared.IRConfig</em>) &#8211; Set the polarity (idle state high or low).</li>
+<li><strong>logic_levels</strong> (<em>(float, float) or None</em>) &#8211; Optional pair that indicates (low, high) logic levels of the sample
+stream. When present, auto level detection is disabled. This has no effect on
+edge streams.</li>
+<li><strong>stream_type</strong> (<em>streaming.StreamType</em>) &#8211; A StreamType value indicating that the ir_stream parameter represents either Samples
+or Edges.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>:param  :
+:returns: An iterator yielding  a series of SIRCStreamMessage objects.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises :</th><td class="field-body">AutoLevelError if stream_type = Samples and the logic levels cannot
+be determined.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.protocol.infrared.sirc.sirc_synth">
+<tt class="descclassname">ripyl.protocol.infrared.sirc.</tt><tt class="descname">sirc_synth</tt><big>(</big><em>messages</em>, <em>idle_start=0.0</em>, <em>message_interval=0.0425</em>, <em>idle_end=0.001</em><big>)</big><a class="headerlink" href="#ripyl.protocol.infrared.sirc.sirc_synth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate synthesized Sony SIRC Infrared waveforms</p>
+<p>This function simulates SIRC IR pulses.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>messages</strong> (<em>sequence of SIRCMessage</em>) &#8211; Commands to be synthesized.</li>
+<li><strong>idle_start</strong> (<em>float</em>) &#8211; The amount of idle time before the transmission of messages begins.</li>
+<li><strong>message_interval</strong> (<em>float</em>) &#8211; The amount of time between messages.</li>
+<li><strong>idle_end</strong> (<em>float</em>) &#8211; The amount of idle time after the last message.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  an edge stream of (float, int) pairs. The first element in the iterator
+is the initial state of the stream.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/Ripyl logo 100px.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">infrared Package</a><ul>
+<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">infrared</span></tt> Package</a></li>
+<li><a class="reference internal" href="#module-ripyl.protocol.infrared.ir_common"><tt class="docutils literal"><span class="pre">ir_common</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-ripyl.protocol.infrared.nec"><tt class="docutils literal"><span class="pre">nec</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-ripyl.protocol.infrared.rc5"><tt class="docutils literal"><span class="pre">rc5</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-ripyl.protocol.infrared.rc6"><tt class="docutils literal"><span class="pre">rc6</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-ripyl.protocol.infrared.sirc"><tt class="docutils literal"><span class="pre">sirc</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="ripyl.protocol.html"
+                        title="previous chapter">protocol Package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="ripyl.util.html"
+                        title="next chapter">util Package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/apidoc/ripyl.protocol.infrared.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ripyl.util.html" title="util Package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="ripyl.protocol.html" title="protocol Package"
+             >previous</a> |</li>
+        <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li>
+          <li><a href="modules.html" >ripyl</a> &raquo;</li>
+          <li><a href="ripyl.html" >ripyl Package</a> &raquo;</li>
+          <li><a href="ripyl.protocol.html" >protocol Package</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2013, Kevin Thibedeau.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+
+<script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-43149311-1', 'google.com');
+  ga('send', 'pageview');
+
+</script>
+
+  </body>
+</html>

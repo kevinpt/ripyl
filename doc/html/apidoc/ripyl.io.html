@@ -1,0 +1,230 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>io Package &mdash; Ripyl 1.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ripyl.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Ripyl 1.2 documentation" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="io-package">
+<h1>io Package<a class="headerlink" href="#io-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">io</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-ripyl.io"></span><p>IO package</p>
+</div>
+<div class="section" id="module-ripyl.io.vcd">
+<span id="vcd-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">vcd</span></tt> Module<a class="headerlink" href="#module-ripyl.io.vcd" title="Permalink to this headline">¶</a></h2>
+<p>VCD file I/O</p>
+<dl class="class">
+<dt id="ripyl.io.vcd.VCDChannel">
+<em class="property">class </em><tt class="descclassname">ripyl.io.vcd.</tt><tt class="descname">VCDChannel</tt><big>(</big><em>name</em>, <em>states</em>, <em>bits=1</em>, <em>vtype='wire'</em><big>)</big><a class="headerlink" href="#ripyl.io.vcd.VCDChannel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>A VCD channel definition</p>
+<dl class="method">
+<dt id="ripyl.io.vcd.VCDChannel.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>name</em>, <em>states</em>, <em>bits=1</em>, <em>vtype='wire'</em><big>)</big><a class="headerlink" href="#ripyl.io.vcd.VCDChannel.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>string</em>) &#8211; The name of this channel</li>
+<li><strong>states</strong> (<em>sequence of (float, int)</em>) &#8211; The states for the channel. This can be an edge sequence or a
+similar sequence containing numeric values</li>
+<li><strong>bits</strong> (<em>int</em>) &#8211; The number of bits in the channel</li>
+<li><strong>vtype</strong> (<em>string</em>) &#8211; The var_type for the channel</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ripyl.io.vcd.VCDInfo">
+<em class="property">class </em><tt class="descclassname">ripyl.io.vcd.</tt><tt class="descname">VCDInfo</tt><big>(</big><em>channels</em>, <em>timescale=1e-12</em>, <em>date=None</em>, <em>comment=None</em><big>)</big><a class="headerlink" href="#ripyl.io.vcd.VCDInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>A VCD info object</p>
+<dl class="method">
+<dt id="ripyl.io.vcd.VCDInfo.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>channels</em>, <em>timescale=1e-12</em>, <em>date=None</em>, <em>comment=None</em><big>)</big><a class="headerlink" href="#ripyl.io.vcd.VCDInfo.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>channels</strong> (<em>sequence of VCDChannel</em>) &#8211; A sequence of channel definitions</li>
+<li><strong>timescale</strong> (<em>float or string</em>) &#8211; Set the VCD timescale as a power of 10.
+If a float, the value is used to establish the timescale.
+If a string, it must match a channel name from channels. The symbol rate
+of the named channel is determined and a raw timescale is derived from
+1.0 / (4 * symbol rate). In both cases the raw value will be coerced to
+a valid power of 10.</li>
+<li><strong>date</strong> (<em>datetime or None</em>) &#8211; An optional datetime for the VCD header. If absent the current time is used.</li>
+<li><strong>comment</strong> (<em>string or None</em>) &#8211; An optional comment to include in the header.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises :</th><td class="field-body"><p class="first last">ValueError if the timescale channel cannot be found or the symbol rate cannot
+be determined.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.io.vcd.VCDInfo.date">
+<tt class="descname">date</tt><a class="headerlink" href="#ripyl.io.vcd.VCDInfo.date" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.io.vcd.VCDInfo.timescale">
+<tt class="descname">timescale</tt><a class="headerlink" href="#ripyl.io.vcd.VCDInfo.timescale" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.io.vcd.VCDInfo.timescale_si">
+<tt class="descname">timescale_si</tt><a class="headerlink" href="#ripyl.io.vcd.VCDInfo.timescale_si" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert timescale float to a string with SI units</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ripyl.io.vcd.VCDInfo.write">
+<tt class="descname">write</tt><big>(</big><em>fname</em>, <em>init_with_dumpvars=False</em><big>)</big><a class="headerlink" href="#ripyl.io.vcd.VCDInfo.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a VCD file</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fname</strong> (<em>string</em>) &#8211; The name of the file to write to</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.io.vcd.coerce_timescale">
+<tt class="descclassname">ripyl.io.vcd.</tt><tt class="descname">coerce_timescale</tt><big>(</big><em>ts</em><big>)</big><a class="headerlink" href="#ripyl.io.vcd.coerce_timescale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Coerce the timescale to a valid value</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/Ripyl logo 100px.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">io Package</a><ul>
+<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">io</span></tt> Package</a></li>
+<li><a class="reference internal" href="#module-ripyl.io.vcd"><tt class="docutils literal"><span class="pre">vcd</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/apidoc/ripyl.io.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2013, Kevin Thibedeau.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+
+<script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-43149311-1', 'google.com');
+  ga('send', 'pageview');
+
+</script>
+
+  </body>
+</html>

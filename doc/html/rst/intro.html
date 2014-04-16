@@ -1,0 +1,255 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Getting started with Ripyl &mdash; Ripyl 1.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ripyl.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Ripyl 1.2 documentation" href="../index.html" />
+    <link rel="next" title="Ripyl tutorials" href="tutorial.html" />
+    <link rel="prev" title="Installing Ripyl" href="installation.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="tutorial.html" title="Ripyl tutorials"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installing Ripyl"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="getting-started-with-ripyl">
+<h1>Getting started with Ripyl<a class="headerlink" href="#getting-started-with-ripyl" title="Permalink to this headline">¶</a></h1>
+<p>This is a general overview of the Ripyl library. It will give you a feel for what Ripyl can do for you.</p>
+<div class="section" id="ripyl-demonstration">
+<h2>Ripyl demonstration<a class="headerlink" href="#ripyl-demonstration" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="why-use-ripyl">
+<h3>Why use Ripyl?<a class="headerlink" href="#why-use-ripyl" title="Permalink to this headline">¶</a></h3>
+<p>If you have a need to analyze captured serial data then Ripyl can transform it into a usable format. Many digital oscolloscopes and logic analyzers lack built in protocol decoders, only have then available as expensive add-ons, or lack support for a specific protocol. Manually decoding waveforms is error prone and not practical on a large scale. Ripyl solves these issues for you.</p>
+<p>Ripyl is not a complete replacement for oscilloscope based protocol decoders. Most significantly, it only provides offline analysis of data. This means that there is no way to trigger on high level protocol events such as those provided in oscilloscope based decoders (data patterns, error conditions, etc.). Depending on your oscilloscope or analyzer, you may have advanced triggers available that can help you capture what you need but they will always be more limited than what is provided by built-in decoders. Due to this limitation, Ripyl will be most useful with data captured from deep memory oscilloscopes and analyzers.</p>
+<p>Once you have <a class="reference internal" href="installation.html"><em>installed Ripyl</em></a> you are ready to use it in Python scripts that will decode serial data for you. The installer created an executable script called <tt class="docutils literal"><span class="pre">ripyl_demo</span></tt> that can be used to get a feel for what Ripyl does.</p>
+<div class="highlight-sh"><div class="highlight"><pre>&gt; ripyl_demo -p uart
+</pre></div>
+</div>
+<p>This will display some information about the parameters used for the UART protocol and the sampling of the internal synthesizer. If the decode was successful the &#8220;Decoded message:&#8221; will display the original message encoded in the protocol. If <a class="reference external" href="http://matplotlib.org/">matplotlib</a> is installed you will also see a plot of the simulated UART waveform annotated with graphics showing the location of frames, data bits (blue) and parity bits (yellow or red).</p>
+<a class="reference internal image-reference" href="../_images/uart_hello.png"><img alt="../_images/uart_hello.png" src="../_images/uart_hello.png" style="width: 520.0px; height: 260.0px;" /></a>
+<p>We can make changes to the synthesized waveform to explore the effect it has on Ripyl.</p>
+<div class="highlight-sh"><div class="highlight"><pre>&gt; ripyl_demo -p uart -d <span class="s2">&quot;3.4e-4, 5.1e-4&quot;</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../_images/uart_hello_err.png"><img alt="../_images/uart_hello_err.png" src="../_images/uart_hello_err.png" style="width: 520.0px; height: 260.0px;" /></a>
+<p>The dropout option (-d) forces the synthesized waveform to a fixed level between the specified start and end times. This causes errors in the decode process which show up in the plotted results. You can see that dropout introduces parity and framing errors that force the decoder out of sync with the correct data. The decoder may or may not recover on its own. This is an inherent issue with the decoding of corrupt UART signals and not a failure specific to Ripyl.</p>
+<p>You can examine all of the protocols supported by Ripyl with <tt class="docutils literal"><span class="pre">ripyl_demo</span> <span class="pre">-h</span></tt>. The available protocols are:</p>
+<dl class="docutils">
+<dt>can</dt>
+<dd>Component Area Network</dd>
+<dt>ethernet</dt>
+<dd>Ethernet 10base-T</dd>
+<dt>i2c</dt>
+<dd>Inter-IC (I<sup>2</sup>C) bus</dd>
+<dt>j1850, j1850-pwm</dt>
+<dd>J1850 VPW and PWM variants</dd>
+<dt>kline</dt>
+<dd>ISO9141 and ISO14230 &#8220;K-line&#8221; automotive interfaces</dd>
+<dt>lin</dt>
+<dd>Local Interconnect Network</dd>
+<dt>nec</dt>
+<dd>NEC infrared protocol</dd>
+<dt>ps2</dt>
+<dd>PS/2 and AT keyboard protocol</dd>
+<dt>rc5, rc6</dt>
+<dd>Philips RC-5 and RC-6 infrared protocols</dd>
+<dt>sirc</dt>
+<dd>Sony SIRC infrared protocol</dd>
+<dt>spi</dt>
+<dd>Serial Peripheral Interface</dd>
+<dt>uart</dt>
+<dd>Asynchronous serial</dd>
+<dt>usb, usb-diff, hsic</dt>
+<dd>USB 2.0 with support for differentially probed input and the High Speed IC variant</dd>
+</dl>
+<p>Here is the test message encoded as a USB data packet:</p>
+<div class="highlight-sh"><div class="highlight"><pre>&gt; ripyl_demo -p usb
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../_images/usb_hello.png"><img alt="../_images/usb_hello.png" src="../_images/usb_hello.png" style="width: 520.0px; height: 260.0px;" /></a>
+<p>The packet is shown with the PID (Data0), data payload, and checksum (0x6d71).</p>
+<p>The ripyl_demo script has a variety of command line options. You can list them with the -h switch:</p>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">-h</span>, <span class="option">--help</span></kbd></td>
+<td>show this help message and exit</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-p <var>PROTOCOL</var></span>, <span class="option">--protocol=<var>PROTOCOL</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>Specify protocol to use</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-n</span>, <span class="option">--no-plot</span></kbd></td>
+<td>Disable matplotlib plotting</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-m <var>MSG</var></span>, <span class="option">--msg=<var>MSG</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>Input message</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-s <var>SNR_DB</var></span>, <span class="option">--snr=<var>SNR_DB</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>SNR in dB</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-b <var>BAUD</var></span>, <span class="option">--baud=<var>BAUD</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>Baud rate</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-o <var>SAVE_FILE</var></span>, <span class="option">--save-plot=<var>SAVE_FILE</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>Save plot to image file</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-d <var>DROPOUT</var></span>, <span class="option">--dropout=<var>DROPOUT</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>Dropout signal from &#8220;start,end[,level]&#8221;</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-t <var>TITLE</var></span>, <span class="option">--title=<var>TITLE</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>Title for plot</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-f <var>FIGSIZE</var></span>, <span class="option">--figsize=<var>FIGSIZE</var></span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>Figure size (w,h) in inches</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-l</span>, <span class="option">--label-names</span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>Show field names for text labels</td></tr>
+<tr><td class="option-group" colspan="2">
+<kbd><span class="option">-a</span>, <span class="option">--no-annotation</span></kbd></td>
+</tr>
+<tr><td>&nbsp;</td><td>Disable plot annotation</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/Ripyl logo 100px.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Getting started with Ripyl</a><ul>
+<li><a class="reference internal" href="#ripyl-demonstration">Ripyl demonstration</a><ul>
+<li><a class="reference internal" href="#why-use-ripyl">Why use Ripyl?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="installation.html"
+                        title="previous chapter">Installing Ripyl</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="tutorial.html"
+                        title="next chapter">Ripyl tutorials</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/rst/intro.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="tutorial.html" title="Ripyl tutorials"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="installation.html" title="Installing Ripyl"
+             >previous</a> |</li>
+        <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2013, Kevin Thibedeau.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+
+<script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-43149311-1', 'google.com');
+  ga('send', 'pageview');
+
+</script>
+
+  </body>
+</html>

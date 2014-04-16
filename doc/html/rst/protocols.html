@@ -1,0 +1,380 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Ripyl protocols &mdash; Ripyl 1.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ripyl.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Ripyl 1.2 documentation" href="../index.html" />
+    <link rel="next" title="Simulation" href="simulation.html" />
+    <link rel="prev" title="Common data structures" href="data_structures.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="simulation.html" title="Simulation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="data_structures.html" title="Common data structures"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="ripyl-protocols">
+<h1>Ripyl protocols<a class="headerlink" href="#ripyl-protocols" title="Permalink to this headline">¶</a></h1>
+<p>The Ripyl library supports a number of protocols for decoding. Protocol decoders can be layered on top of each other. This creates a distinction between base level decoders that operate on raw sample or edge data and higher level decoders that work with the results of a lower level decoder.</p>
+<p>The base protocols provided with Ripyl are the following:</p>
+<ul>
+<li><dl class="first docutils">
+<dt>General purpose</dt>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="#ethernet"><em>Ethernet</em></a></li>
+<li><a class="reference internal" href="#i2c"><em>I2C</em></a> (also handles SMBus)</li>
+<li><a class="reference internal" href="#ps2"><em>PS/2</em></a></li>
+<li><a class="reference internal" href="#spi"><em>SPI</em></a></li>
+<li><a class="reference internal" href="#uart"><em>UART</em></a></li>
+<li><a class="reference internal" href="#usb"><em>USB 2.0</em></a> (all speeds and HSIC support)</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Automotive</dt>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="#can"><em>CAN</em></a></li>
+<li><a class="reference internal" href="#j1850"><em>J1850</em></a> (Both VPW and PWM variants)</li>
+<li><a class="reference internal" href="#lin"><em>LIN</em></a></li>
+<li><a class="reference internal" href="#kline"><em>ISO K-line</em></a> (ISO 9141 and ISO 14230)</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>Infrared</dt>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="#nec"><em>NEC</em></a></li>
+<li><a class="reference internal" href="#rc5"><em>RC5</em></a></li>
+<li><a class="reference internal" href="#rc6"><em>RC6</em></a></li>
+<li><a class="reference internal" href="#sirc"><em>SIRC</em></a></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<p>All base level protocols in the library have functions to support the synthesis of arbitrary waveforms. This can be useful for testing or recreating special circumstances that would be challenging to perform with real hardware.</p>
+<p>The higher level protocols provided with Ripyl are:</p>
+<ul class="simple">
+<li><a class="reference internal" href="#i2c"><em>I2C transaction</em></a></li>
+<li><a class="reference internal" href="#lm73"><em>LM73</em></a> temperature sensor (SMBus)</li>
+<li><a class="reference internal" href="#obd2"><em>OBD-2</em></a> automotive ECU message format</li>
+<li><a class="reference internal" href="#usb-trans"><em>USB transaction</em></a></li>
+</ul>
+<p>The protocol decoders do not check timing parameters to verify that they meet specifications. The emphasis is on getting usable data out of waveforms even if they depart from requirements.</p>
+<div class="section" id="can">
+<span id="id1"></span><h2>CAN<a class="headerlink" href="#can" title="Permalink to this headline">¶</a></h2>
+<a class="reference internal image-reference" href="../_images/can_example.png"><img alt="../_images/can_example.png" src="../_images/can_example.png" style="width: 420.0px; height: 210.0px;" /></a>
+<p>The <a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.can" title="ripyl.protocol.can"><tt class="xref py py-mod docutils literal"><span class="pre">can</span></tt></a> module decodes the CAN protocol. It supports 11-bit and 29-bit identifiers.</p>
+</div>
+<div class="section" id="ethernet">
+<span id="id2"></span><h2>Ethernet<a class="headerlink" href="#ethernet" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="49%" />
+<col width="51%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><div class="first last figure">
+<a class="reference internal image-reference" href="../_images/ethernet_start.png"><img alt="../_images/ethernet_start.png" src="../_images/ethernet_start.png" style="width: 350.0px; height: 175.0px;" /></a>
+<p class="caption">Start of 10base-T frame</p>
+</div>
+</td>
+<td><div class="first last figure">
+<a class="reference internal image-reference" href="../_images/ethernet_end.png"><img alt="../_images/ethernet_end.png" src="../_images/ethernet_end.png" style="width: 350.0px; height: 175.0px;" /></a>
+<p class="caption">End of 10base-T frame</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The <tt class="xref py py-mod docutils literal"><span class="pre">ethernet</span></tt> module decodes the Ethernet protocol. It supports 10base-T encoding and frames with 802.1Q and 802.1ad tags.</p>
+</div>
+<div class="section" id="i2c">
+<span id="id3"></span><h2>I<sup>2</sup>C<a class="headerlink" href="#i2c" title="Permalink to this headline">¶</a></h2>
+<a class="reference internal image-reference" href="../_images/i2c_example.png"><img alt="../_images/i2c_example.png" src="../_images/i2c_example.png" style="width: 420.0px; height: 210.0px;" /></a>
+<p>The <a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.i2c" title="ripyl.protocol.i2c"><tt class="xref py py-mod docutils literal"><span class="pre">i2c</span></tt></a> module decodes the I<sup>2</sup>C and SMBus protocols. This module includes a <a class="reference internal" href="../apidoc/ripyl.protocol.html#ripyl.protocol.i2c.reconstruct_i2c_transfers" title="ripyl.protocol.i2c.reconstruct_i2c_transfers"><tt class="xref py py-func docutils literal"><span class="pre">reconstruct_i2c_transfers()</span></tt></a> function that can group decoded <a class="reference internal" href="../apidoc/ripyl.protocol.html#ripyl.protocol.i2c.I2CAddress" title="ripyl.protocol.i2c.I2CAddress"><tt class="xref py py-class docutils literal"><span class="pre">I2CAddress</span></tt></a> and <a class="reference internal" href="../apidoc/ripyl.protocol.html#ripyl.protocol.i2c.I2CByte" title="ripyl.protocol.i2c.I2CByte"><tt class="xref py py-class docutils literal"><span class="pre">I2CByte</span></tt></a> objects into messages.</p>
+</div>
+<div class="section" id="iso-k-line-iso-9141-and-iso-14230">
+<span id="kline"></span><h2>ISO K-line (ISO 9141 and ISO 14230)<a class="headerlink" href="#iso-k-line-iso-9141-and-iso-14230" title="Permalink to this headline">¶</a></h2>
+<a class="reference internal image-reference" href="../_images/kline_example.png"><img alt="../_images/kline_example.png" src="../_images/kline_example.png" style="width: 420.0px; height: 180.0px;" /></a>
+<p>The <a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.iso_k_line" title="ripyl.protocol.iso_k_line"><tt class="xref py py-mod docutils literal"><span class="pre">iso_k_line</span></tt></a> module decodes the ISO 9141 and ISO 14230 (KWP2000) automotive protocols. It supports slow and fast init sequences and 3 or 4-byte headers.</p>
+</div>
+<div class="section" id="j1850">
+<span id="id4"></span><h2>J1850<a class="headerlink" href="#j1850" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="47%" />
+<col width="53%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><div class="first last figure">
+<a class="reference internal image-reference" href="../_images/j1850_vpw.png"><img alt="../_images/j1850_vpw.png" src="../_images/j1850_vpw.png" style="width: 350.0px; height: 200.0px;" /></a>
+<p class="caption">VPW protocol</p>
+</div>
+</td>
+<td><div class="first last figure">
+<a class="reference internal image-reference" href="../_images/j1850_pwm.png"><img alt="../_images/j1850_pwm.png" src="../_images/j1850_pwm.png" style="width: 350.0px; height: 200.0px;" /></a>
+<p class="caption">PWM protocol</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The <tt class="xref py py-mod docutils literal"><span class="pre">j1850</span></tt> module decodes the J1850 automotive protocols. Both the 10.4Kbps Variable Pulse Width (VPW) and 41.6Kbps Pulse Width Modulation (PWM) variants are supported.</p>
+</div>
+<div class="section" id="lin">
+<span id="id5"></span><h2>LIN<a class="headerlink" href="#lin" title="Permalink to this headline">¶</a></h2>
+<a class="reference internal image-reference" href="../_images/lin_example.png"><img alt="../_images/lin_example.png" src="../_images/lin_example.png" style="width: 420.0px; height: 210.0px;" /></a>
+<p>The <a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.lin" title="ripyl.protocol.lin"><tt class="xref py py-mod docutils literal"><span class="pre">lin</span></tt></a> module decodes the LIN (Local Interconnect Network) automotive protocol. It supports LIN 1.3 and 2.x style checksums.</p>
+</div>
+<div class="section" id="lm73">
+<span id="id6"></span><h2>LM73<a class="headerlink" href="#lm73" title="Permalink to this headline">¶</a></h2>
+<a class="reference internal image-reference" href="../_images/lm73_example.png"><img alt="../_images/lm73_example.png" src="../_images/lm73_example.png" style="width: 420.0px; height: 210.0px;" /></a>
+<p>The <a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.lm73" title="ripyl.protocol.lm73"><tt class="xref py py-mod docutils literal"><span class="pre">lm73</span></tt></a> module decodes the SMBus protocol for the LM73 temperature sensor.</p>
+</div>
+<div class="section" id="nec-infrared">
+<span id="nec"></span><h2>NEC Infrared<a class="headerlink" href="#nec-infrared" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="47%" />
+<col width="53%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><div class="first last figure">
+<a class="reference internal image-reference" href="../_images/nec_example.png"><img alt="../_images/nec_example.png" src="../_images/nec_example.png" style="width: 350.0px; height: 150.0px;" /></a>
+<p class="caption">Modulated NEC protocol</p>
+</div>
+</td>
+<td><div class="first last figure">
+<a class="reference internal image-reference" href="../_images/nec_nomod_example.png"><img alt="../_images/nec_nomod_example.png" src="../_images/nec_nomod_example.png" style="width: 350.0px; height: 150.0px;" /></a>
+<p class="caption">Unmodulated NEC protocol</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The <a class="reference internal" href="../apidoc/ripyl.protocol.infrared.html#module-ripyl.protocol.infrared.nec" title="ripyl.protocol.infrared.nec"><tt class="xref py py-mod docutils literal"><span class="pre">nec</span></tt></a> module decodes the NEC infrared protocol. It supports modulated (38kHz) and unmodulated input signals. It can decode the original protocol with an 8-bit address and the extended variant with a 16-bit address.</p>
+</div>
+<div class="section" id="obd-2">
+<span id="obd2"></span><h2>OBD-2<a class="headerlink" href="#obd-2" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.obd2" title="ripyl.protocol.obd2"><tt class="xref py py-mod docutils literal"><span class="pre">obd2</span></tt></a> module provides general support for automotive ECU protocols.</p>
+</div>
+<div class="section" id="ps-2">
+<span id="ps2"></span><h2>PS/2<a class="headerlink" href="#ps-2" title="Permalink to this headline">¶</a></h2>
+<a class="reference internal image-reference" href="../_images/ps2_example.png"><img alt="../_images/ps2_example.png" src="../_images/ps2_example.png" style="width: 420.0px; height: 210.0px;" /></a>
+<p>The <a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.ps2" title="ripyl.protocol.ps2"><tt class="xref py py-mod docutils literal"><span class="pre">ps2</span></tt></a> module decodes the PS/2 and AT keyboard protocols.</p>
+</div>
+<div class="section" id="philips-rc-5-infrared">
+<span id="rc5"></span><h2>Philips RC-5 Infrared<a class="headerlink" href="#philips-rc-5-infrared" title="Permalink to this headline">¶</a></h2>
+<a class="reference internal image-reference" href="../_images/rc5_example.png"><img alt="../_images/rc5_example.png" src="../_images/rc5_example.png" style="width: 420.0px; height: 180.0px;" /></a>
+<p>The <a class="reference internal" href="../apidoc/ripyl.protocol.infrared.html#module-ripyl.protocol.infrared.rc5" title="ripyl.protocol.infrared.rc5"><tt class="xref py py-mod docutils literal"><span class="pre">rc5</span></tt></a> module decodes the Philips RC-5 infrared protocol. It supports modulated (36kHz) and unmodulated input signals. This decoder supports the original RC-5 protocol (6 command bits) and the RC5X extension (7 command bits).</p>
+</div>
+<div class="section" id="philips-rc-6-infrared">
+<span id="rc6"></span><h2>Philips RC-6 Infrared<a class="headerlink" href="#philips-rc-6-infrared" title="Permalink to this headline">¶</a></h2>
+<a class="reference internal image-reference" href="../_images/rc6_example.png"><img alt="../_images/rc6_example.png" src="../_images/rc6_example.png" style="width: 420.0px; height: 180.0px;" /></a>
+<p>The <a class="reference internal" href="../apidoc/ripyl.protocol.infrared.html#module-ripyl.protocol.infrared.rc6" title="ripyl.protocol.infrared.rc6"><tt class="xref py py-mod docutils literal"><span class="pre">rc6</span></tt></a> module decodes the Philips RC-6 infrared protocol. It supports modulated (36kHz) and unmodulated input signals. The full RC-6 protocol is not publicly documented. This decoder only supports mode-0 and partially supports mode-6 (RC6A).</p>
+</div>
+<div class="section" id="sony-sirc-infrared">
+<span id="sirc"></span><h2>Sony SIRC Infrared<a class="headerlink" href="#sony-sirc-infrared" title="Permalink to this headline">¶</a></h2>
+<a class="reference internal image-reference" href="../_images/sirc_example.png"><img alt="../_images/sirc_example.png" src="../_images/sirc_example.png" style="width: 420.0px; height: 180.0px;" /></a>
+<p>The <a class="reference internal" href="../apidoc/ripyl.protocol.infrared.html#module-ripyl.protocol.infrared.sirc" title="ripyl.protocol.infrared.sirc"><tt class="xref py py-mod docutils literal"><span class="pre">sirc</span></tt></a> module decodes the Sony SIRC infrared protocol. It supports modulated (40kHz) and unmodulated input signals. All three command formats are supported: 12-bit, 15-bit, and 20-bit.</p>
+</div>
+<div class="section" id="spi">
+<span id="id7"></span><h2>SPI<a class="headerlink" href="#spi" title="Permalink to this headline">¶</a></h2>
+<a class="reference internal image-reference" href="../_images/spi_example.png"><img alt="../_images/spi_example.png" src="../_images/spi_example.png" style="width: 420.0px; height: 300.0px;" /></a>
+<p>The <a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.spi" title="ripyl.protocol.spi"><tt class="xref py py-mod docutils literal"><span class="pre">spi</span></tt></a> module decodes the SPI and Microwire protocols. The chip select signal is optional. It only decodes a single data line (MISO or MOSI) at a time. To handle both you must run the decoder twice and merge the decoded StreamRecord objects together.</p>
+</div>
+<div class="section" id="uart">
+<span id="id8"></span><h2>UART<a class="headerlink" href="#uart" title="Permalink to this headline">¶</a></h2>
+<a class="reference internal image-reference" href="../_images/uart_example.png"><img alt="../_images/uart_example.png" src="../_images/uart_example.png" style="width: 420.0px; height: 180.0px;" /></a>
+<p>The <a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.uart" title="ripyl.protocol.uart"><tt class="xref py py-mod docutils literal"><span class="pre">uart</span></tt></a> module decodes asynchronous serial protocols. It provides automatic baud rate detection and flexible configuration for varying protocol parameters. It only decodes a single data line (txd or rxd) at a time. To handle both you must run the decoder twice and merge the decoded StreamRecord objects together.</p>
+</div>
+<div class="section" id="usb-2-0">
+<span id="usb"></span><h2>USB 2.0<a class="headerlink" href="#usb-2-0" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="50%" />
+<col width="50%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><div class="first last figure">
+<a class="reference internal image-reference" href="../_images/usb_fs_example.png"><img alt="../_images/usb_fs_example.png" src="../_images/usb_fs_example.png" style="width: 350.0px; height: 150.0px;" /></a>
+<p class="caption">Full-speed USB (12Mb/s, differential probing)</p>
+</div>
+</td>
+<td><div class="first last figure">
+<a class="reference internal image-reference" href="../_images/usb_hs_example.png"><img alt="../_images/usb_hs_example.png" src="../_images/usb_hs_example.png" style="width: 350.0px; height: 150.0px;" /></a>
+<p class="caption">High-speed USB (480Mb/s, differential probing)</p>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The <a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.usb" title="ripyl.protocol.usb"><tt class="xref py py-mod docutils literal"><span class="pre">usb</span></tt></a> module decodes USB 2.0 and HSIC protocols. This module provides full support for USB 2.0 including all three bus speeds (1.5, 12, and 480 Mb/s), extended packets, and mixed Full-speed and Low-speed packets. The decoder works with data collected from separate single-ended probes on the D+ and D- channels as well as that collected with a differential probe across D+ and D-. Bus speed is automatically detected.</p>
+<div class="figure">
+<a class="reference internal image-reference" href="../_images/usb_mix_example.png"><img alt="../_images/usb_mix_example.png" src="../_images/usb_mix_example.png" style="width: 500.0px; height: 175.0px;" /></a>
+<p class="caption">Mixed Full (12Mb/s) and Low (1.5Mb/s) speed packets as in USB 1.1</p>
+</div>
+<div class="figure">
+<a class="reference internal image-reference" href="../_images/usb_data_hs_example.png"><img alt="../_images/usb_data_hs_example.png" src="../_images/usb_data_hs_example.png" style="width: 480.0px; height: 210.0px;" /></a>
+<p class="caption">High-speed USB (single-ended probing)</p>
+</div>
+<div class="section" id="hsic">
+<span id="id9"></span><h3>HSIC<a class="headerlink" href="#hsic" title="Permalink to this headline">¶</a></h3>
+<div class="figure">
+<a class="reference internal image-reference" href="../_images/hsic_example.png"><img alt="../_images/hsic_example.png" src="../_images/hsic_example.png" style="width: 480.0px; height: 210.0px;" /></a>
+</div>
+<p>The USB decoder also provides support for the HSIC variant with single-ended strobe and data signals in place of the normal D+ and D- signals.</p>
+</div>
+<div class="section" id="usb-transactions">
+<span id="usb-trans"></span><h3>USB transactions<a class="headerlink" href="#usb-transactions" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.usb_transact" title="ripyl.protocol.usb_transact"><tt class="xref py py-mod docutils literal"><span class="pre">usb_transact</span></tt></a> module groups the packets generated by the USB and HSIC decoders into transactions.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/Ripyl logo 100px.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Ripyl protocols</a><ul>
+<li><a class="reference internal" href="#can">CAN</a></li>
+<li><a class="reference internal" href="#ethernet">Ethernet</a></li>
+<li><a class="reference internal" href="#i2c">I<sup>2</sup>C</a></li>
+<li><a class="reference internal" href="#iso-k-line-iso-9141-and-iso-14230">ISO K-line (ISO 9141 and ISO 14230)</a></li>
+<li><a class="reference internal" href="#j1850">J1850</a></li>
+<li><a class="reference internal" href="#lin">LIN</a></li>
+<li><a class="reference internal" href="#lm73">LM73</a></li>
+<li><a class="reference internal" href="#nec-infrared">NEC Infrared</a></li>
+<li><a class="reference internal" href="#obd-2">OBD-2</a></li>
+<li><a class="reference internal" href="#ps-2">PS/2</a></li>
+<li><a class="reference internal" href="#philips-rc-5-infrared">Philips RC-5 Infrared</a></li>
+<li><a class="reference internal" href="#philips-rc-6-infrared">Philips RC-6 Infrared</a></li>
+<li><a class="reference internal" href="#sony-sirc-infrared">Sony SIRC Infrared</a></li>
+<li><a class="reference internal" href="#spi">SPI</a></li>
+<li><a class="reference internal" href="#uart">UART</a></li>
+<li><a class="reference internal" href="#usb-2-0">USB 2.0</a><ul>
+<li><a class="reference internal" href="#hsic">HSIC</a></li>
+<li><a class="reference internal" href="#usb-transactions">USB transactions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="data_structures.html"
+                        title="previous chapter">Common data structures</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="simulation.html"
+                        title="next chapter">Simulation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/rst/protocols.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="simulation.html" title="Simulation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="data_structures.html" title="Common data structures"
+             >previous</a> |</li>
+        <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2013, Kevin Thibedeau.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+
+<script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-43149311-1', 'google.com');
+  ga('send', 'pageview');
+
+</script>
+
+  </body>
+</html>

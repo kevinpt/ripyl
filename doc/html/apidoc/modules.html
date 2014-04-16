@@ -1,0 +1,178 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ripyl &mdash; Ripyl 1.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ripyl.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Ripyl 1.2 documentation" href="../index.html" />
+    <link rel="next" title="ripyl Package" href="ripyl.html" />
+    <link rel="prev" title="Simulation" href="../rst/simulation.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ripyl.html" title="ripyl Package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../rst/simulation.html" title="Simulation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="ripyl">
+<h1>ripyl<a class="headerlink" href="#ripyl" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ripyl.html">ripyl Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.html#id1"><tt class="docutils literal"><span class="pre">ripyl</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.html#module-ripyl.config"><tt class="docutils literal"><span class="pre">config</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.html#module-ripyl.decode"><tt class="docutils literal"><span class="pre">decode</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.html#module-ripyl.sigproc"><tt class="docutils literal"><span class="pre">sigproc</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.html#module-ripyl.streaming"><tt class="docutils literal"><span class="pre">streaming</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.html#module-ripyl.wave_synth"><tt class="docutils literal"><span class="pre">wave_synth</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ripyl.protocol.html">protocol Package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#id1"><tt class="docutils literal"><span class="pre">protocol</span></tt> Package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.can"><tt class="docutils literal"><span class="pre">can</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.i2c"><tt class="docutils literal"><span class="pre">i2c</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.iso_k_line"><tt class="docutils literal"><span class="pre">iso_k_line</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.lin"><tt class="docutils literal"><span class="pre">lin</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.lm73"><tt class="docutils literal"><span class="pre">lm73</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.obd2"><tt class="docutils literal"><span class="pre">obd2</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.ps2"><tt class="docutils literal"><span class="pre">ps2</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.sagem_ecu"><tt class="docutils literal"><span class="pre">sagem_ecu</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.spi"><tt class="docutils literal"><span class="pre">spi</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.uart"><tt class="docutils literal"><span class="pre">uart</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.usb"><tt class="docutils literal"><span class="pre">usb</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.usb_transact"><tt class="docutils literal"><span class="pre">usb_transact</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#subpackages">Subpackages</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ripyl.util.html">util Package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.util.html#id1"><tt class="docutils literal"><span class="pre">util</span></tt> Package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.bitops"><tt class="docutils literal"><span class="pre">bitops</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.eng"><tt class="docutils literal"><span class="pre">eng</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.enum"><tt class="docutils literal"><span class="pre">enum</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.equality"><tt class="docutils literal"><span class="pre">equality</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.plot"><tt class="docutils literal"><span class="pre">plot</span></tt> Module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.stats"><tt class="docutils literal"><span class="pre">stats</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/Ripyl logo 100px.png" alt="Logo"/>
+            </a></p>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../rst/simulation.html"
+                        title="previous chapter">Simulation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="ripyl.html"
+                        title="next chapter">ripyl Package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/apidoc/modules.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ripyl.html" title="ripyl Package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../rst/simulation.html" title="Simulation"
+             >previous</a> |</li>
+        <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2013, Kevin Thibedeau.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+
+<script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-43149311-1', 'google.com');
+  ga('send', 'pageview');
+
+</script>
+
+  </body>
+</html>

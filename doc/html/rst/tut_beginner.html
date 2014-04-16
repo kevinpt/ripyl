@@ -1,0 +1,265 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Ripyl beginner’s tutorial &mdash; Ripyl 1.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ripyl.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Ripyl 1.2 documentation" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="ripyl-beginner-s-tutorial">
+<h1>Ripyl beginner&#8217;s tutorial<a class="headerlink" href="#ripyl-beginner-s-tutorial" title="Permalink to this headline">¶</a></h1>
+<p>This tutorial provides an introduction to the use of the Ripyl library. It shows you how to do the following:</p>
+<ul class="simple">
+<li><a class="reference internal" href="#prepare-data"><em>Prepare your data for processing</em></a></li>
+<li><a class="reference internal" href="#decode-data"><em>Perform the decode operation</em></a></li>
+<li><a class="reference internal" href="#analyze-results"><em>Analyze the results</em></a></li>
+<li><a class="reference internal" href="#problems"><em>Deal with problems</em></a></li>
+</ul>
+<div class="section" id="prepare-your-data">
+<span id="prepare-data"></span><h2>Prepare your data<a class="headerlink" href="#prepare-your-data" title="Permalink to this headline">¶</a></h2>
+<p>Getting your sampled data ready for use by Ripyl is the most significant hurdle you will face. The Ripyl library needs to work on a sequence of samples or edge transitions to perform its decode. In most cases you will have sampled data from an oscilloscope or a logic analyzer to process. It is beyond the scope of the Ripyl library to provide device specific support. You will have to figure out how to get the raw data from these devices into an array that can be passed to Ripyl. Many devices support some form of CSV output that can be processed with the <a class="reference external" href="http://docs.python.org/2/library/csv.html">csv module</a> from the Python standard library. If your device supports binary output, however, you will be able to read large data sets more rapidly.</p>
+<p>Ripyl&#8217;s processing is performed through a pipeline of <a class="reference external" href="http://docs.python.org/2/tutorial/classes.html#generators">generator functions</a> that minimize the amount of data passed around in arrays. To support this system, the raw samples have to be converted to a <a class="reference internal" href="data_structures.html#streams"><em>sample stream</em></a>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">ripyl</span>
+<span class="kn">import</span> <span class="nn">ripyl.streaming</span> <span class="kn">as</span> <span class="nn">stream</span>
+<span class="kn">import</span> <span class="nn">ripyl.protocol.uart</span> <span class="kn">as</span> <span class="nn">uart</span>
+
+<span class="n">raw_samples</span><span class="p">,</span> <span class="n">sample_period</span> <span class="o">=</span> <span class="n">read_samples_from_your_oscilloscope</span><span class="p">()</span>
+<span class="n">txd</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">samples_to_sample_stream</span><span class="p">(</span><span class="n">raw_samples</span><span class="p">,</span> <span class="n">sample_period</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">You will need to figure out how to populate the raw_samples and sample_period variables on your own. read_samples_from_your_oscilloscope() is just a placeholder that does not exist in Ripyl. See the section on <a class="reference internal" href="reading_data.html"><em>reading data</em></a> for some examples for various devices.</p>
+</div>
+<p>The <tt class="docutils literal"><span class="pre">txd</span></tt> variable is an iterable object that will extract data from <tt class="docutils literal"><span class="pre">raw_samples</span></tt> as needed and yield a series of sample stream tuples with time markers for each sample. If you need accurate time correlation you can pass an additional <tt class="docutils literal"><span class="pre">start_time</span></tt> parameter to the <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.samples_to_sample_stream" title="ripyl.streaming.samples_to_sample_stream"><tt class="xref py py-func docutils literal"><span class="pre">samples_to_sample_stream()</span></tt></a> function.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Some logic analyzers may store edge transitions rather than sampled data. You can either work to convert these data sets into periodic samples or convert them directly into an <tt class="docutils literal"><span class="pre">edge</span> <span class="pre">stream</span></tt> prior to decode.</p>
+</div>
+</div>
+<div class="section" id="decode-your-data">
+<span id="decode-data"></span><h2>Decode your data<a class="headerlink" href="#decode-your-data" title="Permalink to this headline">¶</a></h2>
+<p>Once you have your data converted to one or more sample streams the hard part is over. Now you just have to pass the stream(s) to an appropriate decoder. In this case we&#8217;ve captured the TXD signal on an asynchronous serial port so we will use the <a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.uart" title="ripyl.protocol.uart"><tt class="xref py py-mod docutils literal"><span class="pre">UART</span></tt></a> decoder. Most of the decoders are configurable with parameters that can alter the protocol. For the UART decoder we need to provide the number of bits, stop bits, type of parity, and polarity (idle high or low). The baud rate is optional since the UART decoder can determine this automatically provided there is enough data (typically at least 11 frames).</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">bits</span> <span class="o">=</span> <span class="mi">8</span> <span class="c"># Anything, not just restricted to the standard 5,6,7,8,9</span>
+<span class="n">parity</span> <span class="o">=</span> <span class="s">&#39;even&#39;</span> <span class="c"># or &#39;odd&#39; or None</span>
+<span class="n">stop_bits</span> <span class="o">=</span> <span class="mi">1</span> <span class="c"># Can be 1, 1.5, 2 or any non-standard value greater than 0.5</span>
+<span class="n">polarity</span> <span class="o">=</span> <span class="n">uart</span><span class="o">.</span><span class="n">UARTConfig</span><span class="o">.</span><span class="n">IdleHigh</span>
+
+<span class="n">records_it</span> <span class="o">=</span> <span class="n">uart</span><span class="o">.</span><span class="n">uart_decode</span><span class="p">(</span><span class="n">txd</span><span class="p">,</span> <span class="n">bits</span><span class="p">,</span> <span class="n">parity</span><span class="p">,</span> <span class="n">stop_bits</span><span class="p">,</span> <span class="n">polarity</span><span class="p">)</span>
+
+<span class="c"># At this point we have an iterator but the decode has not been completed</span>
+
+<span class="n">records</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">records_it</span><span class="p">)</span> <span class="c"># This consumes the iterator and completes the decode</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="analyze-the-results">
+<span id="analyze-results"></span><h2>Analyze the results<a class="headerlink" href="#analyze-the-results" title="Permalink to this headline">¶</a></h2>
+<p>At this point we should have a list of <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.StreamRecord" title="ripyl.streaming.StreamRecord"><tt class="xref py py-class docutils literal"><span class="pre">StreamRecord</span></tt></a>-based objects with our decoded data. An exception will be thrown if the decode process could not be completed. Recoverable errors will be reported in the records with their <tt class="docutils literal"><span class="pre">status</span></tt> attributes.</p>
+<p>There are two main sub-classes of StreamRecord: <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.StreamSegment" title="ripyl.streaming.StreamSegment"><tt class="xref py py-class docutils literal"><span class="pre">StreamSegment</span></tt></a> and <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.StreamEvent" title="ripyl.streaming.StreamEvent"><tt class="xref py py-class docutils literal"><span class="pre">StreamEvent</span></tt></a>. The former represents information extracted from a span of time in the input stream. The latter represents events that happen at a specific point in time. StreamSegments can overlap in time. The children of a StreamSegment will typically be other StreamSegment objects that have a time span contained within the bounds of their parent but this is not rigidly enforced by the Ripyl library.</p>
+<p>Each protocol decoder has its own system for representing decoded data in the StreamRecord-based objects. They generally sub-class StreamSegment and may have additional methods and attributes added to the base object. In addition to any sub-classing, StreamRecord objects can be differentiated by their <tt class="docutils literal"><span class="pre">kind</span></tt> attribute which is a string identifying the type of record.</p>
+<p>For the UART decoder we will receive a series of <a class="reference internal" href="../apidoc/ripyl.protocol.html#ripyl.protocol.uart.UARTFrame" title="ripyl.protocol.uart.UARTFrame"><tt class="xref py py-class docutils literal"><span class="pre">UARTFrame</span></tt></a> objects with the <tt class="docutils literal"><span class="pre">kind</span></tt> attribute set to <tt class="docutils literal"><span class="pre">'UART</span> <span class="pre">frame'</span></tt>.</p>
+<div class="section" id="validate-the-decoded-records">
+<h3>Validate the decoded records<a class="headerlink" href="#validate-the-decoded-records" title="Permalink to this headline">¶</a></h3>
+<p>You should not blindly accept the decoded output from Ripyl as valid. Any number of errors could happen during the decode process which may corrupt subsequent operations. You should scan through the records to validate them.</p>
+<p>Every <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.StreamRecord" title="ripyl.streaming.StreamRecord"><tt class="xref py py-class docutils literal"><span class="pre">StreamRecord</span></tt></a> object has a <tt class="docutils literal"><span class="pre">status</span></tt> attribute that contains a numeric status code. The baseline status codes are defined in the enumeration <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.StreamStatus" title="ripyl.streaming.StreamStatus"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamStatus</span></tt></a>. The default success code is &#8220;Ok&#8221; which is 0. Any status code above &#8220;Warning&#8221; (100) is a warning and any code above &#8220;Error&#8221; (200) is an error. Additional status codes may be defined by each protocol.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">ripyl.streaming</span> <span class="kn">as</span> <span class="nn">stream</span>
+
+<span class="n">success</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="k">for</span> <span class="n">rec</span> <span class="ow">in</span> <span class="n">records</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">rec</span><span class="o">.</span><span class="n">nested_status</span><span class="p">()</span> <span class="o">!=</span> <span class="n">stream</span><span class="o">.</span><span class="n">StreamStatus</span><span class="o">.</span><span class="n">Ok</span><span class="p">:</span>
+        <span class="n">success</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">break</span> <span class="c"># Note: you may want to do some error recovery rather than just aborting</span>
+</pre></div>
+</div>
+<p>If <tt class="docutils literal"><span class="pre">success</span></tt> remains True then you can proceed to work with the decoded data. Otherwise you will have to find out what type of error happened and what action to take.</p>
+<p>Note that it is best to test for inequality against a status code to ensure you don&#8217;t miss any protocol specific additions.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">if</span> <span class="n">rec</span><span class="o">.</span><span class="n">nested_status</span><span class="p">()</span> <span class="o">!=</span> <span class="n">stream</span><span class="o">.</span><span class="n">StreamStatus</span><span class="o">.</span><span class="n">Ok</span><span class="p">:</span>
+    <span class="k">pass</span> <span class="c"># Ok: catches anything other than normal Ok</span>
+
+<span class="k">if</span> <span class="n">rec</span><span class="o">.</span><span class="n">nested_status</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">stream</span><span class="o">.</span><span class="n">StreamStatus</span><span class="o">.</span><span class="n">Warning</span><span class="p">:</span>
+    <span class="k">pass</span> <span class="c"># Ok: catches all status codes less severe than Error or Warning</span>
+
+<span class="k">if</span> <span class="n">rec</span><span class="o">.</span><span class="n">nested_status</span><span class="p">()</span> <span class="o">==</span> <span class="n">stream</span><span class="o">.</span><span class="n">StreamStatus</span><span class="o">.</span><span class="n">Error</span><span class="p">:</span>
+    <span class="k">pass</span> <span class="c"># Bad: will miss additional error codes greater than Error</span>
+</pre></div>
+</div>
+<p>It is generally best to access the <tt class="docutils literal"><span class="pre">status</span></tt> attribute indirectly with the <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.StreamRecord.nested_status" title="ripyl.streaming.StreamRecord.nested_status"><tt class="xref py py-meth docutils literal"><span class="pre">nested_status()</span></tt></a> method as it ensures you will receive the highest status code for a StreamRecord and any children it may have.</p>
+</div>
+<div class="section" id="extract-your-data">
+<h3>Extract your data<a class="headerlink" href="#extract-your-data" title="Permalink to this headline">¶</a></h3>
+<p>The decoded data is stored in a variety of ways depending on the protocol. The format is typically the smallest unit of data that can be decoded in isolation. For most serial protocols these units are &#8220;frames&#8221; that represent a single word of data. In the case of USB, the smallest decodable unit is a packet which could convey up to 1024 bytes of data.</p>
+<p>The decoded data is always stored in the <tt class="docutils literal"><span class="pre">data</span></tt> attribute of the StreamRecord objects (or a property aliased to <tt class="docutils literal"><span class="pre">data</span></tt>). The type of object stored in the <tt class="docutils literal"><span class="pre">data</span></tt> attribute varies by protocol. For UART it is an integer representing each decoded word.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Extract the data into a list</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="n">rec</span><span class="o">.</span><span class="n">data</span> <span class="k">for</span> <span class="n">rec</span> <span class="ow">in</span> <span class="n">records</span><span class="p">]</span>
+
+<span class="c"># If the data is ASCII text we can convert it to a list of lines</span>
+<span class="n">lines</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">chr</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>There may be additional information about each data frame contained within the subrecords attached to a StreamRecord object. This varies by protocol. In the case of UART there is a subrecord for the start bit, data bits, any parity bit if parity was enabled, and the stop bit(s). Each of these subrecords is a StreamSegment object that adds timing information to the base StreamRecord class. This allows us to identify precisely where each detected feature of a frame occured in time. They also have their own <tt class="docutils literal"><span class="pre">status</span></tt> attributes. If the parity subrecord is present, its status is used to flag a parity error rather than the top level status of the <a class="reference internal" href="../apidoc/ripyl.protocol.html#ripyl.protocol.uart.UARTFrame" title="ripyl.protocol.uart.UARTFrame"><tt class="xref py py-class docutils literal"><span class="pre">UARTFrame</span></tt></a> object it is a child of. This is why <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.StreamRecord.nested_status" title="ripyl.streaming.StreamRecord.nested_status"><tt class="xref py py-meth docutils literal"><span class="pre">nested_status()</span></tt></a> should be called in most cases rather than just checking the top level <tt class="docutils literal"><span class="pre">status</span></tt> attribute.</p>
+<p>Some protocols may insert non-data <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.StreamEvent" title="ripyl.streaming.StreamEvent"><tt class="xref py py-class docutils literal"><span class="pre">StreamEvent</span></tt></a> objects to indicate additional information during the decode process. If this is the case the records should be filtered for only those that contain the desired data. For instance the <a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.spi" title="ripyl.protocol.spi"><tt class="xref py py-mod docutils literal"><span class="pre">SPI</span></tt></a> decoder reports events for changes in chip select and the <a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.i2c" title="ripyl.protocol.i2c"><tt class="xref py py-mod docutils literal"><span class="pre">I2C</span></tt></a> decoder reports events for start, restart, and stop conditions. In the latter case these events serve as markers for the start and end of each bus transfer and may be useful for higher level decoders.</p>
+</div>
+</div>
+<div class="section" id="what-could-go-wrong">
+<span id="problems"></span><h2>What could go wrong?<a class="headerlink" href="#what-could-go-wrong" title="Permalink to this headline">¶</a></h2>
+<p>The protocol decoders perform some automatic parametric analysis to simplify the library interface. By default all decoders will attempt to perform automatic logic level analysis on the sample stream. The <a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.uart" title="ripyl.protocol.uart"><tt class="xref py py-mod docutils literal"><span class="pre">UART</span></tt></a> <a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.usb" title="ripyl.protocol.usb"><tt class="xref py py-mod docutils literal"><span class="pre">USB</span></tt></a>, and <a class="reference internal" href="../apidoc/ripyl.protocol.html#module-ripyl.protocol.can" title="ripyl.protocol.can"><tt class="xref py py-mod docutils literal"><span class="pre">CAN</span></tt></a> decoders also provide automatic baud and bus speed detection. In some cases these automatic actions will fail or produce the wrong results.</p>
+<div class="section" id="logic-level-detection">
+<h3>Logic level detection<a class="headerlink" href="#logic-level-detection" title="Permalink to this headline">¶</a></h3>
+<p>The protocol decoders need to do some statistical analysis of the sample stream(s) before they can start decoding. Internally each decoder works on an edge stream rather than directly on the sample stream. The samples need to be converted to edges by first discovering what the logic levels are, removing the need to manually specify logic thresholds. This requires consuming a portion of the input samples for analysis. By default the Ripyl library is limited to consuming 20000 samples for its logic level analysis. If the input has no identifiable edge transitions in this period the <cite>AutoLevelError</cite> exception will be raised. The analyzed samples are buffered and will still be used if they contain useful data for decode.</p>
+<p>The logic level analysis may produce incorrect results if you have an unusual input signal that contains more than two identifiable logic levels (or three for differential USB). Consider the case of HighSpeed (480 Mb/s) USB devices where normal single-ended signaling levels are 0V and 0.4V but 3.3V may also be present during the initial connection phase and during any suspend period. This could interfere with the logic level detection process.</p>
+<p>To remedy this problem you have two options. The simplest is to pass known logic levels to a decoder using the optional <tt class="docutils literal"><span class="pre">logic_levels</span></tt> parameter. This is a pair of floats (low, high) defining the upper and lower voltage levels of the signal. These levels should correspond to the actual high and low voltages of the waveform (ignoring unwanted peaks and noise) rather than the min and max input levels for the receiver (Vil and Vih).</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">logic</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">)</span> <span class="c"># Logic low and high for your signal</span>
+<span class="n">records_it</span> <span class="o">=</span> <span class="n">XXX</span><span class="o">.</span><span class="n">XXX_decode</span><span class="p">(</span><span class="n">samples_it</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="n">logic_levels</span><span class="o">=</span><span class="n">logic</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For protocols that use more than one sample stream, the logic level analysis is only performed on one stream. This is generally the one with the most activity such as a clock signal. It is assumed that the logic levels detected or specified for this stream are appropriate for all other streams fed to the decoder.</p>
+<p>The other option is to manually generate an edge stream on a set of sampled data. This is a little more involved but offers more flexibility as you can set different logic levels for each sample stream and control the amount of hysteresis.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">ripyl</span>
+<span class="kn">import</span> <span class="nn">ripyl.streaming</span> <span class="kn">as</span> <span class="nn">stream</span>
+<span class="kn">from</span> <span class="nn">ripyl.decode</span> <span class="kn">import</span> <span class="n">find_edges</span>
+
+<span class="c"># Prepare your raw samples</span>
+<span class="n">sample_stream</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">samples_to_sample_stream</span><span class="p">(</span><span class="n">raw_samples</span><span class="p">,</span> <span class="n">sample_period</span><span class="p">)</span>
+
+<span class="n">logic</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">)</span> <span class="c"># Logic low and high for your signal</span>
+<span class="n">hysteresis</span> <span class="o">=</span> <span class="mf">0.4</span> <span class="c"># 40% of the transition band between low and high</span>
+
+<span class="c"># Create an edge stream iterator</span>
+<span class="n">edges_it</span> <span class="o">=</span> <span class="n">find_edges</span><span class="p">(</span><span class="n">sample_stream</span><span class="p">,</span> <span class="n">logic</span><span class="p">,</span> <span class="n">hysteresis</span><span class="p">)</span>
+
+<span class="c"># Tell the decoder the input is an edge stream</span>
+<span class="n">records_it</span> <span class="o">=</span> <span class="n">XXX</span><span class="o">.</span><span class="n">XXX_decode</span><span class="p">(</span><span class="n">edges_it</span><span class="p">,</span> <span class="o">...</span><span class="p">,</span> <span class="n">stream_type</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">StreamType</span><span class="o">.</span><span class="n">Edges</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="baud-and-bus-speed-detection">
+<h3>Baud and bus speed detection<a class="headerlink" href="#baud-and-bus-speed-detection" title="Permalink to this headline">¶</a></h3>
+<p>The UART decoder provides automatic baud rate detection by default. It does this by analyzing the statistical distribution of time spans between edge transitions. This requires around 50 edges to be reliable. If insufficient edge transitions are present the AutoBaudError exception will be raised. If this happens you can either acquire new data with enough transitions or pass the proper baud rate to <a class="reference internal" href="../apidoc/ripyl.protocol.html#ripyl.protocol.uart.uart_decode" title="ripyl.protocol.uart.uart_decode"><tt class="xref py py-func docutils literal"><span class="pre">uart_decode()</span></tt></a>. The UART decoder also coerces the detected baud rate to the nearest &#8220;standard&#8221; value from 110 to 921600. If your input has a non-standard baud rate you can disable this coercion with <tt class="docutils literal"><span class="pre">use_std_baud=False</span></tt>.</p>
+<p>The USB decoder uses the same detection logic to identify the different bus speeds used for USB devices. The minimum number of edges is 8 for USB speed detection rather than 50. This is sufficient to detect speed with just a single low-speed or full-speed handshake packet, the shortest packets used in the protocol. USB speed detection has been found to be reliable in all test cases and there is no provision for forcing the bus to a fixed speed in the decoder.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/Ripyl logo 100px.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Ripyl beginner&#8217;s tutorial</a><ul>
+<li><a class="reference internal" href="#prepare-your-data">Prepare your data</a></li>
+<li><a class="reference internal" href="#decode-your-data">Decode your data</a></li>
+<li><a class="reference internal" href="#analyze-the-results">Analyze the results</a><ul>
+<li><a class="reference internal" href="#validate-the-decoded-records">Validate the decoded records</a></li>
+<li><a class="reference internal" href="#extract-your-data">Extract your data</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#what-could-go-wrong">What could go wrong?</a><ul>
+<li><a class="reference internal" href="#logic-level-detection">Logic level detection</a></li>
+<li><a class="reference internal" href="#baud-and-bus-speed-detection">Baud and bus speed detection</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/rst/tut_beginner.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2013, Kevin Thibedeau.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+
+<script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-43149311-1', 'google.com');
+  ga('send', 'pageview');
+
+</script>
+
+  </body>
+</html>

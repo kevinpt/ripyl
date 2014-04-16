@@ -1,0 +1,4 @@
+The waveform files represent captured data from an oscilloscope. They are in a simple binary format.
+A file consists of a series of single precision floats (4-bytes) in little endian order.
+The first float is the sample period of the waveform. The second is the time of the first samples.
+The remaining floats are the array of sample values.

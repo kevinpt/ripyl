@@ -1,0 +1,289 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Ripyl library documentation &mdash; Ripyl 1.2 documentation</title>
+    
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="_static/ripyl.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Ripyl 1.2 documentation" href="#" />
+    <link rel="next" title="Installing Ripyl" href="rst/installation.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="rst/installation.html" title="Installing Ripyl"
+             accesskey="N">next</a> |</li>
+        <li><a href="#">Ripyl 1.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="ripyl-library-documentation">
+<h1>Ripyl library documentation<a class="headerlink" href="#ripyl-library-documentation" title="Permalink to this headline">¶</a></h1>
+<p>Ripyl is a library for decoding serialized data collected from an oscilloscope
+or logic analyzer. It supports a variety of protocols and can be readily extended
+with new protocols. Ripyl is useful for offline decoding of data collected on
+instruments with no built in support for decoding or lacking support for more
+advanced protocols.</p>
+<p>It can process a waveform like this:</p>
+<img alt="_images/uart_plain.png" src="_images/uart_plain.png" />
+<p>... and produce an annotated result like this:</p>
+<img alt="_images/uart_hello_small.png" src="_images/uart_hello_small.png" />
+<p>Using Ripyl is as simple as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">ripyl</span>
+<span class="kn">import</span> <span class="nn">ripyl.protocol.uart</span> <span class="kn">as</span> <span class="nn">uart</span>
+
+<span class="n">raw_samples</span><span class="p">,</span> <span class="n">sample_period</span> <span class="o">=</span> <span class="n">read_samples_from_your_oscilloscope</span><span class="p">()</span>
+<span class="n">txd</span> <span class="o">=</span> <span class="n">ripyl</span><span class="o">.</span><span class="n">streaming</span><span class="o">.</span><span class="n">samples_to_sample_stream</span><span class="p">(</span><span class="n">raw_samples</span><span class="p">,</span> <span class="n">sample_period</span><span class="p">)</span>
+<span class="n">records</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">uart</span><span class="o">.</span><span class="n">uart_decode</span><span class="p">(</span><span class="n">txd</span><span class="p">,</span> <span class="n">bits</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">parity</span><span class="o">=</span><span class="s">&#39;even&#39;</span><span class="p">,</span> <span class="n">stop_bits</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>The library provides decoded information in an easily traversed tree detailing the time and data for each sub-element of a protocol transmission. In the example above you can see the individual frames along with the highlighted data and parity bits within each frame. The status of parity is verified as are checksums and CRCs used in other protocols.</p>
+<dl class="docutils">
+<dt>Features include:</dt>
+<dd><ul class="first last">
+<li><dl class="first docutils">
+<dt>Multi-protocol support:</dt>
+<dd><table border="1" class="first last docutils">
+<colgroup>
+<col width="24%" />
+<col width="27%" />
+<col width="24%" />
+<col width="25%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><p class="first last"><a class="reference internal" href="rst/protocols.html#can"><em>CAN</em></a></p>
+</td>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#ethernet"><em>Ethernet</em></a></p>
+</td>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#hsic"><em>HSIC</em></a></p>
+</td>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#i2c"><em>I2C</em></a></p>
+</td>
+</tr>
+<tr class="row-even"><td><p class="first last"><a class="reference internal" href="rst/protocols.html#j1850"><em>J1850</em></a></p>
+</td>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#lin"><em>LIN</em></a></p>
+</td>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#kline"><em>ISO 9141</em></a></p>
+</td>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#kline"><em>ISO 14230</em></a></p>
+</td>
+</tr>
+<tr class="row-odd"><td><p class="first last"><a class="reference internal" href="rst/protocols.html#nec"><em>NEC</em></a></p>
+</td>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#ps2"><em>PS/2</em></a></p>
+</td>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#rc5"><em>RC5</em></a></p>
+</td>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#rc6"><em>RC6</em></a></p>
+</td>
+</tr>
+<tr class="row-even"><td><p class="first last"><a class="reference internal" href="rst/protocols.html#sirc"><em>SIRC</em></a></p>
+</td>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#spi"><em>SPI</em></a></p>
+</td>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#uart"><em>UART</em></a></p>
+</td>
+<td><p class="first last"><a class="reference internal" href="rst/protocols.html#usb"><em>USB 2.0</em></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+</li>
+<li><p class="first">Protocol simulation</p>
+</li>
+<li><p class="first">Annotated plotting</p>
+</li>
+<li><p class="first">Layering of protocols</p>
+</li>
+<li><p class="first">Automated parameter analysis (logic levels, baud rate)</p>
+</li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="getting-started">
+<h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<p>If you are new to Ripyl you can get started by reviewing the <a class="reference internal" href="rst/intro.html"><em>introductory guide</em></a> and following the <a class="reference internal" href="rst/tut_beginner.html"><em>beginner&#8217;s tutorial</em></a>.</p>
+</div>
+<div class="section" id="contents">
+<h1>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="rst/installation.html">Installing Ripyl</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rst/installation.html#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/installation.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/installation.html#id1">Cython</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/installation.html#testing">Testing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rst/intro.html">Getting started with Ripyl</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rst/intro.html#ripyl-demonstration">Ripyl demonstration</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rst/tutorial.html">Ripyl tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/reading_data.html">Reading oscilloscope data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rst/reading_data.html#lecroy">LeCroy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/reading_data.html#rigol">Rigol</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/reading_data.html#tektronix">Tektronix</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rst/data_structures.html">Common data structures</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rst/data_structures.html#streams">Streams</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/data_structures.html#streamrecords">StreamRecords</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/data_structures.html#iterators">Iterators</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rst/protocols.html">Ripyl protocols</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#can">CAN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#ethernet">Ethernet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#i2c">I<sup>2</sup>C</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#iso-k-line-iso-9141-and-iso-14230">ISO K-line (ISO 9141 and ISO 14230)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#j1850">J1850</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#lin">LIN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#lm73">LM73</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#nec-infrared">NEC Infrared</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#obd-2">OBD-2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#ps-2">PS/2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#philips-rc-5-infrared">Philips RC-5 Infrared</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#philips-rc-6-infrared">Philips RC-6 Infrared</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#sony-sirc-infrared">Sony SIRC Infrared</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#spi">SPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#uart">UART</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/protocols.html#usb-2-0">USB 2.0</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="rst/simulation.html">Simulation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rst/simulation.html#signal-processing">Signal Processing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="apidoc/modules.html">ripyl</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="apidoc/ripyl.html">ripyl Package</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
+<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="#">
+              <img class="logo" src="_static/Ripyl logo 100px.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Ripyl library documentation</a></li>
+<li><a class="reference internal" href="#getting-started">Getting started</a></li>
+<li><a class="reference internal" href="#contents">Contents</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+
+  <h4>Next topic</h4>
+  <p class="topless"><a href="rst/installation.html"
+                        title="next chapter">Installing Ripyl</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="rst/installation.html" title="Installing Ripyl"
+             >next</a> |</li>
+        <li><a href="#">Ripyl 1.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2013, Kevin Thibedeau.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+
+<script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-43149311-1', 'google.com');
+  ga('send', 'pageview');
+
+</script>
+
+  </body>
+</html>

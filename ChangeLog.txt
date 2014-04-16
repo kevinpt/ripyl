@@ -1,0 +1,61 @@
+================
+Ripyl change log
+================
+
+vNext (2)
+=================
+
+  Changes
+  -------
+  * Added VCD file output for saving synthesized waveforms
+  * Added Ethernet 10BaseT and J1850 protocols
+  * Improved decode.find_logic_levels() function to be more reliable.
+  * Improved CAN support with spec. accurate resynchronization
+
+v1.2 / 2013-10-18
+=================
+
+  Changes
+  -------
+  * Added CAN and LIN protocols
+  * Tested sucessfully with Cython 0.17. Required version has been reduced.
+  * The capacify() function is numerically stable and is included in the wave_synth() function.
+  * Default chunk size is increased to 10000 to improve performance
+  * New generic multi-level edge finder find_multi_edges() replaces find_differential_edges().
+
+  Bug fixes
+  ---------
+
+  * Fixed bug in Cython implementation of find_edges()
+  * Fix bugs in the sigproc.py filter functions that resulted in overwriting
+    chunk samples rather than properly allocating new StreamChunk objects.
+  * Fix bug in find_symbol_rate() caused by including the initial state in set of edge spans.
+
+
+v1.1 / 2013-9-21
+================
+
+  Changes
+  -------
+  * Converted sample streams from individual tuples-per-sample to use larger
+    StreamChunk objects.
+  * Added Cython support. The find_logic_levels() function enjoys a speed up from
+    native code implementation.
+  * Added infrared protocols (RC5, RC6, NEC, and SIRC).
+  * Revised plotting architecture to be more general purpose.
+
+
+v1.0.1 / 2013-8-20
+==================
+
+  Changes
+  -------
+  * Improved test suite
+
+  Bug fixes
+  ---------
+
+  * Fix issue with decode.find_symbol_rate() that was creating bad results
+  * Fix problem with bus speed detection for USB with certain packets lacking
+    a second harmonic in their edge span spectra.
+

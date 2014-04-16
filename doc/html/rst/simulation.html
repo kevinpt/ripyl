@@ -1,0 +1,266 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Simulation &mdash; Ripyl 1.2 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/ripyl.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Ripyl 1.2 documentation" href="../index.html" />
+    <link rel="next" title="ripyl" href="../apidoc/modules.html" />
+    <link rel="prev" title="Ripyl protocols" href="protocols.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../apidoc/modules.html" title="ripyl"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="protocols.html" title="Ripyl protocols"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="simulation">
+<h1>Simulation<a class="headerlink" href="#simulation" title="Permalink to this headline">¶</a></h1>
+<p>In addition to decoding protocols, Ripyl provides functions for simulating realistic waveforms. All of the protocols come with a synthesis function that generates edge streams. Such streams can be fed into the corresponding decoder to retrieve the original data. These edge streams can be further enhanced by converting them to sample streams and applying transformations that replicate real world effects such as noise and band-limited edges. This capability is used in Ripyl&#8217;s own test suite to generate arbitrary randomized test data for validating the decoders.</p>
+<div class="section" id="signal-processing">
+<span id="id1"></span><h2>Signal Processing<a class="headerlink" href="#signal-processing" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="../apidoc/ripyl.html#module-ripyl.sigproc" title="ripyl.sigproc"><tt class="xref py py-mod docutils literal"><span class="pre">sigproc</span></tt></a> module provides a number of functions for transforming sampled data. The following examples process a set of samples created from a short edge stream describing a pulse:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">ripyl</span>
+<span class="kn">import</span> <span class="nn">ripyl.sigproc</span> <span class="kn">as</span> <span class="nn">sigp</span>
+
+<span class="n">pulse_edges</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mf">3.0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mf">4.0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span>
+
+<span class="n">sample_rate</span> <span class="o">=</span> <span class="mf">100.0</span> <span class="c"># Sample at 100Hz</span>
+<span class="n">sample_period</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">sample_rate</span>
+
+<span class="n">pulse_samples</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sigp</span><span class="o">.</span><span class="n">edges_to_sample_stream</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">pulse_edges</span><span class="p">),</span> <span class="n">sample_period</span><span class="p">))</span>
+<span class="c"># NOTE: pulse_samples is a list of SampleChunk objects rather than raw samples</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../_images/sigp_pulse.png"><img alt="../_images/sigp_pulse.png" src="../_images/sigp_pulse.png" style="width: 360.0px; height: 120.0px;" /></a>
+<div class="section" id="amplify">
+<h3>Amplify<a class="headerlink" href="#amplify" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference internal" href="../apidoc/ripyl.html#ripyl.sigproc.amplify" title="ripyl.sigproc.amplify"><tt class="xref py py-func docutils literal"><span class="pre">amplify()</span></tt></a> function is used to apply a gain and offset to a waveform.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">proc_samples</span> <span class="o">=</span> <span class="n">sigp</span><span class="o">.</span><span class="n">amplify</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">pulse_samples</span><span class="p">),</span> <span class="n">gain</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mf">1.1</span><span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../_images/sigp_amplify.png"><img alt="../_images/sigp_amplify.png" src="../_images/sigp_amplify.png" style="width: 360.0px; height: 120.0px;" /></a>
+</div>
+<div class="section" id="invert">
+<h3>Invert<a class="headerlink" href="#invert" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference internal" href="../apidoc/ripyl.html#ripyl.sigproc.invert" title="ripyl.sigproc.invert"><tt class="xref py py-func docutils literal"><span class="pre">invert()</span></tt></a> function is used to invert the polarity of a waveform. It is the equivalent of <tt class="docutils literal"><span class="pre">amplify(...,</span> <span class="pre">gain=-1.0)</span></tt></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">proc_samples</span> <span class="o">=</span> <span class="n">sigp</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">pulse_samples</span><span class="p">))</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../_images/sigp_invert.png"><img alt="../_images/sigp_invert.png" src="../_images/sigp_invert.png" style="width: 360.0px; height: 120.0px;" /></a>
+</div>
+<div class="section" id="dropout">
+<h3>Dropout<a class="headerlink" href="#dropout" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference internal" href="../apidoc/ripyl.html#ripyl.sigproc.dropout" title="ripyl.sigproc.dropout"><tt class="xref py py-func docutils literal"><span class="pre">dropout()</span></tt></a> function is used to simulate the corruption of a waveform by forcing samples to a fixed level for a span of time. This provides a convenient way to inject errors into a sample stream for testing a decoder&#8217;s error handling.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Force samples to the default 0.0V.</span>
+<span class="n">proc_samples</span> <span class="o">=</span> <span class="n">sigp</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">pulse_samples</span><span class="p">),</span> <span class="n">start_time</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">end_time</span><span class="o">=</span><span class="mf">1.8</span><span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../_images/sigp_dropout.png"><img alt="../_images/sigp_dropout.png" src="../_images/sigp_dropout.png" style="width: 360.0px; height: 120.0px;" /></a>
+</div>
+<div class="section" id="noisify">
+<h3>Noisify<a class="headerlink" href="#noisify" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference internal" href="../apidoc/ripyl.html#ripyl.sigproc.noisify" title="ripyl.sigproc.noisify"><tt class="xref py py-func docutils literal"><span class="pre">noisify()</span></tt></a> function adds arbitrary levels of gaussian noise to a waveform. It takes an SNR level in the form of a positive valued number. This value is only accurate if the input samples are normalized to the range 0.0 to 1.0. Any amplification should be applied after <cite>noisify()</cite> for the SNR to be correct. An SNR over 80 will bypass the noise generation process and just pass the original samples through.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">proc_samples</span> <span class="o">=</span> <span class="n">sigp</span><span class="o">.</span><span class="n">noisify</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">pulse_samples</span><span class="p">),</span> <span class="n">snr_db</span><span class="o">=</span><span class="mf">20.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../_images/sigp_noisify.png"><img alt="../_images/sigp_noisify.png" src="../_images/sigp_noisify.png" style="width: 360.0px; height: 120.0px;" /></a>
+</div>
+<div class="section" id="quantize">
+<h3>Quantize<a class="headerlink" href="#quantize" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference internal" href="../apidoc/ripyl.html#ripyl.sigproc.quantize" title="ripyl.sigproc.quantize"><tt class="xref py py-func docutils literal"><span class="pre">quantize()</span></tt></a> function simulates the effect of ADC sample quantization by restricting samples to discrete levels. It is best visualized when used in conjunction with <cite>noisify()</cite>. The <cite>full_scale</cite> parameter specifies the voltage range of the ADC. Along with the specified number of ADC bits (default is 8) the discrete levels are separated by <span class="math">\(\text{full_scale} / 2^{bits}\)</span> volts. The output will not be clipped if the input levels extend beyond the range of <cite>full_scale</cite>. When this happens the effective number of bits is greater than what is specified with the <cite>bits</cite> parameter.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># The input pulse spans 0.0V to 1.0V (before noise). A 30V range means that an 8-bit ADC</span>
+<span class="c"># will quantize to 30.0 / 2**8 = 117mV steps.</span>
+<span class="n">proc_samples</span> <span class="o">=</span> <span class="n">sigp</span><span class="o">.</span><span class="n">quantize</span><span class="p">(</span><span class="n">sigp</span><span class="o">.</span><span class="n">noisify</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">pulse_samples</span><span class="p">),</span> <span class="n">snr_db</span><span class="o">=</span><span class="mf">20.0</span><span class="p">),</span> <span class="n">full_scale</span><span class="o">=</span><span class="mf">30.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../_images/sigp_quantize.png"><img alt="../_images/sigp_quantize.png" src="../_images/sigp_quantize.png" style="width: 360.0px; height: 120.0px;" /></a>
+</div>
+<div class="section" id="filter-waveform">
+<h3>Filter waveform<a class="headerlink" href="#filter-waveform" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference internal" href="../apidoc/ripyl.html#ripyl.sigproc.filter_waveform" title="ripyl.sigproc.filter_waveform"><tt class="xref py py-func docutils literal"><span class="pre">filter_waveform()</span></tt></a> function performs a low-pass FFT on a sample stream. The filter parameters are specified with a <cite>sample_rate</cite> and a <cite>rise_time</cite> parameter that sets the approximate edge rate for the rising and falling edges. A Kaiser window function is used to generate filter coefficients. The <a class="reference internal" href="../apidoc/ripyl.html#ripyl.sigproc.min_rise_time" title="ripyl.sigproc.min_rise_time"><tt class="xref py py-func docutils literal"><span class="pre">min_rise_time()</span></tt></a> helper function provides the minimum rise time value for a given sample rate for a system with gaussian response (<span class="math">\(\text{rise_time} \approx 0.35 / BW\)</span>).</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">rt</span> <span class="o">=</span> <span class="n">sigp</span><span class="o">.</span><span class="n">min_rise_time</span><span class="p">(</span><span class="n">sample_rate</span><span class="p">)</span> <span class="o">*</span> <span class="mf">20.0</span>
+<span class="n">proc_samples</span> <span class="o">=</span> <span class="n">sigp</span><span class="o">.</span><span class="n">filter_waveform</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">pulse_samples</span><span class="p">),</span> <span class="n">sample_rate</span><span class="o">=</span><span class="n">sample_rate</span><span class="p">,</span> <span class="n">rise_time</span><span class="o">=</span><span class="n">rt</span><span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../_images/sigp_filter_wave.png"><img alt="../_images/sigp_filter_wave.png" src="../_images/sigp_filter_wave.png" style="width: 360.0px; height: 120.0px;" /></a>
+</div>
+<div class="section" id="capacify">
+<h3>Capacify<a class="headerlink" href="#capacify" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference internal" href="../apidoc/ripyl.html#ripyl.sigproc.capacify" title="ripyl.sigproc.capacify"><tt class="xref py py-func docutils literal"><span class="pre">capacify()</span></tt></a> function simulates a first-order RC filter applied to a sample stream. The result is rising and falling edges that exhibit exponential decay. This function iteratively computes the capacitor voltage to simulate the filter output for each sample. The default number of iterations is 80. If the iterations is set too low the output can exhibit erroneous artifacts due to numeric instabilities. This is dependent on the input waveform sample values, the sample period, and the time constant. There is a native Python implementation and a Cython implementation of this function. The native implementation is prohibitively slow if more than about 5 iterations is performed. If Cython is unavailable it is important to be careful when the iterations are reduced.</p>
+<p>We establish an initial capacitor voltage and charge from the first sample <span class="math">\(v_c = v_{sample}(0); q_0 = v_c * c\)</span>. For each iteration of the simulation we increment time such that <span class="math">\(dt = \text{sample_period} / \text{iterations}\)</span>:</p>
+<div class="math">
+\[\begin{split}dv = v_{sample} - v_c &amp;&amp; \text{(voltage across resistor)}\end{split}\]\[\begin{split}i = dv / r  &amp;&amp; \text{(current through r and c)}\end{split}\]\[i = dq / dt \Longrightarrow dq = i * dt\]\[q' = q + dq\]\[v_c' = q' / c\]</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">tau</span> <span class="o">=</span> <span class="mf">0.25</span>
+<span class="n">r</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">tau</span> <span class="o">/</span> <span class="n">r</span>  <span class="c"># Still 0.25 in this case with 1.0 Ohm of resistance</span>
+
+<span class="n">proc_samples</span> <span class="o">=</span> <span class="n">sigp</span><span class="o">.</span><span class="n">capacify</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">pulse_samples</span><span class="p">),</span> <span class="n">capacitance</span><span class="o">=</span><span class="n">c</span><span class="p">,</span> <span class="n">resistance</span><span class="o">=</span><span class="n">r</span><span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../_images/sigp_capacify.png"><img alt="../_images/sigp_capacify.png" src="../_images/sigp_capacify.png" style="width: 360.0px; height: 120.0px;" /></a>
+</div>
+<div class="section" id="synth-wave">
+<h3>synth_wave<a class="headerlink" href="#synth-wave" title="Permalink to this headline">¶</a></h3>
+<p>The <a class="reference internal" href="../apidoc/ripyl.html#ripyl.sigproc.synth_wave" title="ripyl.sigproc.synth_wave"><tt class="xref py py-func docutils literal"><span class="pre">synth_wave()</span></tt></a> function is a wrapper around <a class="reference internal" href="../apidoc/ripyl.html#ripyl.sigproc.edges_to_sample_stream" title="ripyl.sigproc.edges_to_sample_stream"><tt class="xref py py-func docutils literal"><span class="pre">edges_to_sample_stream()</span></tt></a>, <a class="reference internal" href="../apidoc/ripyl.html#ripyl.sigproc.capacify" title="ripyl.sigproc.capacify"><tt class="xref py py-func docutils literal"><span class="pre">capacify()</span></tt></a>, and <a class="reference internal" href="../apidoc/ripyl.html#ripyl.sigproc.filter_waveform" title="ripyl.sigproc.filter_waveform"><tt class="xref py py-func docutils literal"><span class="pre">filter_waveform()</span></tt></a>. It provides an easy way to directly convert an edge stream into a realistic sampled waveform with band-limited edges. The <cite>capacify()</cite> parameters are specified indirectly using the <cite>tau_factor</cite> parameter. This establishes the magnitude time constant <cite>tau</cite> in relation to the rise time. The <cite>capacify()</cite> operation is bypassed if the <cite>tau_factor</cite> is below 0.01</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">rt</span> <span class="o">=</span> <span class="n">sigp</span><span class="o">.</span><span class="n">min_rise_time</span><span class="p">(</span><span class="n">sample_rate</span><span class="p">)</span> <span class="o">*</span> <span class="mf">20.0</span>
+<span class="n">proc_samples</span> <span class="o">=</span> <span class="n">sigp</span><span class="o">.</span><span class="n">synth_wave</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">pulse_edges</span><span class="p">),</span> <span class="n">sample_rate</span><span class="o">=</span><span class="n">sample_rate</span><span class="p">,</span> \
+    <span class="n">rise_time</span><span class="o">=</span><span class="n">rt</span><span class="p">,</span> <span class="n">tau_factor</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../_images/sigp_synth_wave.png"><img alt="../_images/sigp_synth_wave.png" src="../_images/sigp_synth_wave.png" style="width: 360.0px; height: 120.0px;" /></a>
+</div>
+<div class="section" id="combining-operations">
+<h3>Combining operations<a class="headerlink" href="#combining-operations" title="Permalink to this headline">¶</a></h3>
+<p>The signal processing operations can be combined together in sequence to perform more complex processing of sampled waveforms.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">rt</span> <span class="o">=</span> <span class="n">sigp</span><span class="o">.</span><span class="n">min_rise_time</span><span class="p">(</span><span class="n">sample_rate</span><span class="p">)</span> <span class="o">*</span> <span class="mf">10.0</span>
+<span class="n">tau</span> <span class="o">=</span> <span class="n">rt</span> <span class="o">*</span> <span class="mf">1.5</span>
+<span class="n">r</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">tau</span> <span class="o">/</span> <span class="n">r</span>
+
+<span class="n">proc_samples</span> <span class="o">=</span> <span class="n">sigp</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">pulse_samples</span><span class="p">),</span> <span class="n">start_time</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">end_time</span><span class="o">=</span><span class="mf">1.7</span><span class="p">)</span>
+<span class="n">proc_samples</span> <span class="o">=</span> <span class="n">sigp</span><span class="o">.</span><span class="n">filter_waveform</span><span class="p">(</span><span class="n">sigp</span><span class="o">.</span><span class="n">capacify</span><span class="p">(</span><span class="n">proc_samples</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">),</span> \
+                                    <span class="n">sample_rate</span><span class="o">=</span><span class="n">sample_rate</span><span class="p">,</span> <span class="n">rise_time</span><span class="o">=</span><span class="n">rt</span><span class="p">)</span>
+<span class="n">proc_samples</span> <span class="o">=</span> <span class="n">sigp</span><span class="o">.</span><span class="n">quantize</span><span class="p">(</span><span class="n">sigp</span><span class="o">.</span><span class="n">noisify</span><span class="p">(</span><span class="n">proc_samples</span><span class="p">,</span> <span class="n">snr_db</span><span class="o">=</span><span class="mf">20.0</span><span class="p">),</span> <span class="n">full_scale</span><span class="o">=</span><span class="mf">20.0</span><span class="p">)</span>
+<span class="n">proc_samples</span> <span class="o">=</span> <span class="n">sigp</span><span class="o">.</span><span class="n">amplify</span><span class="p">(</span><span class="n">proc_samples</span><span class="p">,</span> <span class="n">gain</span><span class="o">=</span><span class="mf">5.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../_images/sigp_combi.png"><img alt="../_images/sigp_combi.png" src="../_images/sigp_combi.png" style="width: 360.0px; height: 120.0px;" /></a>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/Ripyl logo 100px.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Simulation</a><ul>
+<li><a class="reference internal" href="#signal-processing">Signal Processing</a><ul>
+<li><a class="reference internal" href="#amplify">Amplify</a></li>
+<li><a class="reference internal" href="#invert">Invert</a></li>
+<li><a class="reference internal" href="#dropout">Dropout</a></li>
+<li><a class="reference internal" href="#noisify">Noisify</a></li>
+<li><a class="reference internal" href="#quantize">Quantize</a></li>
+<li><a class="reference internal" href="#filter-waveform">Filter waveform</a></li>
+<li><a class="reference internal" href="#capacify">Capacify</a></li>
+<li><a class="reference internal" href="#synth-wave">synth_wave</a></li>
+<li><a class="reference internal" href="#combining-operations">Combining operations</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="protocols.html"
+                        title="previous chapter">Ripyl protocols</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../apidoc/modules.html"
+                        title="next chapter">ripyl</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/rst/simulation.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../apidoc/modules.html" title="ripyl"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="protocols.html" title="Ripyl protocols"
+             >previous</a> |</li>
+        <li><a href="../index.html">Ripyl 1.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2013, Kevin Thibedeau.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+
+<script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-43149311-1', 'google.com');
+  ga('send', 'pageview');
+
+</script>
+
+  </body>
+</html>
