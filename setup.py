@@ -9,6 +9,7 @@ import sys
 import os
 import fnmatch
 import string
+import numpy
 
 # use README.txt for the long description
 with open('README.txt') as fh:
@@ -181,6 +182,7 @@ setup(name='ripyl',
     package_data = {
         '': ['*.cfg']
     },
+    include_dirs = [numpy.get_include()],
 
     use_2to3 = True,
     test_suite = 'test',

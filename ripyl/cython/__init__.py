@@ -71,13 +71,11 @@ def monkeypatch_modules(modules, lib_base):
                 # Cython releases before 0.19.1 include extraneous internal classes in the extension modules.
                 # We need to catch any attempts to access these classes that don't exist in the
                 # Python implementations
-                try:
+                if obj_name in sys.modules[py_mname].__dict__:
                     orig_obj = sys.modules[py_mname].__dict__[obj_name]
                     po = ripyl.config.PatchObject(py_mname, obj_name, obj, orig_obj)
                     po.activate()
                     patched_objs.append(po)
-                except KeyError:
-                    pass
 
     return patched_objs
 

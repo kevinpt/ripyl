@@ -3,7 +3,7 @@
 '''Ripyl protocol decode library'''
 
 
-__version__ = '1.2'
+__version__ = '1.2.1'
 
 import ripyl.sigproc
 import ripyl.decode

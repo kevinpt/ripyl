@@ -1242,9 +1242,9 @@ def demo_ethernet(options):
     noisy_samples = list(noisy_samples_it)
 
 
-    ether_samples, sample_period, start_time = tsup.read_bin_file('test/data/ether_10bt_39.bin')
-    ether_it = stream.samples_to_sample_stream(ether_samples, sample_period, start_time)
-    noisy_samples = list(ether_it)
+    #ether_samples, sample_period, start_time = tsup.read_bin_file('test/data/ether_10bt_39.bin')
+    #ether_it = stream.samples_to_sample_stream(ether_samples, sample_period, start_time)
+    #noisy_samples = list(ether_it)
     
 
     # Decode the samples
