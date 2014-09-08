@@ -391,10 +391,12 @@ def demo_i2s(options):
     # I2S params
     audio_sample_rate = 5000 / 32.0 #44100
     word_size = 8
-    frame_size = 16
+    frame_size = 10
     cpol = 0
     wspol = 0
     channels = 2
+    data_offset = 1
+    msb_justified = True
 
     clock_freq = audio_sample_rate * channels * frame_size
     
@@ -405,19 +407,24 @@ def demo_i2s(options):
     
     #message = options.msg
     #byte_msg = bytearray(message.encode('latin1')) # Get raw bytes as integers
-    samples = i2s.mono_to_stereo([0xA5, 1, 0xD1, 3,4, 0xC5])
-    #samples = [0xA5, 1, 0xD1, 3,4, 0xCA, 0x55, 0x55]
+    if channels == 2:
+        samples = list(i2s.mono_to_stereo([0xA5, 0x81, 0xD1, 3,4, 0xC5]))
+    else:
+        samples = [0xA5, 0x81, 0xD1, 3,4, 0xCA, 0x55, 0x55]
+        samples = [0xA5, 0x81, 0xD1, 3,4, 0xC5]
 
-    idle_start = 0.0
-    idle_start = 1e-3
-    idle_end = 1e-3
+    idle_start = 5e-4
+    idle_end = 5e-4
+    variant = i2s.I2SVariant.Standard
+    #variant = i2s.I2SVariant.DSPModeLongSync
+    #variant = i2s.I2SVariant.DSPModeShortSync
 
     # Synthesize the waveform edge stream
     # This can be fed directly into i2s_decode() if an analog waveform is not needed
     #clk, data_io, cs = spi.spi_synth(byte_msg, word_size, clock_freq, cpol, cpha, idle_start=idle_start)
     sck, sd, ws = i2s.i2s_synth(samples, word_size, frame_size, audio_sample_rate, \
-        cpol, wspol, channels=channels, msb_justified=True, i2s_variant=i2s.I2SVariant.Standard, \
-        data_offset=1, idle_start=idle_start, idle_end=idle_end)
+        cpol, wspol, channels=channels, msb_justified=msb_justified, i2s_variant=variant, \
+        data_offset=data_offset, idle_start=idle_start, idle_end=idle_end)
 
     # Convert to a sample stream with band-limited edges and noise
     cln_sck_it = sigp.synth_wave(sck, sample_rate, rise_time)
@@ -438,14 +445,13 @@ def demo_i2s(options):
     nsy_ws = list(nsy_ws_it)
     
     # Decode the samples
-    #decode_success = True
-    decode_success = False
+    decode_success = True
+    #decode_success = False
     records = []
     try:
-        i2s.i2s_decode(iter(nsy_sck), iter(nsy_sd), iter(nsy_ws), word_size, frame_size, cpol, \
-            wspol, channels=channels, data_offset=1)
-        #records_it = spi.spi_decode(iter(nsy_clk), iter(nsy_data_io), iter(nsy_cs), cpol, cpha)
-        #records = list(records_it)
+        records_it = i2s.i2s_decode(iter(nsy_sck), iter(nsy_sd), iter(nsy_ws), word_size, cpol, \
+            wspol, msb_justified=msb_justified, channels=channels, i2s_variant=variant, data_offset=data_offset)
+        records = list(records_it)
         pass
         
     except stream.StreamError as e:
@@ -474,10 +480,10 @@ def demo_i2s(options):
 
     
     # Filter out StreamEvent objects
-    #data_records = [r for r in records if isinstance(r, stream.StreamSegment)]
-    data_records = []
+    data_records = [r for r in records if isinstance(r, stream.StreamSegment)]
+    #data_records = []
 
-    #report_results(data_records, byte_msg, protocol_params, wave_params, decode_success, lambda d, o: (d.data, o))
+    report_results(data_records, samples, protocol_params, wave_params, decode_success, lambda d, o: (d.data, o))
     channels = OrderedDict([('SCK (V)', nsy_sck), ('WS (V)', nsy_ws), ('SD (V)', nsy_sd)])
     plot_channels(channels, records, options, plot_params)
 
@@ -1499,13 +1505,12 @@ def report_results(decoded_recs, orig_messages, protocol_params, wave_params, de
             if dmsg != omsg:
                 msg_match = False
                 #m_flag =  ' < MISMATCH'
-                msg = error('  {} < MISMATCH'.format(dmsg))
+                msg = error('  {} < MISMATCH (expect {})'.format(dmsg, omsg))
             else:
                 #m_flag = ''
                 msg = note('  {}'.format(dmsg))
 
             print(msg)
-            #print('  {}{}'.format(dmsg, m_flag))
 
         if msg_match:
             print(success('  (matches input message)'))

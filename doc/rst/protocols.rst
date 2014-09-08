@@ -9,6 +9,7 @@ The base protocols provided with Ripyl are the following:
 * General purpose
     * :ref:`Ethernet`
     * :ref:`I2C <i2c>` (also handles SMBus)
+    * :ref:`I2S <i2s>`
     * :ref:`PS/2 <ps2>`
     * :ref:`SPI <spi>`
     * :ref:`UART <uart>`
@@ -73,6 +74,26 @@ I\ :sup:`2`\ C
     :scale: 60%
 
 The :mod:`i2c <.protocol.i2c>` module decodes the I\ :sup:`2`\ C and SMBus protocols. This module includes a :func:`~.reconstruct_i2c_transfers` function that can group decoded :class:`~.I2CAddress` and :class:`.I2CByte` objects into messages.
+
+.. _i2s:
+
+I\ :sup:`2`\ S
+--------------
+
+.. image:: ../image/example/i2s_example_std.png
+    :scale: 60%
+
+DSP modes:
+
++-------------------------------------------------+----------------------------------------------------+
+| .. figure:: ../image/example/i2s_example_lp.png | .. figure:: ../image/example/i2s_example_sp.png    |
+|     :scale: 40%                                 |     :scale: 40%                                    |
+|                                                 |                                                    |
+|     DSP mode long sync pulse                    |     DSP mode short sync pulse (mono)               |
++-------------------------------------------------+----------------------------------------------------+
+
+The :mod:`i2s <.protocol.i2s>` module decodes the I\ :sup:`2`\ S protocol. It includes support for the original I\ :sup:`2`\ S standard as well as two DSP mode variants with long and short pulse widths on the WS line. The decoder has a number of configurable parameters to support a variety of I\ :sup:`2`\ S implementations including control over polarities, data delays, and number of channels.
+
 
 .. _kline:
 

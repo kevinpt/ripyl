@@ -56,9 +56,93 @@ class I2SFrame(stream.StreamSegment):
         return str(self.data)
 
 
-def i2s_decode(sck, sd, ws, word_size, frame_size=None, cpol=0, wspol=0, msb_justified=True, \
+def i2s_decode(sck, sd, ws, word_size, cpol=0, wspol=0, msb_justified=True, \
     channels=2, i2s_variant=I2SVariant.Standard, data_offset=1, logic_levels=None, \
     stream_type=stream.StreamType.Samples):
+
+    '''Decode an I2S data stream
+
+    This is a generator function that can be used in a pipeline of waveform
+    processing operations.
+    
+    The sck, sd, and ws parameters are edge or sample streams.
+    Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
+    of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
+    parameter. Sample streams will be analyzed to find edge transitions representing
+    0 and 1 logic states of the waveforms. With sample streams, an initial block of data
+    on the sck stream is consumed to determine the most likely logic levels in the signal.
+
+    sck (iterable of SampleChunk objects or (float, int) pairs)
+        A sample stream or edge stream representing an I2S clock signal
+    
+    sd  (iterable of SampleChunk objects or (float, int) pairs)
+        A sample stream or edge stream representing an I2S data signal.
+    
+    ws  (iterable of SampleChunk objects or (float, int) pairs or None)
+        A sample stream or edge stream representing an I2S word select signal.
+    
+    cpol (int)
+        Clock polarity: 0 or 1 (the idle state of the clock signal)
+
+    wspol (int)
+        Word select polarity: 0 or 1. Only applies to Standard variant
+
+    msb_justified (bool)
+        Position of word bits within a frame. Only applies to Standard variant.
+
+    channels (int)
+        Number of channels. Must be either 1 or 2.
+
+    i2s_variant (I2SVariant)
+        The type of I2S protocol to decode. Can be one of Standard, DSPModeShort or
+        DSPModeLong.
+
+    data_offset (int)
+        Number of cycles data is delayed from the start of frame indicated by ws.
+
+    logic_levels ((float, float) or None)
+        Optional pair that indicates (low, high) logic levels of the sample
+        stream. When present, auto level detection is disabled. This has no effect on
+        edge streams.
+
+    stream_type (streaming.StreamType)
+        A StreamType value indicating that the clk, data_io, and cs parameters represent either Samples
+        or Edges
+
+    Yields a series of I2SFrame objects.
+
+    Raises AutoLevelError if stream_type = Samples and the logic levels cannot
+      be determined.
+
+    Supported formats::
+
+        : Standard I2S:
+        : sck -._,-._,-._,-._,-._,-._,-._,-._,-._,-._,-._,-._,-._,-._,-._
+        : ws  -._______________________,-----------------------._________
+        : sd  _____<===X===X===X===>_______<===X===X===X===>_______<===X=
+        :      |   | Chan 0        |       |Chan 1         |
+        :      |   |
+        :        /\--- data_offset (1 cycle in original standard)
+        : 
+        : LSB justified:
+        : sd  _________<===X===X===X===>_______<===X===X===X===>_______<=
+        :              |  Word size    |
+        :      |                 Frame size                    |
+        : 
+        : 
+        : DSP mode (short pulses)
+        : sck -._,-._,-._,-._,-._,-._,-._,-._,-._,-._,-._,-._,-._,-._,-._
+        : ws  _,---.___________________________________________,---._____
+        : sd  _____<===X===X===X===X===X===X===X===>_______________<===X=
+        :          | Chan 0        | Chan 1        |
+        : 
+        : DSP mode (long pulses)
+        : sck -._,-._,-._,-._,-._,-._,-._,-._,-._,-._,-._,-._,-._,-._,-._
+        : ws  _,-------------------------------._______________,---------
+        : sd  _____<===X===X===X===X===X===X===X===>_______________<===X=
+        :          | Chan 0        | Chan 1        |
+
+    '''
 
     if stream_type == stream.StreamType.Samples:
         if logic_levels is None:
@@ -81,17 +165,15 @@ def i2s_decode(sck, sd, ws, word_size, frame_size=None, cpol=0, wspol=0, msb_jus
         sck_it = ((t, 1 - e) for t, e in sck_it)
 
 
-    raw_size = 2 * frame_size if i2s_variant == I2SVariant.Standard else frame_size
-
-    sample_shift = [0] * channels
-    sample_mask = (2 ** word_size) - 1
     if i2s_variant == I2SVariant.Standard:
-        justify_shift = frame_size - word_size if msb_justified else 0
-        for c in xrange(channels):
-            sample_shift[c] = justify_shift + frame_size * (1 - c)
+        if channels == 1:
+            frame_start_pol = (wspol, 1 - wspol) # Frames start on both edges
+        else: # 2 channels
+            frame_start_pol = (wspol,)
+
     else: # DSPMode
-        for c in xrange(channels):
-            sample_shift[c] = frame_size - (word_size * (c + 1))
+        wspol = 1
+        frame_start_pol = (wspol,)
     
 
     edge_sets = {
@@ -105,209 +187,126 @@ def i2s_decode(sck, sd, ws, word_size, frame_size=None, cpol=0, wspol=0, msb_jus
     bitq = []
     start_time = None
     end_time = None
+    bit_starts = []
     in_frame = False
     prev_ws = None
+    bit_delay = 0
+    next_bit_delay = 0
+    active_frame = False
+    frame_cycles = 0
+    raw_size = None
+    sample_shift = [0] * channels
+    sample_mask = (2 ** word_size) - 1
 
     # Begin to decode
     
     while not es.at_end():
         _, cname = es.advance_to_edge()
-        if in_frame and cname == 'sck' and not es.at_end('sck'):
-            if es.cur_state('sck') == 1: # Rising edge
+        if in_frame and cname == 'sck' and not es.at_end('sck') and es.cur_state('sck') == 1:
+            if bit_delay > 0:
+                next_bit_delay = bit_delay - 1
+
+            if bit_delay == 0 or active_frame: # Collect bits from frame
+                active_frame = True
                 bitq.append(es.cur_state('sd'))
                 end_time = es.cur_time()
+                bit_starts.append(es.cur_time())
+                frame_cycles += 1
 
-                if len(bitq) == raw_size + data_offset:
-                    print('@@@  bits:', start_time, bitq[-raw_size:]) #FIXME
-                    full_word = join_bits(bitq[-raw_size:])
-                    samples = []
-                    for c in xrange(channels):
-                        samples.append((full_word >> sample_shift[c]) & sample_mask)
 
-                    print('@@@ ', [hex(s) for s in samples])
-                        
+            bit_delay = next_bit_delay
 
-                if prev_ws == 1 and es.cur_state('ws') == 0:
-                    # Falling edge of WS -> start of new frame
-                    print('#### bits:', start_time, bitq) #FIXME
 
-                    bitq = [0] * data_offset
-                    start_time = es.cur_time()
+            # Detect if WS toggled over the last clock period
+            if prev_ws != es.cur_state('ws') and es.cur_state('ws') in frame_start_pol:
+                if raw_size is None:
+                    # Calculate parameters used to locate the data bits within a frame
+                    raw_size = frame_cycles + (data_offset - 1)
 
-                prev_ws = es.cur_state('ws')
+                    frame_size = raw_size // channels if i2s_variant == I2SVariant.Standard else raw_size
 
-        # Find start of frame
-        if not in_frame and cname == 'ws' and not es.at_end('ws') and es.cur_state('ws') == 0:
+                    if i2s_variant == I2SVariant.Standard:
+                        justify_shift = frame_size - word_size if msb_justified else 0
+                        for c in xrange(channels):
+                            sample_shift[c] = justify_shift + frame_size * (channels - 1 - c)
+                    else: # DSPMode
+                        for c in xrange(channels):
+                            sample_shift[c] = frame_size - (word_size * (c + 1))
+
+            prev_ws = es.cur_state('ws')
+
+            if len(bitq) >= raw_size and raw_size is not None:
+
+                full_word = join_bits(bitq[:raw_size])
+                samples = []
+                bounds = []
+                for c in xrange(channels):
+                    samples.append((full_word >> sample_shift[c]) & sample_mask)
+                    # Determine the bounds for this sample
+                    start_bit = raw_size - (sample_shift[c] + word_size)
+                    end_bit = start_bit + word_size - 1
+                    half_bit = (bit_starts[end_bit] - bit_starts[start_bit]) / (word_size-1) / 2
+                    bounds.append((bit_starts[start_bit] - half_bit, bit_starts[end_bit] + half_bit))
+
+                frame_data = samples[0] if len(samples) == 1 else tuple(samples)
+
+                end_time = bit_starts[raw_size-1] + half_bit
+                nf = I2SFrame((start_time, end_time), frame_data)
+                nf.annotate('frame', {}, stream.AnnotationFormat.Hidden)
+
+                for c in xrange(channels):
+                    nf.subrecords.append(stream.StreamSegment(bounds[c], samples[c], kind='channel' + str(c)))
+                    nf.subrecords[-1].annotate('data', {'_bits':word_size}, stream.AnnotationFormat.Hex)
+
+                yield nf
+
+                start_time = end_time
+                bitq = bitq[raw_size:]
+                bit_starts = bit_starts[raw_size:]
+
+
+        # Find start of frame at falling edge of WS
+        if not in_frame and cname == 'ws' and not es.at_end('ws') and es.cur_state('ws') in frame_start_pol:
             in_frame = True
             start_time = es.cur_time()
-
-
-
-def spi_decode(clk, data_io, cs=None, cpol=0, cpha=0, lsb_first=True, logic_levels=None, \
-    stream_type=stream.StreamType.Samples):
-    '''Decode an SPI data stream
-    
-    This is a generator function that can be used in a pipeline of waveform
-    processing operations.
-    
-    The clk, data_io, and cs parameters are edge or sample streams.
-    Sample streams are a sequence of SampleChunk Objects. Edge streams are a sequence
-    of 2-tuples of (time, int) pairs. The type of stream is identified by the stream_type
-    parameter. Sample streams will be analyzed to find edge transitions representing
-    0 and 1 logic states of the waveforms. With sample streams, an initial block of data
-    on the clk stream is consumed to determine the most likely logic levels in the signal.
-
-    clk (iterable of SampleChunk objects or (float, int) pairs)
-        A sample stream or edge stream representing an SPI clk signal
-    
-    data_io (iterable of SampleChunk objects or (float, int) pairs)
-        A sample stream or edge stream representing an SPI MOSI or MISO signal.
-    
-    cs (iterable of SampleChunk objects or (float, int) pairs or None)
-        A sample stream or edge stream representing an SPI chip select signal.
-        Can be None if cs is not available.
-    
-    cpol (int)
-        Clock polarity: 0 or 1 (the idle state of the clock signal)
-    
-    cpha (int)
-        Clock phase: 0 or 1 (data is sampled on the 1st clock edge (0) or the 2nd (1))
-    
-    lsb_first (bool)
-        Flag indicating whether the Least Significant Bit is transmitted first.
-
-    logic_levels ((float, float) or None)
-        Optional pair that indicates (low, high) logic levels of the sample
-        stream. When present, auto level detection is disabled. This has no effect on
-        edge streams.
-
-    stream_type (streaming.StreamType)
-        A StreamType value indicating that the clk, data_io, and cs parameters represent either Samples
-        or Edges
-
-    Yields a series of SPIFrame objects.
-      
-    Raises AutoLevelError if stream_type = Samples and the logic levels cannot
-      be determined.
-    '''
-    if stream_type == stream.StreamType.Samples:
-        if logic_levels is None:
-            s_clk_it, logic_levels = check_logic_levels(clk)
-        else:
-            s_clk_it = clk
-        
-        hyst = 0.4
-        clk_it = find_edges(s_clk_it, logic_levels, hysteresis=hyst)
-        data_io_it = find_edges(data_io, logic_levels, hysteresis=hyst)
-        if cs is not None:
-            cs_it = find_edges(cs, logic_levels, hysteresis=hyst)
-        else:
-            cs_it = None
-    else: # the streams are already lists of edges
-        clk_it = clk
-        data_io_it = data_io
-        cs_it = cs
-
-
-    edge_sets = {
-        'clk': clk_it,
-        'data_io': data_io_it
-    }
-    
-    if cs_it is not None:
-        edge_sets['cs'] = cs_it
-    
-    es = MultiEdgeSequence(edge_sets, 0.0)
-    
-    if cpha == 0:
-        active_edge = 1 if cpol == 0 else 0
-    else:
-        active_edge = 0 if cpol == 0 else 1
-    
-    bits = []
-    start_time = None
-    end_time = None
-    prev_edge = None
-    prev_cycle = None
-    
-    # begin to decode
-    
-    while not es.at_end():
-        _, cname = es.advance_to_edge()
-
-        
-        if cname == 'cs' and not es.at_end('cs'):
-            se = stream.StreamEvent(es.cur_time(), data=es.cur_state('cs'), kind='SPI CS')
-            yield se
-
-        elif cname == 'clk' and not es.at_end('clk'):
-            clk_val = es.cur_state('clk')
-            
-            if clk_val == active_edge: # capture data bit
-                # Check if the elapsed time is more than any previous cycle
-                # This indicates that a previous word was complete
-                if prev_cycle is not None and es.cur_time() - prev_edge > 1.5 * prev_cycle:
-                    if lsb_first:
-                        word = join_bits(reversed(bits))
-                    else:
-                        word = join_bits(bits)
-                    
-                    nf = SPIFrame((start_time, end_time), word)
-                    nf.word_size = len(bits)
-                    nf.annotate('frame', {'_bits':len(bits)}, stream.AnnotationFormat.General)
-                    
-                    bits = []
-                    start_time = None
-                    
-                    yield nf
-                    
-                # accumulate the bit
-                if start_time is None:
-                    start_time = es.cur_time()
-                    
-                bits.append(es.cur_state('data_io'))
-                end_time = es.cur_time()
-                
-                if prev_edge is not None:
-                    prev_cycle = es.cur_time() - prev_edge
-
-                prev_edge = es.cur_time()
-                
-        
-    if len(bits) > 0:
-        if lsb_first:
-            word = join_bits(reversed(bits))
-        else:
-            word = join_bits(bits)
-            
-        nf = SPIFrame((start_time, end_time), word)
-        nf.word_size = len(bits)
-        nf.annotate('frame', {'_bits':len(bits)}, stream.AnnotationFormat.General)
-        
-        yield nf
-
-
-            
-
+            bit_delay = data_offset
+            prev_ws = es.cur_state('ws')
 
 
 def stereo_to_mono(samples):
-  for s in samples:
-    try:
-      if len(s) > 0:
-        for c in s:
-          yield c
-    except TypeError: # Not a sequence
-      yield s
+    '''Convert stero samples to mono
 
-def duplicate(samples):
+    samples (sequence of 2-tuples of int)
+        The stereo samples to convert
+
+    Yields a sequence of int
+    '''
     for s in samples:
-      yield s
-      yield s
+        try:
+            if len(s) > 0:
+                for c in s:
+                    yield c
+        except TypeError: # Not a sequence
+            yield s
+
+def _duplicate(samples):
+    for s in samples:
+        yield s
+        yield s
 
 def mono_to_stereo(samples, duplicate_samples=True):
+    '''Convert mono samples to stereo
+
+    samples (sequence of int)
+        The mono samples to convert
+
+    duplicate_samples (bool)
+        Duplicates incoming samples when True
+
+    Yields a sequence of 2-tuples of int
+    '''
     if duplicate_samples:
-        samples = duplicate(samples)
+        samples = _duplicate(samples)
 
     args = [iter(samples)] * 2
     return itertools.izip(*args)
@@ -315,6 +314,59 @@ def mono_to_stereo(samples, duplicate_samples=True):
 
 def i2s_synth(data, word_size, frame_size, sample_rate, cpol=0, wspol=0, msb_justified=True,
     channels=2, i2s_variant=I2SVariant.Standard, data_offset=1, idle_start=0.0, idle_end=0.0):
+    '''Generate synthesized I2S waveforms
+
+    This function simulates the transmission of data over I2S
+
+    This is a generator function that can be used in a pipeline of waveform
+    processing operations.
+
+    data (sequence of int or 2-tuples of int)
+        Sequence of words that will be transmitted serially. Elements should be int
+        when number of channels is 1. Should be a 2-tuple when channels is 2.
+
+    word_size (int)
+        The number of bits in each word
+
+    frame_size (int)
+        The number of bits in each frame. When variant is Standard the frame size
+        covers all word and padding bits for one channel. For the DSPMode variants
+        the frame size covers all word and padding bits for all channels.
+
+    sample_rate (float)
+        Sample rate for the data stream. The clock frequency is derived from this rate
+        based on the selected variant, frame_size, and number of channels.
+    
+    cpol (int)
+        Clock polarity: 0 or 1 (the idle state of the clock signal)
+
+    wspol (int)
+        Word select polarity: 0 or 1. Only applies to Standard variant
+
+    msb_justified (bool)
+        Position of word bits within a frame. Only applies to Standard variant.
+
+    channels (int)
+        Number of channels. Must be either 1 or 2.
+
+    i2s_variant (I2SVariant)
+        The type of I2S protocol to decode. Can be one of Standard, DSPModeShort or
+        DSPModeLong.
+
+    data_offset (int)
+        Number of cycles data is delayed from the start of frame indicated by ws.
+
+    idle_start (float)
+        The amount of idle time before the transmission of data begins
+
+    idle_end (float)
+        The amount of idle time after the last transmission
+
+    Yields a triplet of pairs representing the three edge streams for sck, sd, and ws
+      respectively. Each edge stream pair is in (time, value) format representing the
+      time and logic value (0 or 1) for each edge transition. The first set of pairs
+      yielded is the initial state of the waveforms.
+    '''
     # This is a wrapper around the actual synthesis code in _i2s_synth()
     # It unzips the yielded tuple and removes unwanted artifact edges
 
@@ -334,7 +386,7 @@ def _i2s_synth(data, word_size, frame_size, sample_rate, cpol=0, wspol=0, msb_ju
         assert word_size * channels < frame_size, 'channels * word size must be less than the frame size'
     elif i2s_variant == I2SVariant.DSPModeShortSync:
         assert word_size * channels <= frame_size, 'channels * word size must not be greater than the frame size'
-    else:
+    else: # Standard variant
         assert word_size <= frame_size, 'Word size must not be greater than the frame size'
 
     if i2s_variant in (I2SVariant.DSPModeLongSync, I2SVariant.DSPModeShortSync):
@@ -349,22 +401,21 @@ def _i2s_synth(data, word_size, frame_size, sample_rate, cpol=0, wspol=0, msb_ju
     sd = 0
     ws = 1 - wspol
 
-    clock_freq = sample_rate * channels * frame_size
-    half_bit_period = 1.0 / (2.0 * clock_freq)
 
     sample_shift = [0] * channels
     sample_mask = (2 ** word_size) - 1
     if i2s_variant == I2SVariant.Standard:
+        clock_freq = sample_rate * channels * frame_size
         justify_shift = frame_size - word_size if msb_justified else 0
         for c in xrange(channels):
             sample_shift[c] = justify_shift + frame_size * (1 - c)
     else: # DSPMode
+        clock_freq = sample_rate * frame_size
         for c in xrange(channels):
             sample_shift[c] = frame_size - (word_size * (c + 1))
 
+    half_bit_period = 1.0 / (2.0 * clock_freq)
 
-    #print('### shift:', sample_shift)
-    #print('### mask:', sample_mask)
 
     if i2s_variant == I2SVariant.Standard:
         ws_toggle_bits = (0, frame_size)

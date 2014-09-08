@@ -17,6 +17,14 @@ util Package
     :undoc-members:
     :show-inheritance:
 
+:mod:`color` Module
+-------------------
+
+.. automodule:: ripyl.util.color
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 :mod:`eng` Module
 -----------------
 
