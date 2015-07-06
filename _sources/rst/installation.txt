@@ -42,8 +42,6 @@ On some Unix platforms you may need to install to your home directory or use roo
   [sudo] password for user: *****
 
 
-On Windows you can optionally run the executable installer to setup Ripyl.
-
 Cython
 ------
 
