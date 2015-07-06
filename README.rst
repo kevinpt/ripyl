@@ -1,4 +1,4 @@
-.. image:: http://kevinpt.github.io/ripyl/Ripyl logo 100px.png
+.. image:: http://kevinpt.github.io/ripyl/_static/Ripyl_logo_100px.png
 
 =============================
 Ripyl protocol decode library
