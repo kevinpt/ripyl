@@ -45,6 +45,9 @@ clean:
 RIPYL_CYTHON = 0
 export RIPYL_CYTHON
 
+gh-pages: html
+	cp -r $(BUILDDIR)/html/* ../../ripyl-html
+
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo

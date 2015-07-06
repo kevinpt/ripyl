@@ -9,7 +9,8 @@ Dependencies
 
 Ripyl requires the following:
     * `python <http://www.python.org/>`_ 2.7 or 3.x
-    * `scipy <http://www.scipy.org/>`_ >= 0.11.0 (also requires `numpy <http://www.numpy.org/>`_)
+    * `scipy <http://www.scipy.org/>`_ >= 0.11.0
+    * `numpy <http://www.numpy.org/>`_ >= 0.17.0
 
 Optional libraries are:
     * `matplotlib <http://matplotlib.org/>`_ for plotting support
@@ -40,8 +41,6 @@ On some Unix platforms you may need to install to your home directory or use roo
   > sudo python setup.py install
   [sudo] password for user: *****
 
-
-On Windows you can optionally run the executable installer to setup Ripyl.
 
 Cython
 ------

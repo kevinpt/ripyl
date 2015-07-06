@@ -1,8 +1,8 @@
+.. image:: http://kevinpt.github.io/ripyl/Ripyl logo 100px.png
+
 =============================
 Ripyl protocol decode library
 =============================
-
-Version: 1.0
 
 
 Ripyl is a library for decoding serialized data collected from an oscilloscope
@@ -11,10 +11,34 @@ extended with new protocols. Ripyl is useful for offline decoding of data
 collected on instruments with no built in support for decoding or lacking
 support for more advanced protocols.
 
+It can process a waveform like this:
+
+.. image:: http://kevinpt.github.io/ripyl/_images/uart_plain.png
+
+... and produce an annotated result like this:
+
+.. image:: http://kevinpt.github.io/ripyl/_images/uart_hello_small.png
+
+Using Ripyl is as simple as follows:
+
+.. code-block:: python
+
+  import ripyl
+  import ripyl.protocol.uart as uart
+
+  raw_samples, sample_period = read_samples_from_your_oscilloscope()
+  txd = ripyl.streaming.samples_to_sample_stream(raw_samples, sample_period)
+  records = list(uart.uart_decode(txd, bits=8, parity='even', stop_bits=1))
+
+The library provides decoded information in an easily traversed tree detailing the time and data for each sub-element of a protocol transmission.
+
+Take a look at the `online documentation <http://kevinpt.github.io/ripyl/>`_ for more information on Ripyl's capabilites.
+
 Dependencies
 ------------
 * Python 2.7 or 3.x
-* SciPy >= 0.11.0 (depends on numpy as well)
+* SciPy >= 0.11.0
+* Numpy >= 1.7.0
 
 Optional libraries
 ------------------
@@ -35,6 +59,12 @@ Features
 * Annotated plotting
 * Layering of protocols
 * Automated parameter analysis (logic levels, baud rate)
+
+Download
+--------
+You can access the Ripyl Git repository from `Github
+<https://github.com/kevinpt/ripyl>`_. `Packaged source code <https://drive.google.com/folderview?id=0B5jin2146-EXV0h6eW5RNDJvUm8&usp=sharing>`_
+is also available for download.
 
 Installation
 ------------
@@ -57,12 +87,8 @@ root access through sudo.
   ``> sudo python setup.py install``
   ``[sudo] password for user: *****``
 
-
-On Windows you can optionally run the executable installer to setup Ripyl.
-
 Cython
 ------
-
 The Ripyl library has been designed with optional Cython support. By default
 the installation script will detect and enable Cython if it is present. You
 can force Cython support off by passing the ``--without-cython`` argument to
@@ -72,7 +98,6 @@ is installed by setting the `RIPYL_CYTHON` environment variable to a true or
 false value as desired:
 
   ``> export RIPYL_CYTHON=1``
-
 
 Licensing
 ---------
