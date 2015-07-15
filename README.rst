@@ -34,7 +34,7 @@ The library provides decoded information in an easily traversed tree detailing t
 
 Take a look at the `online documentation <http://kevinpt.github.io/ripyl/>`_ for more information on Ripyl's capabilites.
 
-Dependencies
+Requirements
 ------------
 * Python 2.7 or 3.x
 * SciPy >= 0.11.0

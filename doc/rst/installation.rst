@@ -4,10 +4,10 @@ Installing Ripyl
 
 The Ripyl library will work on all platforms that support a Python interpreter. The following is a brief guide to installing the ripyl library. You will generally need administrative or super user (root) access to perform the installation as indicated below.
 
-Dependencies
+Requirements
 ------------
 
-Ripyl requires the following:
+Ripyl depends on the following:
     * `python <http://www.python.org/>`_ 2.7 or 3.x
     * `scipy <http://www.scipy.org/>`_ >= 0.11.0
     * `numpy <http://www.numpy.org/>`_ >= 0.17.0
