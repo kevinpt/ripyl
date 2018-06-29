@@ -5,10 +5,7 @@
 import ripyl
 
 if ripyl.config.settings.cython_prebuild == False:
-    #print 'No prebuild'
     import pyximport; pyximport.install()
-#else:
-    #print 'Using prebuild'
 
 import inspect
 import importlib
@@ -86,7 +83,7 @@ cy_module_names = find_cy_modules()
 
 cy_modules = {}
 for mname in cy_module_names:
-    #print '##importing cython: "{}"'.format(mname)
+    #print '## importing cython: "{}"'.format(mname)
     full_mname = 'ripyl.cython.' + mname
     try:
         cy_modules[mname] = importlib.import_module(full_mname)

@@ -1,19 +1,22 @@
-io Package
-==========
+ripyl.io package
+================
 
-:mod:`io` Package
------------------
+Submodules
+----------
 
-.. automodule:: ripyl.io
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`vcd` Module
------------------
+ripyl.io.vcd module
+-------------------
 
 .. automodule:: ripyl.io.vcd
     :members:
     :undoc-members:
     :show-inheritance:
 
+
+Module contents
+---------------
+
+.. automodule:: ripyl.io
+    :members:
+    :undoc-members:
+    :show-inheritance:

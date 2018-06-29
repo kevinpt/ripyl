@@ -1,59 +1,70 @@
-util Package
-============
+ripyl.util package
+==================
 
-:mod:`util` Package
--------------------
+Submodules
+----------
 
-.. automodule:: ripyl.util
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`bitops` Module
---------------------
+ripyl.util.bitops module
+------------------------
 
 .. automodule:: ripyl.util.bitops
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`eng` Module
------------------
+ripyl.util.color module
+-----------------------
+
+.. automodule:: ripyl.util.color
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ripyl.util.eng module
+---------------------
 
 .. automodule:: ripyl.util.eng
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`enum` Module
-------------------
+ripyl.util.enum module
+----------------------
 
 .. automodule:: ripyl.util.enum
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`equality` Module
-----------------------
+ripyl.util.equality module
+--------------------------
 
 .. automodule:: ripyl.util.equality
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`plot` Module
-------------------
+ripyl.util.plot module
+----------------------
 
 .. automodule:: ripyl.util.plot
     :members:
     :undoc-members:
     :show-inheritance:
 
-:mod:`stats` Module
--------------------
+ripyl.util.stats module
+-----------------------
 
 .. automodule:: ripyl.util.stats
     :members:
     :undoc-members:
     :show-inheritance:
 
+
+Module contents
+---------------
+
+.. automodule:: ripyl.util
+    :members:
+    :undoc-members:
+    :show-inheritance:

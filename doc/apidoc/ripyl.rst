@@ -1,59 +1,72 @@
-ripyl Package
+ripyl package
 =============
-
-:mod:`ripyl` Package
---------------------
-
-.. automodule:: ripyl.__init__
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`config` Module
---------------------
-
-.. automodule:: ripyl.config
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`decode` Module
---------------------
-
-.. automodule:: ripyl.decode
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`sigproc` Module
----------------------
-
-.. automodule:: ripyl.sigproc
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`streaming` Module
------------------------
-
-.. automodule:: ripyl.streaming
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-:mod:`wave_synth` Module
-------------------------
-
-.. automodule:: ripyl.wave_synth
-    :members:
-    :undoc-members:
-    :show-inheritance:
 
 Subpackages
 -----------
 
 .. toctree::
 
+    ripyl.cython
+    ripyl.io
     ripyl.protocol
     ripyl.util
 
+Submodules
+----------
+
+ripyl.config module
+-------------------
+
+.. automodule:: ripyl.config
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ripyl.decode module
+-------------------
+
+.. automodule:: ripyl.decode
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ripyl.manchester module
+-----------------------
+
+.. automodule:: ripyl.manchester
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ripyl.sigproc module
+--------------------
+
+.. automodule:: ripyl.sigproc
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ripyl.streaming module
+----------------------
+
+.. automodule:: ripyl.streaming
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+ripyl.wave_synth module
+-----------------------
+
+.. automodule:: ripyl.wave_synth
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: ripyl
+    :members:
+    :undoc-members:
+    :show-inheritance:

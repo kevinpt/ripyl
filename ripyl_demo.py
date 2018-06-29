@@ -35,7 +35,7 @@ import ripyl.protocol.infrared as ir
 import ripyl.sigproc as sigp
 import ripyl.streaming as stream
 import ripyl.util.eng as eng
-import test.test_support as tsup
+#import test.test_support as tsup
 from ripyl.sigproc import min_rise_time
 from ripyl.util.color import note, success, error
 
@@ -96,6 +96,8 @@ Supported protocols:
         options.xrange = [float(x) for x in options.xrange.split(',')]
         
     options.protocol = options.protocol.lower()
+
+    ripyl.config.settings.cython_status()
 
     print('** Ripyl demo **\n\n')
 

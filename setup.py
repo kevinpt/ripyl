@@ -1,10 +1,10 @@
-
 from __future__ import print_function
 
-import distribute_setup
-distribute_setup.use_setuptools()
+try:
+  from setuptools import setup, Extension, Feature
+except ImportError:
+	sys.exit('ERROR: setuptools is required.\nTry using "pip install setuptools".')
 
-from setuptools import setup, Extension, Feature
 import sys
 import os
 import fnmatch
@@ -80,10 +80,8 @@ def find_cy_modules():
 
 
 features = {}
-#if 'install' in sys.argv or 'build' in sys.argv or 'build_ext' in sys.argv:
-if cython_exists:
-    #import ripyl.config as config
 
+if cython_exists:
     # Find all cython modules
     cy_module_names = find_cy_modules()
 
@@ -164,12 +162,13 @@ setup(name='ripyl',
     version=version,
     author='Kevin Thibedeau',
     author_email='kevin.thibedeau@gmail.com',
-    url='http://code.google.com/p/ripyl/',
-    download_url='https://drive.google.com/folderview?id=0B5jin2146-EXV0h6eW5RNDJvUm8&usp=sharing',
+    url='http://kevinpt.github.io/ripyl',
+    download_url='http://kevinpt.github.io/ripyl',
     description='A library for decoding serial data captured from oscilloscopes and logic analyzers',
     long_description=long_description,
     install_requires = ['scipy >= 0.11.0', 'numpy >= 1.7.0'],
-    packages = ['ripyl', 'ripyl.protocol', 'ripyl.protocol.infrared', 'ripyl.util', 'ripyl.cython'],
+    packages = ['ripyl', 'ripyl.protocol', 'ripyl.protocol.infrared', 'ripyl.util',
+                'ripyl.cython', 'ripyl.cython.util'],
     py_modules = ['ripyl_demo'],
     cmdclass = cmdclass,
     #ext_modules = extensions,

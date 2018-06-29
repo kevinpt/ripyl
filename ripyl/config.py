@@ -54,6 +54,8 @@ class PatchObject(object):
         self.orig_obj = orig_obj
         self.active = False
 
+    def __str__(self):
+      return '{}:{} {}'.format(self.py_mname, self.obj_name, '(active)' if self.active else '')
 
     def activate(self):
         '''Apply the monkeypatch over the orignal object'''
@@ -73,6 +75,7 @@ class ConfigSettings(object):
     def __init__(self):
         self.use_cython = False       # Indicates Cython should be used
         self.cython_prebuild = False  # Tracks whether Cython code was compiled during library installation
+        self.cython_x = False
         self.python_fallback = True   # Silently ignore any failed cython import
         self.patched_objs = []        # List of PatchObject to control monkeypatching
         self.config_source = 'unknown'
@@ -92,6 +95,14 @@ class ConfigSettings(object):
                 po.activate()
             else:
                 po.revert()
+
+    def cython_status(self):
+        '''Report summary of Cython status'''
+        print 'Cython status'
+        print '  Enabled: {}'.format(self.use_cython)
+        print '  Prebuild: {}'.format(self.cython_prebuild)
+        print '  Active: {}'.format(self.cython_active)
+        print '  Patched objects:\n    {}'.format('\n    '.join(str(po) for po in self.patched_objs))
 
 
     def find_patch_obj(self, obj_path):
