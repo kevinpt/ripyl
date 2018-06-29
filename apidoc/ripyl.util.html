@@ -1,30 +1,28 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>util Package &mdash; Ripyl 1.2.1 documentation</title>
-    
+    <title>ripyl.util package &#8212; Ripyl 1.2.1 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="https://kevinpt.github.io/opbasm/_static/project.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
         VERSION:     '1.2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link href='http://fonts.googleapis.com/css?family=Kreon:400,300,700' rel='stylesheet' type='text/css'>
 
    
@@ -32,48 +30,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
 
   </head>
-  <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="ripyl.protocol.infrared.html" title="infrared Package"
-             accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.2.1 documentation</a> &raquo;</li>
-          <li><a href="modules.html" >ripyl</a> &raquo;</li>
-          <li><a href="ripyl.html" accesskey="U">ripyl Package</a> &raquo;</li> 
-      </ul>
-    </div>  
+  <body>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
-  <div class="section" id="util-package">
-<h1>util Package<a class="headerlink" href="#util-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="id1">
-<h2><tt class="xref py py-mod docutils literal"><span class="pre">util</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
-<span class="target" id="module-ripyl.util"></span><p>Ripyl utility functions</p>
+  <div class="section" id="ripyl-util-package">
+<h1>ripyl.util package<a class="headerlink" href="#ripyl-util-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-ripyl.util.bitops">
-<span id="bitops-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">bitops</span></tt> Module<a class="headerlink" href="#module-ripyl.util.bitops" title="Permalink to this headline">¶</a></h2>
+<span id="ripyl-util-bitops-module"></span><h2>ripyl.util.bitops module<a class="headerlink" href="#module-ripyl.util.bitops" title="Permalink to this headline">¶</a></h2>
 <p>Bit-wise operations</p>
 <dl class="function">
 <dt id="ripyl.util.bitops.join_bits">
-<tt class="descclassname">ripyl.util.bitops.</tt><tt class="descname">join_bits</tt><big>(</big><em>bits</em><big>)</big><a class="headerlink" href="#ripyl.util.bitops.join_bits" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.util.bitops.</code><code class="descname">join_bits</code><span class="sig-paren">(</span><em>bits</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.bitops.join_bits" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert an array of bits (MSB first) to an integer word</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>bits</strong> (<em>sequence of ints</em>) &#8211; The bits to be merged into an integer</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>bits</strong> (<em>sequence of ints</em>) – The bits to be merged into an integer</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">An int representing the bits contained in the bits parameter.</td>
 </tr>
@@ -83,15 +63,15 @@
 
 <dl class="function">
 <dt id="ripyl.util.bitops.split_bits">
-<tt class="descclassname">ripyl.util.bitops.</tt><tt class="descname">split_bits</tt><big>(</big><em>n</em>, <em>num_bits</em><big>)</big><a class="headerlink" href="#ripyl.util.bitops.split_bits" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.util.bitops.</code><code class="descname">split_bits</code><span class="sig-paren">(</span><em>n</em>, <em>num_bits</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.bitops.split_bits" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert integer to a list of bits (MSB-first)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>n</strong> (<em>int</em>) &#8211; The number to convert to bits.</li>
-<li><strong>num_bits</strong> (<em>int</em>) &#8211; The number of bits in the result.</li>
+<li><strong>n</strong> (<em>int</em>) – The number to convert to bits.</li>
+<li><strong>num_bits</strong> (<em>int</em>) – The number of bits in the result.</li>
 </ul>
 </td>
 </tr>
@@ -103,24 +83,58 @@
 </dd></dl>
 
 </div>
+<div class="section" id="module-ripyl.util.color">
+<span id="ripyl-util-color-module"></span><h2>ripyl.util.color module<a class="headerlink" href="#module-ripyl.util.color" title="Permalink to this headline">¶</a></h2>
+<p>Color formatting</p>
+<dl class="function">
+<dt id="ripyl.util.color.colorize">
+<code class="descclassname">ripyl.util.color.</code><code class="descname">colorize</code><span class="sig-paren">(</span><em>t</em>, <em>code</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.color.colorize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ripyl.util.color.error">
+<code class="descclassname">ripyl.util.color.</code><code class="descname">error</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.color.error" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ripyl.util.color.note">
+<code class="descclassname">ripyl.util.color.</code><code class="descname">note</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.color.note" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ripyl.util.color.stdout_redirected">
+<code class="descclassname">ripyl.util.color.</code><code class="descname">stdout_redirected</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.color.stdout_redirected" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ripyl.util.color.success">
+<code class="descclassname">ripyl.util.color.</code><code class="descname">success</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.color.success" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="ripyl.util.color.warn">
+<code class="descclassname">ripyl.util.color.</code><code class="descname">warn</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.color.warn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
 <div class="section" id="module-ripyl.util.eng">
-<span id="eng-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">eng</span></tt> Module<a class="headerlink" href="#module-ripyl.util.eng" title="Permalink to this headline">¶</a></h2>
+<span id="ripyl-util-eng-module"></span><h2>ripyl.util.eng module<a class="headerlink" href="#module-ripyl.util.eng" title="Permalink to this headline">¶</a></h2>
 <p>Engineering unit string formatting</p>
 <dl class="class">
 <dt id="ripyl.util.eng.Eng">
-<em class="property">class </em><tt class="descclassname">ripyl.util.eng.</tt><tt class="descname">Eng</tt><big>(</big><em>f</em>, <em>frac_digits=3</em><big>)</big><a class="headerlink" href="#ripyl.util.eng.Eng" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<em class="property">class </em><code class="descclassname">ripyl.util.eng.</code><code class="descname">Eng</code><span class="sig-paren">(</span><em>f</em>, <em>frac_digits=3</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.eng.Eng" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Base class for engineering unit string formatting</p>
 <dl class="method">
 <dt id="ripyl.util.eng.Eng.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>f</em>, <em>frac_digits=3</em><big>)</big><a class="headerlink" href="#ripyl.util.eng.Eng.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>f</em>, <em>frac_digits=3</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.eng.Eng.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>f</strong> (<em>number</em>) &#8211; The number to represent in engineering units.</li>
-<li><strong>frac_digits</strong> (<em>int</em>) &#8211; The number of fractional digits to display in a string.</li>
+<li><strong>f</strong> (<em>number</em>) – The number to represent in engineering units.</li>
+<li><strong>frac_digits</strong> (<em>int</em>) – The number of fractional digits to display in a string.</li>
 </ul>
 </td>
 </tr>
@@ -132,21 +146,21 @@
 
 <dl class="class">
 <dt id="ripyl.util.eng.EngSI">
-<em class="property">class </em><tt class="descclassname">ripyl.util.eng.</tt><tt class="descname">EngSI</tt><big>(</big><em>f</em>, <em>units=''</em>, <em>frac_digits=3</em>, <em>unit_sep=' '</em><big>)</big><a class="headerlink" href="#ripyl.util.eng.EngSI" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ripyl.util.eng.Eng" title="ripyl.util.eng.Eng"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.util.eng.Eng</span></tt></a></p>
+<em class="property">class </em><code class="descclassname">ripyl.util.eng.</code><code class="descname">EngSI</code><span class="sig-paren">(</span><em>f</em>, <em>units=''</em>, <em>frac_digits=3</em>, <em>unit_sep=' '</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.eng.EngSI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ripyl.util.eng.Eng" title="ripyl.util.eng.Eng"><code class="xref py py-class docutils literal"><span class="pre">ripyl.util.eng.Eng</span></code></a></p>
 <p>Class for engineering unit string formatting with SI units</p>
 <dl class="method">
 <dt id="ripyl.util.eng.EngSI.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>f</em>, <em>units=''</em>, <em>frac_digits=3</em>, <em>unit_sep=' '</em><big>)</big><a class="headerlink" href="#ripyl.util.eng.EngSI.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>f</em>, <em>units=''</em>, <em>frac_digits=3</em>, <em>unit_sep=' '</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.eng.EngSI.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>f</strong> (<em>number</em>) &#8211; The number to represent in engineering units.</li>
-<li><strong>units</strong> (<em>string</em>) &#8211; The units that the number represents.</li>
-<li><strong>frac_digits</strong> (<em>int</em>) &#8211; The number of fractional digits to display in a string.</li>
-<li><strong>unit_sep</strong> (<em>string</em>) &#8211; The separator between the number and the units string</li>
+<li><strong>f</strong> (<em>number</em>) – The number to represent in engineering units.</li>
+<li><strong>units</strong> (<em>string</em>) – The units that the number represents.</li>
+<li><strong>frac_digits</strong> (<em>int</em>) – The number of fractional digits to display in a string.</li>
+<li><strong>unit_sep</strong> (<em>string</em>) – The separator between the number and the units string</li>
 </ul>
 </td>
 </tr>
@@ -158,47 +172,47 @@
 
 <dl class="class">
 <dt id="ripyl.util.eng.EngUSI">
-<em class="property">class </em><tt class="descclassname">ripyl.util.eng.</tt><tt class="descname">EngUSI</tt><big>(</big><em>f</em>, <em>units=''</em>, <em>frac_digits=3</em>, <em>unit_sep=' '</em><big>)</big><a class="headerlink" href="#ripyl.util.eng.EngUSI" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ripyl.util.eng.EngSI" title="ripyl.util.eng.EngSI"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.util.eng.EngSI</span></tt></a></p>
+<em class="property">class </em><code class="descclassname">ripyl.util.eng.</code><code class="descname">EngUSI</code><span class="sig-paren">(</span><em>f</em>, <em>units=''</em>, <em>frac_digits=3</em>, <em>unit_sep=' '</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.eng.EngUSI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ripyl.util.eng.EngSI" title="ripyl.util.eng.EngSI"><code class="xref py py-class docutils literal"><span class="pre">ripyl.util.eng.EngSI</span></code></a></p>
 <p>Class for engineering unit string formatting with SI units with unicode characters</p>
 <dl class="method">
 <dt id="ripyl.util.eng.EngUSI.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>f</em>, <em>units=''</em>, <em>frac_digits=3</em>, <em>unit_sep=' '</em><big>)</big><a class="headerlink" href="#ripyl.util.eng.EngUSI.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>f</em>, <em>units=''</em>, <em>frac_digits=3</em>, <em>unit_sep=' '</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.eng.EngUSI.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="function">
 <dt id="ripyl.util.eng.eng">
-<tt class="descclassname">ripyl.util.eng.</tt><tt class="descname">eng</tt><big>(</big><em>f</em>, <em>frac_digits=3</em><big>)</big><a class="headerlink" href="#ripyl.util.eng.eng" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.util.eng.</code><code class="descname">eng</code><span class="sig-paren">(</span><em>f</em>, <em>frac_digits=3</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.eng.eng" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create engineering formatted string</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="ripyl.util.eng.eng_si">
-<tt class="descclassname">ripyl.util.eng.</tt><tt class="descname">eng_si</tt><big>(</big><em>f</em>, <em>units=''</em>, <em>frac_digits=3</em>, <em>unit_sep=' '</em><big>)</big><a class="headerlink" href="#ripyl.util.eng.eng_si" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.util.eng.</code><code class="descname">eng_si</code><span class="sig-paren">(</span><em>f</em>, <em>units=''</em>, <em>frac_digits=3</em>, <em>unit_sep=' '</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.eng.eng_si" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create engineering formatted string with SI units</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="ripyl.util.eng.eng_usi">
-<tt class="descclassname">ripyl.util.eng.</tt><tt class="descname">eng_usi</tt><big>(</big><em>f</em>, <em>units=''</em>, <em>frac_digits=3</em>, <em>unit_sep=' '</em><big>)</big><a class="headerlink" href="#ripyl.util.eng.eng_usi" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.util.eng.</code><code class="descname">eng_usi</code><span class="sig-paren">(</span><em>f</em>, <em>units=''</em>, <em>frac_digits=3</em>, <em>unit_sep=' '</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.eng.eng_usi" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create engineering formatted string with unicode SI units</p>
 </dd></dl>
 
 </div>
 <div class="section" id="module-ripyl.util.enum">
-<span id="enum-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">enum</span></tt> Module<a class="headerlink" href="#module-ripyl.util.enum" title="Permalink to this headline">¶</a></h2>
+<span id="ripyl-util-enum-module"></span><h2>ripyl.util.enum module<a class="headerlink" href="#module-ripyl.util.enum" title="Permalink to this headline">¶</a></h2>
 <p>Enumeration support</p>
 <dl class="class">
 <dt id="ripyl.util.enum.Enum">
-<em class="property">class </em><tt class="descclassname">ripyl.util.enum.</tt><tt class="descname">Enum</tt><a class="headerlink" href="#ripyl.util.enum.Enum" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<em class="property">class </em><code class="descclassname">ripyl.util.enum.</code><code class="descname">Enum</code><a class="headerlink" href="#ripyl.util.enum.Enum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Base class for enumeration classes</p>
 <p>This provides a name() class method that will return the string
 attribute name for an encoded enumeration value.</p>
 <p>e.g.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">Colors</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<div class="highlight-default"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">Colors</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="n">blue</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="gp">... </span>    <span class="n">red</span> <span class="o">=</span> <span class="mi">2</span>
 <span class="gp">... </span>    <span class="n">green</span> <span class="o">=</span> <span class="mi">3</span>
@@ -207,17 +221,17 @@ attribute name for an encoded enumeration value.</p>
 <span class="go">&#39;red&#39;</span>
 </pre></div>
 </div>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Colors</span><span class="o">.</span><span class="n">name</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">full_name</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Colors</span><span class="o">.</span><span class="n">name</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">full_name</span><span class="o">=</span><span class="k">True</span><span class="p">)</span>
 <span class="go">&#39;Colors.blue&#39;</span>
 </pre></div>
 </div>
-<p>&#8220;Instantiating&#8221; the Enum sub-class calls the name() method as well:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Colors</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">full_name</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<p>“Instantiating” the Enum sub-class calls the name() method as well:</p>
+<div class="highlight-default"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Colors</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">full_name</span><span class="o">=</span><span class="k">False</span><span class="p">)</span>
 <span class="go">&#39;green&#39;</span>
 </pre></div>
 </div>
 <p>If necesssary you can use non-integers as the values as long as they are hashable:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">MathConst</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<div class="highlight-default"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">MathConst</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="n">pi</span> <span class="o">=</span> <span class="mf">3.2</span>     <span class="c"># in certain US states :)</span>
 <span class="gp">... </span>    <span class="n">e</span> <span class="o">=</span> <span class="mf">2.71828</span>
 <span class="go">:param  :</span>
@@ -227,15 +241,15 @@ attribute name for an encoded enumeration value.</p>
 </div>
 <dl class="classmethod">
 <dt id="ripyl.util.enum.Enum.name">
-<em class="property">classmethod </em><tt class="descname">name</tt><big>(</big><em>value</em>, <em>full_name=False</em><big>)</big><a class="headerlink" href="#ripyl.util.enum.Enum.name" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="descname">name</code><span class="sig-paren">(</span><em>value</em>, <em>full_name=False</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.enum.Enum.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>Lookup the enumeration name with the provided value</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>value</strong> (<em>hashable</em>) &#8211; A hashable Enum value (typically int) to find a name for.</li>
-<li><strong>full_name</strong> (<em>bool</em>) &#8211; Include full name of Enum object in result</li>
+<li><strong>value</strong> (<em>hashable</em>) – A hashable Enum value (typically int) to find a name for.</li>
+<li><strong>full_name</strong> (<em>bool</em>) – Include full name of Enum object in result</li>
 </ul>
 </td>
 </tr>
@@ -250,20 +264,20 @@ attribute name for an encoded enumeration value.</p>
 
 </div>
 <div class="section" id="module-ripyl.util.equality">
-<span id="equality-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">equality</span></tt> Module<a class="headerlink" href="#module-ripyl.util.equality" title="Permalink to this headline">¶</a></h2>
+<span id="ripyl-util-equality-module"></span><h2>ripyl.util.equality module<a class="headerlink" href="#module-ripyl.util.equality" title="Permalink to this headline">¶</a></h2>
 <p>Ripyl protocol decode library
 Equality functions</p>
 <dl class="function">
 <dt id="ripyl.util.equality.min_relative_epsilon">
-<tt class="descclassname">ripyl.util.equality.</tt><tt class="descname">min_relative_epsilon</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#ripyl.util.equality.min_relative_epsilon" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.util.equality.</code><code class="descname">min_relative_epsilon</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.equality.min_relative_epsilon" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the minimum epsilon value for relatively_equal()</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>a</strong> (<em>float</em>) &#8211; First number to compare</li>
-<li><strong>b</strong> (<em>float</em>) &#8211; Second number to compare</li>
+<li><strong>a</strong> (<em>float</em>) – First number to compare</li>
+<li><strong>b</strong> (<em>float</em>) – Second number to compare</li>
 </ul>
 </td>
 </tr>
@@ -276,7 +290,7 @@ Equality functions</p>
 
 <dl class="function">
 <dt id="ripyl.util.equality.relatively_equal">
-<tt class="descclassname">ripyl.util.equality.</tt><tt class="descname">relatively_equal</tt><big>(</big><em>a</em>, <em>b</em>, <em>epsilon</em><big>)</big><a class="headerlink" href="#ripyl.util.equality.relatively_equal" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.util.equality.</code><code class="descname">relatively_equal</code><span class="sig-paren">(</span><em>a</em>, <em>b</em>, <em>epsilon</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.equality.relatively_equal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Evaluate the relative equality of two floats</p>
 <p>The epsilon parameter controls how close the relatve magnitudes need to be
 for equality to be determined.</p>
@@ -286,9 +300,9 @@ for equality to be determined.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>a</strong> (<em>float</em>) &#8211; First number to compare</li>
-<li><strong>b</strong> (<em>float</em>) &#8211; Second number to compare</li>
-<li><strong>epsilon</strong> (<em>float</em>) &#8211; Relative epsilon for comparison</li>
+<li><strong>a</strong> (<em>float</em>) – First number to compare</li>
+<li><strong>b</strong> (<em>float</em>) – Second number to compare</li>
+<li><strong>epsilon</strong> (<em>float</em>) – Relative epsilon for comparison</li>
 </ul>
 </td>
 </tr>
@@ -300,106 +314,108 @@ for equality to be determined.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="plot-module">
-<h2><tt class="xref py py-mod docutils literal"><span class="pre">plot</span></tt> Module<a class="headerlink" href="#plot-module" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="module-ripyl.util.stats">
-<span id="stats-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">stats</span></tt> Module<a class="headerlink" href="#module-ripyl.util.stats" title="Permalink to this headline">¶</a></h2>
-<p>Statistical operations</p>
+<div class="section" id="module-ripyl.util.plot">
+<span id="ripyl-util-plot-module"></span><h2>ripyl.util.plot module<a class="headerlink" href="#module-ripyl.util.plot" title="Permalink to this headline">¶</a></h2>
+<p>Annotated protocol plotting</p>
 <dl class="class">
-<dt id="ripyl.util.stats.OnlineStats">
-<em class="property">class </em><tt class="descclassname">ripyl.util.stats.</tt><tt class="descname">OnlineStats</tt><a class="headerlink" href="#ripyl.util.stats.OnlineStats" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
-<p>Generate statistics from a data set.
-Computes mean, variance and standard deviation in a single pass through a data set.</p>
+<dt id="ripyl.util.plot.AnnotationStyle">
+<em class="property">class </em><code class="descclassname">ripyl.util.plot.</code><code class="descname">AnnotationStyle</code><span class="sig-paren">(</span><em>color</em>, <em>alpha</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.plot.AnnotationStyle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Set styling for plot annotation boxes</p>
 <dl class="method">
-<dt id="ripyl.util.stats.OnlineStats.__init__">
-<tt class="descname">__init__</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.util.stats.OnlineStats.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="ripyl.util.plot.AnnotationStyle.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>color</em>, <em>alpha</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.plot.AnnotationStyle.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ripyl.util.plot.LabelStyle">
+<em class="property">class </em><code class="descclassname">ripyl.util.plot.</code><code class="descname">LabelStyle</code><span class="sig-paren">(</span><em>color='black'</em>, <em>angle=0.0</em>, <em>size='large'</em>, <em>italic=False</em>, <em>bold=False</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.plot.LabelStyle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Set styling for annotation labels</p>
+<dl class="method">
+<dt id="ripyl.util.plot.LabelStyle.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>color='black'</em>, <em>angle=0.0</em>, <em>size='large'</em>, <em>italic=False</em>, <em>bold=False</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.plot.LabelStyle.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="ripyl.util.plot.Plotter">
+<em class="property">class </em><code class="descclassname">ripyl.util.plot.</code><code class="descname">Plotter</code><a class="headerlink" href="#ripyl.util.plot.Plotter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Manage annotated waveform plotting</p>
+<dl class="method">
+<dt id="ripyl.util.plot.Plotter.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.plot.Plotter.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="ripyl.util.stats.OnlineStats.accumulate">
-<tt class="descname">accumulate</tt><big>(</big><em>data</em><big>)</big><a class="headerlink" href="#ripyl.util.stats.OnlineStats.accumulate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add a new data value to the set of accumulated statistics</p>
+<dt id="ripyl.util.plot.Plotter.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>channels</em>, <em>annotations=None</em>, <em>title=''</em>, <em>label_format=5</em>, <em>show_names=False</em>, <em>ylim=None</em>, <em>xlim=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.plot.Plotter.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot annotated waveform data</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>number</em>) &#8211; New data to accumulate statistics on</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>channels</strong> (<em>dict of string:sample stream</em>) – A dict of waveform sample data keyed by the string label
+used for each channel’s vertical axis.</li>
+<li><strong>annotations</strong> (<em>sequence of StreamRecord</em><em> or </em><em>None</em>) – The annotation data produced by a protocol decoder</li>
+<li><strong>title</strong> (<em>string</em>) – Title for the plot</li>
+<li><strong>label_format</strong> (<a class="reference internal" href="ripyl.html#ripyl.streaming.AnnotationFormat" title="ripyl.streaming.AnnotationFormat"><em>AnnotationFormat</em></a>) – data format to apply for annotation records with a data_format attribute
+equal to AnnotationFormat.General</li>
+<li><strong>show_names</strong> (<em>bool</em>) – Show the field names for each annotation value</li>
+<li><strong>ylim</strong> (<em>pair of float</em><em> or </em><em>None</em>) – Set lower and upper bound for the y-axes</li>
+<li><strong>xlim</strong> (<em>pair of float</em><em> or </em><em>None</em>) – Set lower and upper bound for the x-axis</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
 
 <dl class="method">
-<dt id="ripyl.util.stats.OnlineStats.accumulate_array">
-<tt class="descname">accumulate_array</tt><big>(</big><em>data</em><big>)</big><a class="headerlink" href="#ripyl.util.stats.OnlineStats.accumulate_array" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add a new data value to the set of accumulated statistics</p>
+<dt id="ripyl.util.plot.Plotter.save_plot">
+<code class="descname">save_plot</code><span class="sig-paren">(</span><em>fname</em>, <em>figsize=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.plot.Plotter.save_plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the result of plot() to a file</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>sequence of numbers</em>) &#8211; New data to accumulate statistics on</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>fname</strong> (<em>string</em>) – Name of the file to save a plot image to</li>
+<li><strong>figsize</strong> (<em>(</em><em>number</em><em>,</em><em>number</em><em>)</em>) – The (x,y) dimensions of the image in inches. Matplotlib uses 100DPI.</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
 
 <dl class="method">
-<dt id="ripyl.util.stats.OnlineStats.mean">
-<tt class="descname">mean</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.util.stats.OnlineStats.mean" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The mean of the values previously accumulated</td>
-</tr>
-</tbody>
-</table>
+<dt id="ripyl.util.plot.Plotter.show">
+<code class="descname">show</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.plot.Plotter.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show the result of plot() in an interactive window</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="ripyl.util.stats.OnlineStats.reset">
-<tt class="descname">reset</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.util.stats.OnlineStats.reset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reset accumulated statistics to initial conditions</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="ripyl.util.stats.OnlineStats.std">
-<tt class="descname">std</tt><big>(</big><em>ddof=0</em><big>)</big><a class="headerlink" href="#ripyl.util.stats.OnlineStats.std" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the standard deviation of the values previously accumulated</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ddof</strong> (<em>int</em>) &#8211; [See variance()]</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A float for the standard deviation.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="ripyl.util.stats.OnlineStats.variance">
-<tt class="descname">variance</tt><big>(</big><em>ddof=0</em><big>)</big><a class="headerlink" href="#ripyl.util.stats.OnlineStats.variance" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the variance of the data values previously accumulated</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ddof</strong> (<em>int</em>) &#8211; Delta Degrees of Freedom. Divisor for variance is N - ddof.
-Use 0 for a data set which repsresents an entire population.
-Use 1 for a data set representing a population sample.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A float for the variance</td>
-</tr>
-</tbody>
-</table>
+<dt id="ripyl.util.plot.Plotter.waveform_bounds">
+<code class="descname">waveform_bounds</code><span class="sig-paren">(</span><em>raw_samples</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.util.plot.Plotter.waveform_bounds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve the y-axis boundaries for annotation elements</p>
 </dd></dl>
 
 </dd></dl>
 
+</div>
+<div class="section" id="module-ripyl.util.stats">
+<span id="ripyl-util-stats-module"></span><h2>ripyl.util.stats module<a class="headerlink" href="#module-ripyl.util.stats" title="Permalink to this headline">¶</a></h2>
+<p>Statistical operations</p>
+</div>
+<div class="section" id="module-ripyl.util">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ripyl.util" title="Permalink to this headline">¶</a></h2>
+<p>Ripyl utility functions</p>
 </div>
 </div>
 
@@ -407,7 +423,7 @@ Use 1 for a data set representing a population sample.</td>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="../index.html">
               <img class="logo" src="../_static/Ripyl_logo_100px.png" alt="Logo"/>
@@ -426,20 +442,30 @@ Use 1 for a data set representing a population sample.</td>
 </p>
 
 
-
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="ripyl.protocol.infrared.html"
-                        title="previous chapter">infrared Package</a></p>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">ripyl</a><ul>
+  <li><a href="ripyl.html">ripyl package</a><ul>
+      <li>Previous: <a href="ripyl.protocol.infrared.html" title="previous chapter">ripyl.protocol.infrared package</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">util Package</a><ul>
-<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">util</span></tt> Package</a></li>
-<li><a class="reference internal" href="#module-ripyl.util.bitops"><tt class="docutils literal"><span class="pre">bitops</span></tt> Module</a></li>
-<li><a class="reference internal" href="#module-ripyl.util.eng"><tt class="docutils literal"><span class="pre">eng</span></tt> Module</a></li>
-<li><a class="reference internal" href="#module-ripyl.util.enum"><tt class="docutils literal"><span class="pre">enum</span></tt> Module</a></li>
-<li><a class="reference internal" href="#module-ripyl.util.equality"><tt class="docutils literal"><span class="pre">equality</span></tt> Module</a></li>
-<li><a class="reference internal" href="#plot-module"><tt class="docutils literal"><span class="pre">plot</span></tt> Module</a></li>
-<li><a class="reference internal" href="#module-ripyl.util.stats"><tt class="docutils literal"><span class="pre">stats</span></tt> Module</a></li>
+<li><a class="reference internal" href="#">ripyl.util package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-ripyl.util.bitops">ripyl.util.bitops module</a></li>
+<li><a class="reference internal" href="#module-ripyl.util.color">ripyl.util.color module</a></li>
+<li><a class="reference internal" href="#module-ripyl.util.eng">ripyl.util.eng module</a></li>
+<li><a class="reference internal" href="#module-ripyl.util.enum">ripyl.util.enum module</a></li>
+<li><a class="reference internal" href="#module-ripyl.util.equality">ripyl.util.equality module</a></li>
+<li><a class="reference internal" href="#module-ripyl.util.plot">ripyl.util.plot module</a></li>
+<li><a class="reference internal" href="#module-ripyl.util.stats">ripyl.util.stats module</a></li>
+<li><a class="reference internal" href="#module-ripyl.util">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -506,17 +532,14 @@ if(sessionStorage.KTcacheTime && now - sessionStorage.KTcacheTime < 5*60*1000 ) 
 
 });
 </script>
-<div id="searchbox" style="display: none">
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -528,8 +551,8 @@ if(sessionStorage.KTcacheTime && now - sessionStorage.KTcacheTime < 5*60*1000 ) 
       &copy;2015, Kevin Thibedeau.
       
       |
-      <a href="../_sources/apidoc/ripyl.util.txt"
-          rel="nofollow">Page source</a></li>
+      <a href="../_sources/apidoc/ripyl.util.rst.txt"
+          rel="nofollow">Page source</a>
     </div>
 
     

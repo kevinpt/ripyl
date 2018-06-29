@@ -1,30 +1,28 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Ripyl tutorials &mdash; Ripyl 1.2.1 documentation</title>
-    
+    <title>Ripyl tutorials &#8212; Ripyl 1.2.1 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="https://kevinpt.github.io/opbasm/_static/project.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
         VERSION:     '1.2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link href='http://fonts.googleapis.com/css?family=Kreon:400,300,700' rel='stylesheet' type='text/css'>
 
    
@@ -32,38 +30,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
 
   </head>
-  <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="reading_data.html" title="Reading oscilloscope data"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="intro.html" title="Getting started with Ripyl"
-             accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.2.1 documentation</a> &raquo;</li> 
-      </ul>
-    </div>  
+  <body>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="ripyl-tutorials">
 <h1>Ripyl tutorials<a class="headerlink" href="#ripyl-tutorials" title="Permalink to this headline">¶</a></h1>
 <p>Here are some tutorials that explain how to use the Ripyl library.</p>
 <ul class="simple">
-<li><a class="reference internal" href="tut_beginner.html"><em>Beginner&#8217;s tutorial</em></a></li>
-<li><a class="reference internal" href="tut_vcd.html"><em>Generating VCD test vectors</em></a></li>
-<li><a class="reference internal" href="tut_plot.html"><em>Plotting waveforms with matplotlib</em></a></li>
+<li><a class="reference internal" href="tut_beginner.html"><span class="doc">Beginner’s tutorial</span></a></li>
+<li><a class="reference internal" href="tut_vcd.html"><span class="doc">Generating VCD test vectors</span></a></li>
+<li><a class="reference internal" href="tut_plot.html"><span class="doc">Plotting waveforms with matplotlib</span></a></li>
 </ul>
 </div>
 
@@ -71,7 +51,7 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="../index.html">
               <img class="logo" src="../_static/Ripyl_logo_100px.png" alt="Logo"/>
@@ -90,13 +70,15 @@
 </p>
 
 
-
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="intro.html"
-                        title="previous chapter">Getting started with Ripyl</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="reading_data.html"
-                        title="next chapter">Reading oscilloscope data</a></p><h3>Other projects</h3>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="intro.html" title="previous chapter">Getting started with Ripyl</a></li>
+      <li>Next: <a href="reading_data.html" title="next chapter">Reading oscilloscope data</a></li>
+  </ul></li>
+</ul>
+</div><h3>Other projects</h3>
 
 <div id="proj_list">
 <p>
@@ -159,17 +141,14 @@ if(sessionStorage.KTcacheTime && now - sessionStorage.KTcacheTime < 5*60*1000 ) 
 
 });
 </script>
-<div id="searchbox" style="display: none">
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -181,8 +160,8 @@ if(sessionStorage.KTcacheTime && now - sessionStorage.KTcacheTime < 5*60*1000 ) 
       &copy;2015, Kevin Thibedeau.
       
       |
-      <a href="../_sources/rst/tutorial.txt"
-          rel="nofollow">Page source</a></li>
+      <a href="../_sources/rst/tutorial.rst.txt"
+          rel="nofollow">Page source</a>
     </div>
 
     

@@ -1,30 +1,28 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Installing Ripyl &mdash; Ripyl 1.2.1 documentation</title>
-    
+    <title>Installing Ripyl &#8212; Ripyl 1.2.1 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="https://kevinpt.github.io/opbasm/_static/project.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
         VERSION:     '1.2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link href='http://fonts.googleapis.com/css?family=Kreon:400,300,700' rel='stylesheet' type='text/css'>
 
    
@@ -32,30 +30,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
 
   </head>
-  <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="intro.html" title="Getting started with Ripyl"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="../index.html" title="Ripyl library documentation"
-             accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.2.1 documentation</a> &raquo;</li> 
-      </ul>
-    </div>  
+  <body>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="installing-ripyl">
 <h1>Installing Ripyl<a class="headerlink" href="#installing-ripyl" title="Permalink to this headline">¶</a></h1>
@@ -85,30 +65,30 @@
 <div class="highlight-sh"><div class="highlight"><pre>&gt; python setup.py install
 </pre></div>
 </div>
-<p>This will install a copy of Ripyl library to the Python site-packages or dist-packages directory and enable the <tt class="docutils literal"><span class="pre">ripyl_demo</span></tt> script.</p>
+<p>This will install a copy of Ripyl library to the Python site-packages or dist-packages directory and enable the <code class="docutils literal"><span class="pre">ripyl_demo</span></code> script.</p>
 <p>On some Unix platforms you may need to install to your home directory or use root access through sudo.</p>
 <div class="highlight-sh"><div class="highlight"><pre>&gt; python setup.py install --home<span class="o">=</span>~
 </pre></div>
 </div>
 <div class="highlight-sh"><div class="highlight"><pre>&gt; sudo python setup.py install
-<span class="o">[</span>sudo<span class="o">]</span> password <span class="k">for </span>user: *****
+<span class="o">[</span>sudo<span class="o">]</span> password <span class="k">for</span> user: *****
 </pre></div>
 </div>
 </div>
 <div class="section" id="id1">
 <h2>Cython<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
-<p>The Ripyl library has been designed with optional Cython support. By default the installation script will detect and enable Cython if it is present. You can force Cython support off by passing the <tt class="docutils literal"><span class="pre">--without-cython</span></tt> argument to setup.py. The status of the Cython configuration is written into a ripyl.cfg file at build time. You can enable or disable the use of Cython after Ripyl is installed by setting the <cite>RIPYL_CYTHON</cite> environment variable to a true or false value as desired:</p>
+<p>The Ripyl library has been designed with optional Cython support. By default the installation script will detect and enable Cython if it is present. You can force Cython support off by passing the <code class="docutils literal"><span class="pre">--without-cython</span></code> argument to setup.py. The status of the Cython configuration is written into a ripyl.cfg file at build time. You can enable or disable the use of Cython after Ripyl is installed by setting the <cite>RIPYL_CYTHON</cite> environment variable to a true or false value as desired:</p>
 <div class="highlight-sh"><div class="highlight"><pre>&gt; <span class="nb">export </span><span class="nv">RIPYL_CYTHON</span><span class="o">=</span>1
 </pre></div>
 </div>
 </div>
 <div class="section" id="testing">
 <h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
-<p>You can run the Ripyl library test suite using the enhanced <tt class="docutils literal"><span class="pre">unittest</span></tt> from Python 2.7 or greater. All tests are run from the base directory of the source distribution (where setup.py is located)</p>
+<p>You can run the Ripyl library test suite using the enhanced <code class="docutils literal"><span class="pre">unittest</span></code> from Python 2.7 or greater. All tests are run from the base directory of the source distribution (where setup.py is located)</p>
 <div class="highlight-sh"><div class="highlight"><pre>&gt; python -m unittest discover
 </pre></div>
 </div>
-<p>This will find the test suites in the <tt class="docutils literal"><span class="pre">test</span></tt> directory and run them.</p>
+<p>This will find the test suites in the <code class="docutils literal"><span class="pre">test</span></code> directory and run them.</p>
 </div>
 </div>
 
@@ -116,7 +96,7 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="../index.html">
               <img class="logo" src="../_static/Ripyl_logo_100px.png" alt="Logo"/>
@@ -135,13 +115,15 @@
 </p>
 
 
-
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="../index.html"
-                        title="previous chapter">Ripyl library documentation</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="intro.html"
-                        title="next chapter">Getting started with Ripyl</a></p>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../index.html" title="previous chapter">Ripyl library documentation</a></li>
+      <li>Next: <a href="intro.html" title="next chapter">Getting started with Ripyl</a></li>
+  </ul></li>
+</ul>
+</div>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Installing Ripyl</a><ul>
@@ -215,17 +197,14 @@ if(sessionStorage.KTcacheTime && now - sessionStorage.KTcacheTime < 5*60*1000 ) 
 
 });
 </script>
-<div id="searchbox" style="display: none">
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -237,8 +216,8 @@ if(sessionStorage.KTcacheTime && now - sessionStorage.KTcacheTime < 5*60*1000 ) 
       &copy;2015, Kevin Thibedeau.
       
       |
-      <a href="../_sources/rst/installation.txt"
-          rel="nofollow">Page source</a></li>
+      <a href="../_sources/rst/installation.rst.txt"
+          rel="nofollow">Page source</a>
     </div>
 
     

@@ -5,7 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>ripyl.io package &#8212; Ripyl 1.2.1 documentation</title>
+    <title>ripyl.cython.util package &#8212; Ripyl 1.2.1 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="https://kevinpt.github.io/opbasm/_static/project.css" type="text/css" />
@@ -37,99 +37,102 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="ripyl-io-package">
-<h1>ripyl.io package<a class="headerlink" href="#ripyl-io-package" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="ripyl-cython-util-package">
+<h1>ripyl.cython.util package<a class="headerlink" href="#ripyl-cython-util-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-ripyl.io.vcd">
-<span id="ripyl-io-vcd-module"></span><h2>ripyl.io.vcd module<a class="headerlink" href="#module-ripyl.io.vcd" title="Permalink to this headline">¶</a></h2>
-<p>VCD file I/O</p>
+<div class="section" id="module-ripyl.cython.util.stats">
+<span id="ripyl-cython-util-stats-module"></span><h2>ripyl.cython.util.stats module<a class="headerlink" href="#module-ripyl.cython.util.stats" title="Permalink to this headline">¶</a></h2>
+<p>Cython implementation of util/stats.py</p>
 <dl class="class">
-<dt id="ripyl.io.vcd.VCDChannel">
-<em class="property">class </em><code class="descclassname">ripyl.io.vcd.</code><code class="descname">VCDChannel</code><span class="sig-paren">(</span><em>name</em>, <em>states</em>, <em>bits=1</em>, <em>vtype='wire'</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.io.vcd.VCDChannel" title="Permalink to this definition">¶</a></dt>
+<dt id="ripyl.cython.util.stats.OnlineStats">
+<em class="property">class </em><code class="descclassname">ripyl.cython.util.stats.</code><code class="descname">OnlineStats</code><a class="headerlink" href="#ripyl.cython.util.stats.OnlineStats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
-<p>A VCD channel definition</p>
-<dl class="method">
-<dt id="ripyl.io.vcd.VCDChannel.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>states</em>, <em>bits=1</em>, <em>vtype='wire'</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.io.vcd.VCDChannel.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>name</strong> (<em>string</em>) – The name of this channel</li>
-<li><strong>states</strong> (<em>sequence of</em><em> (</em><em>float</em><em>, </em><em>int</em><em>)</em>) – The states for the channel. This can be an edge sequence or a
-similar sequence containing numeric values</li>
-<li><strong>bits</strong> (<em>int</em>) – The number of bits in the channel</li>
-<li><strong>vtype</strong> (<em>string</em>) – The var_type for the channel</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="ripyl.io.vcd.VCDInfo">
-<em class="property">class </em><code class="descclassname">ripyl.io.vcd.</code><code class="descname">VCDInfo</code><span class="sig-paren">(</span><em>channels</em>, <em>timescale=1e-12</em>, <em>date=None</em>, <em>comment=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.io.vcd.VCDInfo" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
-<p>A VCD info object</p>
-<dl class="method">
-<dt id="ripyl.io.vcd.VCDInfo.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>channels</em>, <em>timescale=1e-12</em>, <em>date=None</em>, <em>comment=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.io.vcd.VCDInfo.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>channels</strong> (<em>sequence of VCDChannel</em>) – A sequence of channel definitions</li>
-<li><strong>timescale</strong> (<em>float</em><em> or </em><em>string</em>) – Set the VCD timescale as a power of 10.
-If a float, the value is used to establish the timescale.
-If a string, it must match a channel name from channels. The symbol rate
-of the named channel is determined and a raw timescale is derived from
-1.0 / (4 * symbol rate). In both cases the raw value will be coerced to
-a valid power of 10.</li>
-<li><strong>date</strong> (<em>datetime</em><em> or </em><em>None</em>) – An optional datetime for the VCD header. If absent the current time is used.</li>
-<li><strong>comment</strong> (<em>string</em><em> or </em><em>None</em>) – An optional comment to include in the header.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last">ValueError if the timescale channel cannot be found or the symbol rate cannot
-be determined.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
+<p>Generate statistics from a data set.
+Computes mean, variance and standard deviation in a single pass through a data set.</p>
 <dl class="attribute">
-<dt id="ripyl.io.vcd.VCDInfo.date">
-<code class="descname">date</code><a class="headerlink" href="#ripyl.io.vcd.VCDInfo.date" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.io.vcd.VCDInfo.timescale">
-<code class="descname">timescale</code><a class="headerlink" href="#ripyl.io.vcd.VCDInfo.timescale" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="ripyl.io.vcd.VCDInfo.timescale_si">
-<code class="descname">timescale_si</code><a class="headerlink" href="#ripyl.io.vcd.VCDInfo.timescale_si" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert timescale float to a string with SI units</p>
+<dt id="ripyl.cython.util.stats.OnlineStats.__init__">
+<code class="descname">__init__</code><a class="headerlink" href="#ripyl.cython.util.stats.OnlineStats.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>x.__init__(…) initializes x; see help(type(x)) for signature</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="ripyl.io.vcd.VCDInfo.write">
-<code class="descname">write</code><span class="sig-paren">(</span><em>fname</em>, <em>init_with_dumpvars=False</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.io.vcd.VCDInfo.write" title="Permalink to this definition">¶</a></dt>
-<dd><p>Write a VCD file</p>
+<dt id="ripyl.cython.util.stats.OnlineStats.accumulate">
+<code class="descname">accumulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.cython.util.stats.OnlineStats.accumulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a new data value to the set of accumulated statistics</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fname</strong> (<em>string</em>) – The name of the file to write to</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>number</em>) – New data to accumulate statistics on</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ripyl.cython.util.stats.OnlineStats.accumulate_array">
+<code class="descname">accumulate_array</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.cython.util.stats.OnlineStats.accumulate_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a new data value to the set of accumulated statistics</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>data</strong> (<em>sequence of numbers</em>) – New data to accumulate statistics on</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ripyl.cython.util.stats.OnlineStats.mean">
+<code class="descname">mean</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.cython.util.stats.OnlineStats.mean" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The mean of the values previously accumulated</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ripyl.cython.util.stats.OnlineStats.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.cython.util.stats.OnlineStats.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset accumulated statistics to initial conditions</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="ripyl.cython.util.stats.OnlineStats.std">
+<code class="descname">std</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.cython.util.stats.OnlineStats.std" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the standard deviation of the values previously accumulated</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ddof</strong> (<em>int</em>) – [See variance()]</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A float for the standard deviation.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="ripyl.cython.util.stats.OnlineStats.variance">
+<code class="descname">variance</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.cython.util.stats.OnlineStats.variance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the variance of the data values previously accumulated</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ddof</strong> (<em>int</em>) – Delta Degrees of Freedom. Divisor for variance is N - ddof.
+Use 0 for a data set which repsresents an entire population.
+Use 1 for a data set representing a population sample.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A float for the variance</td>
 </tr>
 </tbody>
 </table>
@@ -137,16 +140,9 @@ be determined.</p>
 
 </dd></dl>
 
-<dl class="function">
-<dt id="ripyl.io.vcd.coerce_timescale">
-<code class="descclassname">ripyl.io.vcd.</code><code class="descname">coerce_timescale</code><span class="sig-paren">(</span><em>ts</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.io.vcd.coerce_timescale" title="Permalink to this definition">¶</a></dt>
-<dd><p>Coerce the timescale to a valid value</p>
-</dd></dl>
-
 </div>
-<div class="section" id="module-ripyl.io">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ripyl.io" title="Permalink to this headline">¶</a></h2>
-<p>IO package</p>
+<div class="section" id="module-ripyl.cython.util">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ripyl.cython.util" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
@@ -179,8 +175,10 @@ be determined.</p>
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="modules.html">ripyl</a><ul>
   <li><a href="ripyl.html">ripyl package</a><ul>
-      <li>Previous: <a href="ripyl.cython.util.html" title="previous chapter">ripyl.cython.util package</a></li>
-      <li>Next: <a href="ripyl.protocol.html" title="next chapter">ripyl.protocol package</a></li>
+  <li><a href="ripyl.cython.html">ripyl.cython package</a><ul>
+      <li>Previous: <a href="ripyl.cython.html" title="previous chapter">ripyl.cython package</a></li>
+      <li>Next: <a href="ripyl.io.html" title="next chapter">ripyl.io package</a></li>
+  </ul></li>
   </ul></li>
   </ul></li>
   </ul></li>
@@ -188,10 +186,10 @@ be determined.</p>
 </div>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">ripyl.io package</a><ul>
+<li><a class="reference internal" href="#">ripyl.cython.util package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
-<li><a class="reference internal" href="#module-ripyl.io.vcd">ripyl.io.vcd module</a></li>
-<li><a class="reference internal" href="#module-ripyl.io">Module contents</a></li>
+<li><a class="reference internal" href="#module-ripyl.cython.util.stats">ripyl.cython.util.stats module</a></li>
+<li><a class="reference internal" href="#module-ripyl.cython.util">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -277,7 +275,7 @@ if(sessionStorage.KTcacheTime && now - sessionStorage.KTcacheTime < 5*60*1000 ) 
       &copy;2015, Kevin Thibedeau.
       
       |
-      <a href="../_sources/apidoc/ripyl.io.rst.txt"
+      <a href="../_sources/apidoc/ripyl.cython.util.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 

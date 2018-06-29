@@ -1,30 +1,28 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Ripyl VCD tutorial &mdash; Ripyl 1.2.1 documentation</title>
-    
+    <title>Ripyl VCD tutorial &#8212; Ripyl 1.2.1 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="https://kevinpt.github.io/opbasm/_static/project.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
         VERSION:     '1.2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link href='http://fonts.googleapis.com/css?family=Kreon:400,300,700' rel='stylesheet' type='text/css'>
 
    
@@ -32,29 +30,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
 
   </head>
-  <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../index.html">Ripyl 1.2.1 documentation</a> &raquo;</li> 
-      </ul>
-    </div>  
+  <body>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="ripyl-vcd-tutorial">
 <h1>Ripyl VCD tutorial<a class="headerlink" href="#ripyl-vcd-tutorial" title="Permalink to this headline">¶</a></h1>
 <p>This tutorial demonstrates how to generate Value Change Dump (VCD) files from a protocol simulation.</p>
-<p>You can use the Ripyl simulation facilities to generate VCD test vectors with the <a class="reference internal" href="../apidoc/ripyl.io.html#module-ripyl.io.vcd" title="ripyl.io.vcd"><tt class="xref py py-mod docutils literal"><span class="pre">ripyl.io.vcd</span></tt></a> module. These files can be used to generate stimulus in applications such as pattern generators and HDL simulations.</p>
+<p>You can use the Ripyl simulation facilities to generate VCD test vectors with the <a class="reference internal" href="../apidoc/ripyl.io.html#module-ripyl.io.vcd" title="ripyl.io.vcd"><code class="xref py py-mod docutils literal"><span class="pre">ripyl.io.vcd</span></code></a> module. These files can be used to generate stimulus in applications such as pattern generators and HDL simulations.</p>
 <p>The procedure for creating a VCD file is to first define a sequence of VCD channels, each containing the necessary data and a name. A VCDInfo object is then created which can be used to write a VCD file.</p>
 <p>The VCD format uses integer time stamps with a resolution established by a timescale parameter. All edge transitions that occur within one timescale unit will be merged to the same time stamp. If the timescale is too large, entire edge transitions may be omitted if the state does not change between the start and end of a timescale unit. The timescale can either be explicitly set by passing a float to the VCDInfo constructor or it can be determined automatically with symbol rate analysis on a specified channel. Valid timescales must be powers of 10. In both cases the raw timescale parameter is coerced to a valid power of 10 less than or equal to the raw value (e.g. 3.0e-8 is coerced to 1.0e-8).</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">ripyl.io.vcd</span> <span class="kn">as</span> <span class="nn">vcd</span>
@@ -92,7 +78,7 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="../index.html">
               <img class="logo" src="../_static/Ripyl_logo_100px.png" alt="Logo"/>
@@ -111,7 +97,13 @@
 </p>
 
 
-<h3>Other projects</h3>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div><h3>Other projects</h3>
 
 <div id="proj_list">
 <p>
@@ -174,17 +166,14 @@ if(sessionStorage.KTcacheTime && now - sessionStorage.KTcacheTime < 5*60*1000 ) 
 
 });
 </script>
-<div id="searchbox" style="display: none">
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -196,8 +185,8 @@ if(sessionStorage.KTcacheTime && now - sessionStorage.KTcacheTime < 5*60*1000 ) 
       &copy;2015, Kevin Thibedeau.
       
       |
-      <a href="../_sources/rst/tut_vcd.txt"
-          rel="nofollow">Page source</a></li>
+      <a href="../_sources/rst/tut_vcd.rst.txt"
+          rel="nofollow">Page source</a>
     </div>
 
     

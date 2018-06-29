@@ -1,30 +1,28 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>ripyl Package &mdash; Ripyl 1.2.1 documentation</title>
-    
+    <title>ripyl package &#8212; Ripyl 1.2.1 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="https://kevinpt.github.io/opbasm/_static/project.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
         VERSION:     '1.2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link href='http://fonts.googleapis.com/css?family=Kreon:400,300,700' rel='stylesheet' type='text/css'>
 
    
@@ -32,54 +30,108 @@
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
 
   </head>
-  <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="ripyl.protocol.html" title="protocol Package"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="modules.html" title="ripyl"
-             accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.2.1 documentation</a> &raquo;</li>
-          <li><a href="modules.html" accesskey="U">ripyl</a> &raquo;</li> 
-      </ul>
-    </div>  
+  <body>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="ripyl-package">
-<h1>ripyl Package<a class="headerlink" href="#ripyl-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="id1">
-<h2><tt class="xref py py-mod docutils literal"><span class="pre">ripyl</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
-<span class="target" id="module-ripyl.__init__"></span><p>Ripyl protocol decode library</p>
+<h1>ripyl package<a class="headerlink" href="#ripyl-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ripyl.cython.html">ripyl.cython package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.cython.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ripyl.cython.util.html">ripyl.cython.util package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.cython.util.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.cython.util.html#module-ripyl.cython.util.stats">ripyl.cython.util.stats module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.cython.util.html#module-ripyl.cython.util">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.cython.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.cython.html#module-ripyl.cython.decode">ripyl.cython.decode module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.cython.html#module-ripyl.cython.sigproc">ripyl.cython.sigproc module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.cython.html#module-ripyl.cython">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ripyl.io.html">ripyl.io package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.io.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.io.html#module-ripyl.io.vcd">ripyl.io.vcd module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.io.html#module-ripyl.io">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ripyl.protocol.html">ripyl.protocol package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="ripyl.protocol.infrared.html">ripyl.protocol.infrared package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.infrared.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.infrared.html#module-ripyl.protocol.infrared.ir_common">ripyl.protocol.infrared.ir_common module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.infrared.html#module-ripyl.protocol.infrared.nec">ripyl.protocol.infrared.nec module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.infrared.html#module-ripyl.protocol.infrared.rc5">ripyl.protocol.infrared.rc5 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.infrared.html#module-ripyl.protocol.infrared.rc6">ripyl.protocol.infrared.rc6 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.infrared.html#module-ripyl.protocol.infrared.sirc">ripyl.protocol.infrared.sirc module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.infrared.html#module-ripyl.protocol.infrared">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.can">ripyl.protocol.can module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.ethernet">ripyl.protocol.ethernet module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.i2c">ripyl.protocol.i2c module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.i2s">ripyl.protocol.i2s module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.iso_k_line">ripyl.protocol.iso_k_line module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.j1850">ripyl.protocol.j1850 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.lin">ripyl.protocol.lin module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.lm73">ripyl.protocol.lm73 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.obd2">ripyl.protocol.obd2 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.ps2">ripyl.protocol.ps2 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.sagem_ecu">ripyl.protocol.sagem_ecu module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.spi">ripyl.protocol.spi module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.uart">ripyl.protocol.uart module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.usb">ripyl.protocol.usb module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.usb_transact">ripyl.protocol.usb_transact module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ripyl.util.html">ripyl.util package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.util.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.bitops">ripyl.util.bitops module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.color">ripyl.util.color module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.eng">ripyl.util.eng module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.enum">ripyl.util.enum module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.equality">ripyl.util.equality module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.plot">ripyl.util.plot module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.stats">ripyl.util.stats module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.util.html#module-ripyl.util">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-ripyl.config">
-<span id="config-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">config</span></tt> Module<a class="headerlink" href="#module-ripyl.config" title="Permalink to this headline">¶</a></h2>
+<span id="ripyl-config-module"></span><h2>ripyl.config module<a class="headerlink" href="#module-ripyl.config" title="Permalink to this headline">¶</a></h2>
 <p>Manage Ripyl configuration data</p>
 <dl class="class">
 <dt id="ripyl.config.ConfigSettings">
-<em class="property">class </em><tt class="descclassname">ripyl.config.</tt><tt class="descname">ConfigSettings</tt><a class="headerlink" href="#ripyl.config.ConfigSettings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<em class="property">class </em><code class="descclassname">ripyl.config.</code><code class="descname">ConfigSettings</code><a class="headerlink" href="#ripyl.config.ConfigSettings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Container for general ripyl library settings</p>
 <dl class="method">
 <dt id="ripyl.config.ConfigSettings.__init__">
-<tt class="descname">__init__</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.config.ConfigSettings.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.config.ConfigSettings.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ripyl.config.ConfigSettings.cython_active">
-<tt class="descname">cython_active</tt><a class="headerlink" href="#ripyl.config.ConfigSettings.cython_active" title="Permalink to this definition">¶</a></dt>
+<code class="descname">cython_active</code><a class="headerlink" href="#ripyl.config.ConfigSettings.cython_active" title="Permalink to this definition">¶</a></dt>
 <dd><p>Identify if Cython modules have been monkeypatched</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -92,14 +144,20 @@
 </dd></dl>
 
 <dl class="method">
+<dt id="ripyl.config.ConfigSettings.cython_status">
+<code class="descname">cython_status</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.config.ConfigSettings.cython_status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Report summary of Cython status</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="ripyl.config.ConfigSettings.find_patch_obj">
-<tt class="descname">find_patch_obj</tt><big>(</big><em>obj_path</em><big>)</big><a class="headerlink" href="#ripyl.config.ConfigSettings.find_patch_obj" title="Permalink to this definition">¶</a></dt>
+<code class="descname">find_patch_obj</code><span class="sig-paren">(</span><em>obj_path</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.config.ConfigSettings.find_patch_obj" title="Permalink to this definition">¶</a></dt>
 <dd><p>Search for a PatchObject by name</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>obj_path</strong> (<em>string</em>) &#8211; Full path to the object in dotted notation (ex: &#8216;ripyl.module.object&#8217;)</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>obj_path</strong> (<em>string</em>) – Full path to the object in dotted notation (ex: ‘ripyl.module.object’)</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A patchobject if found or none.</td>
 </tr>
@@ -111,24 +169,24 @@
 
 <dl class="class">
 <dt id="ripyl.config.PatchObject">
-<em class="property">class </em><tt class="descclassname">ripyl.config.</tt><tt class="descname">PatchObject</tt><big>(</big><em>py_mname</em>, <em>obj_name</em>, <em>obj</em>, <em>orig_obj</em><big>)</big><a class="headerlink" href="#ripyl.config.PatchObject" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<em class="property">class </em><code class="descclassname">ripyl.config.</code><code class="descname">PatchObject</code><span class="sig-paren">(</span><em>py_mname</em>, <em>obj_name</em>, <em>obj</em>, <em>orig_obj</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.config.PatchObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Represent a monkeypatch object</p>
 <p>This class provides a means to track and control pairs of class and function objects
 that can be swapped at will. This allows simplified monkeypatching for replacing
 python code with Cython equivalents.</p>
 <dl class="method">
 <dt id="ripyl.config.PatchObject.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>py_mname</em>, <em>obj_name</em>, <em>obj</em>, <em>orig_obj</em><big>)</big><a class="headerlink" href="#ripyl.config.PatchObject.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>py_mname</em>, <em>obj_name</em>, <em>obj</em>, <em>orig_obj</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.config.PatchObject.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>py_mname</strong> (<em>string</em>) &#8211; The name of the module containing the original python object in dotted notation</li>
-<li><strong>obj_name</strong> (<em>string</em>) &#8211; The name of the object to be patched</li>
-<li><strong>obj</strong> (<em>function or class object</em>) &#8211; Reference to the replacement object patched over the original</li>
-<li><strong>orig_obj</strong> (<em>function or class object</em>) &#8211; Reference to the original object</li>
+<li><strong>py_mname</strong> (<em>string</em>) – The name of the module containing the original python object in dotted notation</li>
+<li><strong>obj_name</strong> (<em>string</em>) – The name of the object to be patched</li>
+<li><strong>obj</strong> (<em>function</em><em> or </em><em>class object</em>) – Reference to the replacement object patched over the original</li>
+<li><strong>orig_obj</strong> (<em>function</em><em> or </em><em>class object</em>) – Reference to the original object</li>
 </ul>
 </td>
 </tr>
@@ -138,13 +196,13 @@ python code with Cython equivalents.</p>
 
 <dl class="method">
 <dt id="ripyl.config.PatchObject.activate">
-<tt class="descname">activate</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.config.PatchObject.activate" title="Permalink to this definition">¶</a></dt>
+<code class="descname">activate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.config.PatchObject.activate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply the monkeypatch over the orignal object</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ripyl.config.PatchObject.revert">
-<tt class="descname">revert</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.config.PatchObject.revert" title="Permalink to this definition">¶</a></dt>
+<code class="descname">revert</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.config.PatchObject.revert" title="Permalink to this definition">¶</a></dt>
 <dd><p>Restore the original object is it was previously monkeypatched</p>
 </dd></dl>
 
@@ -152,32 +210,32 @@ python code with Cython equivalents.</p>
 
 <dl class="function">
 <dt id="ripyl.config.write_config">
-<tt class="descclassname">ripyl.config.</tt><tt class="descname">write_config</tt><big>(</big><em>cfg_path</em>, <em>use_cython</em>, <em>cython_prebuild</em><big>)</big><a class="headerlink" href="#ripyl.config.write_config" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.config.</code><code class="descname">write_config</code><span class="sig-paren">(</span><em>cfg_path</em>, <em>use_cython</em>, <em>cython_prebuild</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.config.write_config" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write a file for the Ripyl build configuration</p>
 </dd></dl>
 
 </div>
 <div class="section" id="module-ripyl.decode">
-<span id="decode-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">decode</span></tt> Module<a class="headerlink" href="#module-ripyl.decode" title="Permalink to this headline">¶</a></h2>
+<span id="ripyl-decode-module"></span><h2>ripyl.decode module<a class="headerlink" href="#module-ripyl.decode" title="Permalink to this headline">¶</a></h2>
 <p>General routines shared between decoders</p>
 <dl class="class">
 <dt id="ripyl.decode.EdgeSequence">
-<em class="property">class </em><tt class="descclassname">ripyl.decode.</tt><tt class="descname">EdgeSequence</tt><big>(</big><em>edges</em>, <em>time_step</em>, <em>start_time=None</em><big>)</big><a class="headerlink" href="#ripyl.decode.EdgeSequence" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<em class="property">class </em><code class="descclassname">ripyl.decode.</code><code class="descname">EdgeSequence</code><span class="sig-paren">(</span><em>edges</em>, <em>time_step</em>, <em>start_time=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.decode.EdgeSequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Utility class to walk through an edge iterator in arbitrary time steps</p>
 <dl class="method">
 <dt id="ripyl.decode.EdgeSequence.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>edges</em>, <em>time_step</em>, <em>start_time=None</em><big>)</big><a class="headerlink" href="#ripyl.decode.EdgeSequence.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>edges</em>, <em>time_step</em>, <em>start_time=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.decode.EdgeSequence.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>edges</strong> (<em>sequence of (float, int) tuples</em>) &#8211; An iterable of 2-tuples representing each edge transition.
+<li><strong>edges</strong> (<em>sequence of</em><em> (</em><em>float</em><em>, </em><em>int</em><em>) </em><em>tuples</em>) – An iterable of 2-tuples representing each edge transition.
 The 2-tuples <em>must</em> be in the absolute time form (time, logic level).</li>
-<li><strong>time_step</strong> (<em>float</em>) &#8211; The default time step for advance() when it is called
+<li><strong>time_step</strong> (<em>float</em>) – The default time step for advance() when it is called
 without an argument.</li>
-<li><strong>start_time</strong> (<em>float</em>) &#8211; The initial starting time for the sequence.</li>
+<li><strong>start_time</strong> (<em>float</em>) – The initial starting time for the sequence.</li>
 </ul>
 </td>
 </tr>
@@ -189,13 +247,13 @@ without an argument.</li>
 
 <dl class="method">
 <dt id="ripyl.decode.EdgeSequence.advance">
-<tt class="descname">advance</tt><big>(</big><em>time_step=None</em><big>)</big><a class="headerlink" href="#ripyl.decode.EdgeSequence.advance" title="Permalink to this definition">¶</a></dt>
+<code class="descname">advance</code><span class="sig-paren">(</span><em>time_step=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.decode.EdgeSequence.advance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Move forward through edges by a given amount of time.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>time_step</strong> (<em>float</em>) &#8211; The amount of time to move forward. If None, the default
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>time_step</strong> (<em>float</em>) – The amount of time to move forward. If None, the default
 time_step from the constructor is used.</td>
 </tr>
 </tbody>
@@ -204,7 +262,7 @@ time_step from the constructor is used.</td>
 
 <dl class="method">
 <dt id="ripyl.decode.EdgeSequence.advance_to_edge">
-<tt class="descname">advance_to_edge</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.decode.EdgeSequence.advance_to_edge" title="Permalink to this definition">¶</a></dt>
+<code class="descname">advance_to_edge</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.decode.EdgeSequence.advance_to_edge" title="Permalink to this definition">¶</a></dt>
 <dd><p>Advance to the next edge in the iterator after the current time</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -218,7 +276,7 @@ time_step from the constructor is used.</td>
 
 <dl class="method">
 <dt id="ripyl.decode.EdgeSequence.at_end">
-<tt class="descname">at_end</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.decode.EdgeSequence.at_end" title="Permalink to this definition">¶</a></dt>
+<code class="descname">at_end</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.decode.EdgeSequence.at_end" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -231,7 +289,7 @@ time_step from the constructor is used.</td>
 
 <dl class="method">
 <dt id="ripyl.decode.EdgeSequence.cur_state">
-<tt class="descname">cur_state</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.decode.EdgeSequence.cur_state" title="Permalink to this definition">¶</a></dt>
+<code class="descname">cur_state</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.decode.EdgeSequence.cur_state" title="Permalink to this definition">¶</a></dt>
 <dd><p>The logic level of the edge iterator at the current time</p>
 </dd></dl>
 
@@ -239,21 +297,21 @@ time_step from the constructor is used.</td>
 
 <dl class="class">
 <dt id="ripyl.decode.MultiEdgeSequence">
-<em class="property">class </em><tt class="descclassname">ripyl.decode.</tt><tt class="descname">MultiEdgeSequence</tt><big>(</big><em>edge_sets</em>, <em>time_step</em>, <em>start_time=None</em><big>)</big><a class="headerlink" href="#ripyl.decode.MultiEdgeSequence" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<em class="property">class </em><code class="descclassname">ripyl.decode.</code><code class="descname">MultiEdgeSequence</code><span class="sig-paren">(</span><em>edge_sets</em>, <em>time_step</em>, <em>start_time=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.decode.MultiEdgeSequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Utility class to walk through a group of edge iterators in arbitrary time steps</p>
 <dl class="method">
 <dt id="ripyl.decode.MultiEdgeSequence.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>edge_sets</em>, <em>time_step</em>, <em>start_time=None</em><big>)</big><a class="headerlink" href="#ripyl.decode.MultiEdgeSequence.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>edge_sets</em>, <em>time_step</em>, <em>start_time=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.decode.MultiEdgeSequence.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>edge_sets</strong> (<em>dict</em>) &#8211; A dict of edge sequence iterators keyed by the string name of the channel</li>
-<li><strong>time_step</strong> (<em>float</em>) &#8211; The default time step for advance() when it is called
+<li><strong>edge_sets</strong> (<em>dict</em>) – A dict of edge sequence iterators keyed by the string name of the channel</li>
+<li><strong>time_step</strong> (<em>float</em>) – The default time step for advance() when it is called
 without an argument.</li>
-<li><strong>start_time</strong> (<em>float</em>) &#8211; The initial starting time for the sequence.</li>
+<li><strong>start_time</strong> (<em>float</em>) – The initial starting time for the sequence.</li>
 </ul>
 </td>
 </tr>
@@ -263,13 +321,13 @@ without an argument.</li>
 
 <dl class="method">
 <dt id="ripyl.decode.MultiEdgeSequence.advance">
-<tt class="descname">advance</tt><big>(</big><em>time_step=None</em><big>)</big><a class="headerlink" href="#ripyl.decode.MultiEdgeSequence.advance" title="Permalink to this definition">¶</a></dt>
+<code class="descname">advance</code><span class="sig-paren">(</span><em>time_step=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.decode.MultiEdgeSequence.advance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Move forward through edges by a given amount of time.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>time_step</strong> (<em>float</em>) &#8211; The amount of time to move forward. If None, the default
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>time_step</strong> (<em>float</em>) – The amount of time to move forward. If None, the default
 time_step from the constructor is used.</td>
 </tr>
 </tbody>
@@ -278,20 +336,20 @@ time_step from the constructor is used.</td>
 
 <dl class="method">
 <dt id="ripyl.decode.MultiEdgeSequence.advance_to_edge">
-<tt class="descname">advance_to_edge</tt><big>(</big><em>channel_name=None</em><big>)</big><a class="headerlink" href="#ripyl.decode.MultiEdgeSequence.advance_to_edge" title="Permalink to this definition">¶</a></dt>
+<code class="descname">advance_to_edge</code><span class="sig-paren">(</span><em>channel_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.decode.MultiEdgeSequence.advance_to_edge" title="Permalink to this definition">¶</a></dt>
 <dd><p>Advance to the next edge among the edge sets or in a named channel
 after the current time</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>channel_name</strong> (<em>string</em>) &#8211; If None, the edge sets are advanced to the closest edge after the current
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>channel_name</strong> (<em>string</em>) – If None, the edge sets are advanced to the closest edge after the current
 time. if a valid channel name is provided the edge sets are advanced to
 the closest edge on that channel.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A tuple (time, channel_name) representing the amount of time advanced
 as a float and the name of the channel containing the edge. If there are no
-unterminated edge sequences then the tuple (0,0, &#8216;&#8217;) is returned.</td>
+unterminated edge sequences then the tuple (0,0, ‘’) is returned.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body">ValueError if channel_name is invalid</td>
 </tr>
@@ -301,13 +359,13 @@ unterminated edge sequences then the tuple (0,0, &#8216;&#8217;) is returned.</t
 
 <dl class="method">
 <dt id="ripyl.decode.MultiEdgeSequence.at_end">
-<tt class="descname">at_end</tt><big>(</big><em>channel_name=None</em><big>)</big><a class="headerlink" href="#ripyl.decode.MultiEdgeSequence.at_end" title="Permalink to this definition">¶</a></dt>
+<code class="descname">at_end</code><span class="sig-paren">(</span><em>channel_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.decode.MultiEdgeSequence.at_end" title="Permalink to this definition">¶</a></dt>
 <dd><p>Test if the sequences have ended</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>channel_name</strong> (<em>string</em>) &#8211; The name of the channel to test for termination</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>channel_name</strong> (<em>string</em>) – The name of the channel to test for termination</td>
 </tr>
 </tbody>
 </table>
@@ -327,18 +385,18 @@ unterminated edge sequences then the tuple (0,0, &#8216;&#8217;) is returned.</t
 
 <dl class="method">
 <dt id="ripyl.decode.MultiEdgeSequence.cur_state">
-<tt class="descname">cur_state</tt><big>(</big><em>channel_name=None</em><big>)</big><a class="headerlink" href="#ripyl.decode.MultiEdgeSequence.cur_state" title="Permalink to this definition">¶</a></dt>
+<code class="descname">cur_state</code><span class="sig-paren">(</span><em>channel_name=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.decode.MultiEdgeSequence.cur_state" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the current state of the edge sets</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>channel_name</strong> (<em>string</em>) &#8211; Name of the channel to retrieve state from</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>channel_name</strong> (<em>string</em>) – Name of the channel to retrieve state from</td>
 </tr>
 </tbody>
 </table>
 <p>:param  :
-:returns: The value of the named channel&#8217;s state. if channel_name is none</p>
+:returns: The value of the named channel’s state. if channel_name is none</p>
 <blockquote>
 <div>the state of all channels is returned as a list.</div></blockquote>
 <table class="docutils field-list" frame="void" rules="none">
@@ -353,7 +411,7 @@ unterminated edge sequences then the tuple (0,0, &#8216;&#8217;) is returned.</t
 
 <dl class="method">
 <dt id="ripyl.decode.MultiEdgeSequence.cur_time">
-<tt class="descname">cur_time</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.decode.MultiEdgeSequence.cur_time" title="Permalink to this definition">¶</a></dt>
+<code class="descname">cur_time</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.decode.MultiEdgeSequence.cur_time" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the current time of the edge sets</p>
 </dd></dl>
 
@@ -361,7 +419,7 @@ unterminated edge sequences then the tuple (0,0, &#8216;&#8217;) is returned.</t
 
 <dl class="function">
 <dt id="ripyl.decode.check_logic_levels">
-<tt class="descclassname">ripyl.decode.</tt><tt class="descname">check_logic_levels</tt><big>(</big><em>samples</em>, <em>max_samples=20000</em>, <em>buf_size=2000</em><big>)</big><a class="headerlink" href="#ripyl.decode.check_logic_levels" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.decode.</code><code class="descname">check_logic_levels</code><span class="sig-paren">(</span><em>samples</em>, <em>max_samples=20000</em>, <em>buf_size=2000</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.decode.check_logic_levels" title="Permalink to this definition">¶</a></dt>
 <dd><p>Automatically determine the binary logic levels of a digital signal.</p>
 <p>This is a wrapper for find_logic_levels() that handles teeing off
 a buffered sample stream and raising AutoLevelError when detection
@@ -371,11 +429,11 @@ fails.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; An iterable sample stream. Each element is a SampleChunk containing
-an array of samples. This iterator is internally tee&#8217;d and becomes
+<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) – An iterable sample stream. Each element is a SampleChunk containing
+an array of samples. This iterator is internally tee’d and becomes
 invalidated for further use. The return value includes a new sample
 stream to retrieve samples from.</li>
-<li><strong>max_samples</strong> (<em>int</em>) &#8211; The maximum number of samples to consume from the samples iterable.
+<li><strong>max_samples</strong> (<em>int</em>) – The maximum number of samples to consume from the samples iterable.
 This should be at least 2x buf_size and will be coerced to that value
 if it is less.</li>
 </ul>
@@ -404,15 +462,15 @@ stream and a tuple of the detected logic levels of the samples.</td>
 
 <dl class="function">
 <dt id="ripyl.decode.expand_logic_levels">
-<tt class="descclassname">ripyl.decode.</tt><tt class="descname">expand_logic_levels</tt><big>(</big><em>logic_levels</em>, <em>count</em><big>)</big><a class="headerlink" href="#ripyl.decode.expand_logic_levels" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.decode.</code><code class="descname">expand_logic_levels</code><span class="sig-paren">(</span><em>logic_levels</em>, <em>count</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.decode.expand_logic_levels" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate evenly spaced logic levels</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>logic_levels</strong> (<em>(float, float)</em>) &#8211; A 2-tuple (low, high) representing the min and max logic level to expand on</li>
-<li><strong>count</strong> (<em>int</em>) &#8211; The number of logic levels in the result. If the value is less than 3, the
+<li><strong>logic_levels</strong> (<em>(</em><em>float</em><em>, </em><em>float</em><em>)</em>) – A 2-tuple (low, high) representing the min and max logic level to expand on</li>
+<li><strong>count</strong> (<em>int</em>) – The number of logic levels in the result. If the value is less than 3, the
 result is the same as the sequence passed as logic_levels.</li>
 </ul>
 </td>
@@ -427,7 +485,7 @@ evenly spaced between logic_levels[0] and logic_levels[1].</p>
 
 <dl class="function">
 <dt id="ripyl.decode.find_bot_top_hist_peaks">
-<tt class="descclassname">ripyl.decode.</tt><tt class="descname">find_bot_top_hist_peaks</tt><big>(</big><em>raw_samples</em>, <em>bins</em>, <em>use_kde=False</em>, <em>kde_bw=0.05</em><big>)</big><a class="headerlink" href="#ripyl.decode.find_bot_top_hist_peaks" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.decode.</code><code class="descname">find_bot_top_hist_peaks</code><span class="sig-paren">(</span><em>raw_samples</em>, <em>bins</em>, <em>use_kde=False</em>, <em>kde_bw=0.05</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.decode.find_bot_top_hist_peaks" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the bottom and top peaks in a histogram of data sample magnitudes.
 These are the left-most and right-most of the two largest peaks in the histogram.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -435,10 +493,10 @@ These are the left-most and right-most of the two largest peaks in the histogram
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>raw_samples</strong> (<em>sequence of numbers</em>) &#8211; A sequence representing the population of data samples that will be
+<li><strong>raw_samples</strong> (<em>sequence of numbers</em>) – A sequence representing the population of data samples that will be
 analyzed for peaks</li>
-<li><strong>bins</strong> (<em>int</em>) &#8211; The number of bins to use for the histogram</li>
-<li><strong>use_kde</strong> (<em>bool</em>) &#8211; Boolean indicating whether to construct the histogram from a Kernel Density
+<li><strong>bins</strong> (<em>int</em>) – The number of bins to use for the histogram</li>
+<li><strong>use_kde</strong> (<em>bool</em>) – Boolean indicating whether to construct the histogram from a Kernel Density
 Estimate. This is useful for approximating normally distributed peaks on
 synthetic data sets lacking noise.</li>
 </ul>
@@ -470,7 +528,7 @@ population for that peak.</div></blockquote>
 
 <dl class="function">
 <dt id="ripyl.decode.find_edges">
-<tt class="descclassname">ripyl.decode.</tt><tt class="descname">find_edges</tt><big>(</big><em>samples</em>, <em>logic</em>, <em>hysteresis=0.4</em><big>)</big><a class="headerlink" href="#ripyl.decode.find_edges" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.decode.</code><code class="descname">find_edges</code><span class="sig-paren">(</span><em>samples</em>, <em>logic</em>, <em>hysteresis=0.4</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.decode.find_edges" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the edges in a sampled digital waveform</p>
 <p>This is a generator function that can be used in a pipeline of waveform
 procesing operations.</p>
@@ -479,9 +537,9 @@ procesing operations.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; An iterable sample stream. Each element is a SampleChunk containing
+<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) – An iterable sample stream. Each element is a SampleChunk containing
 an array of samples.</li>
-<li><strong>logic</strong> (<em>(float, float)</em>) &#8211; A 2-tuple (low, high) representing the mean logic levels in the sampled waveform</li>
+<li><strong>logic</strong> (<em>(</em><em>float</em><em>, </em><em>float</em><em>)</em>) – A 2-tuple (low, high) representing the mean logic levels in the sampled waveform</li>
 </ul>
 </td>
 </tr>
@@ -511,9 +569,9 @@ tuples are detected edges.</div></blockquote>
 
 <dl class="function">
 <dt id="ripyl.decode.find_hist_peaks">
-<tt class="descclassname">ripyl.decode.</tt><tt class="descname">find_hist_peaks</tt><big>(</big><em>hist</em>, <em>thresh_scale=1.0</em><big>)</big><a class="headerlink" href="#ripyl.decode.find_hist_peaks" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.decode.</code><code class="descname">find_hist_peaks</code><span class="sig-paren">(</span><em>hist</em>, <em>thresh_scale=1.0</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.decode.find_hist_peaks" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find all peaks in a histogram
-This uses a modification of the method employed by the &#8220;peaks&#8221; function in
+This uses a modification of the method employed by the “peaks” function in
 LeCroy digital oscilloscopes. The original algorithm is described in various manuals
 such as the 9300 WP03 manual or WavePro manual RevC 2002 (p16-14).</p>
 <p>This algorithm works well for real world data sets where the histogram peaks are
@@ -528,9 +586,9 @@ the thresh_scale parameter can be set to a lower value.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>hist</strong> (<em>sequence of int</em>) &#8211; A sequence representing the histogram bin counts. Typically the first parameter
+<li><strong>hist</strong> (<em>sequence of int</em>) – A sequence representing the histogram bin counts. Typically the first parameter
 returned by numpy.histogram() or a KDE from scipy.stats.gaussian_kde().</li>
-<li><strong>thresh_scale</strong> (<em>float</em>) &#8211; Apply a scale factor to the internal threshold for peak classification.</li>
+<li><strong>thresh_scale</strong> (<em>float</em>) – Apply a scale factor to the internal threshold for peak classification.</li>
 </ul>
 </td>
 </tr>
@@ -544,7 +602,7 @@ returned by numpy.histogram() or a KDE from scipy.stats.gaussian_kde().</li>
 
 <dl class="function">
 <dt id="ripyl.decode.find_logic_levels">
-<tt class="descclassname">ripyl.decode.</tt><tt class="descname">find_logic_levels</tt><big>(</big><em>samples</em>, <em>max_samples=20000</em>, <em>buf_size=2000</em><big>)</big><a class="headerlink" href="#ripyl.decode.find_logic_levels" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.decode.</code><code class="descname">find_logic_levels</code><span class="sig-paren">(</span><em>samples</em>, <em>max_samples=20000</em>, <em>buf_size=2000</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.decode.find_logic_levels" title="Permalink to this definition">¶</a></dt>
 <dd><p>Automatically determine the binary logic levels of a digital signal.</p>
 <p>This function consumes up to max_samples from samples in an attempt
 to build a buffer containing a representative set of samples at high
@@ -561,9 +619,9 @@ a solitary edge after the 400th sample.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; An iterable sample stream. Each element is a SampleChunk containing
+<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) – An iterable sample stream. Each element is a SampleChunk containing
 an array of samples.</li>
-<li><strong>max_samples</strong> (<em>int</em>) &#8211; The maximum number of samples to consume from the samples iterable.
+<li><strong>max_samples</strong> (<em>int</em>) – The maximum number of samples to consume from the samples iterable.
 This should be at least 2x buf_size and will be coerced to that value
 if it is less.</li>
 </ul>
@@ -584,7 +642,7 @@ This should be less than max_samples.</div></blockquote>
 
 <dl class="function">
 <dt id="ripyl.decode.find_multi_edges">
-<tt class="descclassname">ripyl.decode.</tt><tt class="descname">find_multi_edges</tt><big>(</big><em>samples</em>, <em>hyst_thresholds</em><big>)</big><a class="headerlink" href="#ripyl.decode.find_multi_edges" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.decode.</code><code class="descname">find_multi_edges</code><span class="sig-paren">(</span><em>samples</em>, <em>hyst_thresholds</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.decode.find_multi_edges" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the multi-level edges in a sampled digital waveform</p>
 <p>This is a generator function that can be used in a pipeline of waveform
 procesing operations.</p>
@@ -603,9 +661,9 @@ For 4: (-1, 0, 1, 2). For 5: (-2, -1, 0, 1, 2), etc.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; An iterable sample stream. Each element is a SampleChunk containing
+<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) – An iterable sample stream. Each element is a SampleChunk containing
 an array of samples.</li>
-<li><strong>hyst_thresholds</strong> (<em>sequence of float</em>) &#8211; A sequence containing the hysteresis thresholds for the logic states.
+<li><strong>hyst_thresholds</strong> (<em>sequence of float</em>) – A sequence containing the hysteresis thresholds for the logic states.
 For N states there should be (N-1) * 2 thresholds.
 The gen_hyst_thresholds() function can compute these values from more
 usual logic parameters. The numbers must be sorted in ascending order.
@@ -630,7 +688,7 @@ tuples are detected edges.</p>
 
 <dl class="function">
 <dt id="ripyl.decode.find_symbol_rate">
-<tt class="descclassname">ripyl.decode.</tt><tt class="descname">find_symbol_rate</tt><big>(</big><em>edges</em>, <em>sample_rate=1.0</em>, <em>spectra=2</em>, <em>auto_span_limit=True</em>, <em>max_span_limit=None</em><big>)</big><a class="headerlink" href="#ripyl.decode.find_symbol_rate" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.decode.</code><code class="descname">find_symbol_rate</code><span class="sig-paren">(</span><em>edges</em>, <em>sample_rate=1.0</em>, <em>spectra=2</em>, <em>auto_span_limit=True</em>, <em>max_span_limit=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.decode.find_symbol_rate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Determine the base symbol rate from a set of edges</p>
 <p>This function depends on the edge data containing a variety of spans between
 edges all related to the fundamental symbol rate. The Harmonic Product Spectrum
@@ -642,7 +700,7 @@ by the HPS unless spectra=1 which effectively disables the HPS operation.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>edges</strong> (<em>[(float, int)...] or [(int, int)...]</em>) &#8211; <p>An iterable of 2-tuples representing each edge transition.
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>edges</strong> (<em>[</em><em>(</em><em>float</em><em>, </em><em>int</em><em>)</em><em>..</em><em>] or </em><em>[</em><em>(</em><em>int</em><em>, </em><em>int</em><em>)</em><em>..</em><em>]</em>) – <p>An iterable of 2-tuples representing each edge transition.
 The tuples are in one of two forms:</p>
 <blockquote>
 <div><ul class="simple">
@@ -700,17 +758,17 @@ a HPS.</td>
 
 <dl class="function">
 <dt id="ripyl.decode.gen_histogram">
-<tt class="descclassname">ripyl.decode.</tt><tt class="descname">gen_histogram</tt><big>(</big><em>raw_samples</em>, <em>bins</em>, <em>use_kde=False</em>, <em>kde_bw=0.05</em><big>)</big><a class="headerlink" href="#ripyl.decode.gen_histogram" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.decode.</code><code class="descname">gen_histogram</code><span class="sig-paren">(</span><em>raw_samples</em>, <em>bins</em>, <em>use_kde=False</em>, <em>kde_bw=0.05</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.decode.gen_histogram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a histogram using either normal binning or a KDE</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>raw_samples</strong> (<em>sequence of numbers</em>) &#8211; A sequence representing the population of data samples that will be
+<li><strong>raw_samples</strong> (<em>sequence of numbers</em>) – A sequence representing the population of data samples that will be
 analyzed for peaks</li>
-<li><strong>bins</strong> (<em>int</em>) &#8211; The number of bins to use for the histogram</li>
-<li><strong>use_kde</strong> (<em>bool</em>) &#8211; Boolean indicating whether to construct the histogram from a Kernel Density
+<li><strong>bins</strong> (<em>int</em>) – The number of bins to use for the histogram</li>
+<li><strong>use_kde</strong> (<em>bool</em>) – Boolean indicating whether to construct the histogram from a Kernel Density
 Estimate. This is useful for approximating normally distributed peaks on
 synthetic data sets lacking noise.</li>
 </ul>
@@ -738,7 +796,7 @@ the center value of each bin.</td>
 
 <dl class="function">
 <dt id="ripyl.decode.gen_hyst_thresholds">
-<tt class="descclassname">ripyl.decode.</tt><tt class="descname">gen_hyst_thresholds</tt><big>(</big><em>logic_levels</em>, <em>expand=None</em>, <em>hysteresis=0.1</em><big>)</big><a class="headerlink" href="#ripyl.decode.gen_hyst_thresholds" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.decode.</code><code class="descname">gen_hyst_thresholds</code><span class="sig-paren">(</span><em>logic_levels</em>, <em>expand=None</em>, <em>hysteresis=0.1</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.decode.gen_hyst_thresholds" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate hysteresis thresholds for find_multi_edges()</p>
 <p>This function computes the hysteresis thresholds for multi-level edge finding
 with find_multi_edges().</p>
@@ -747,10 +805,10 @@ with find_multi_edges().</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>logic_levels</strong> (<em>sequence of float</em>) &#8211; A sequence of the nominal voltage levels for each logic state sorted
+<li><strong>logic_levels</strong> (<em>sequence of float</em>) – A sequence of the nominal voltage levels for each logic state sorted
 in ascending order or the (low, high) pair when expansion is used.</li>
-<li><strong>expand</strong> (<em>int or None</em>) &#8211; When not None, the number of logic levels to expand the provided logic_levels into.</li>
-<li><strong>hysteresis</strong> (<em>float</em>) &#8211; A value between 0.0 and 1.0 representing the amount of hysteresis the use for
+<li><strong>expand</strong> (<em>int</em><em> or </em><em>None</em>) – When not None, the number of logic levels to expand the provided logic_levels into.</li>
+<li><strong>hysteresis</strong> (<em>float</em>) – A value between 0.0 and 1.0 representing the amount of hysteresis the use for
 detecting valid edge crossings.</li>
 </ul>
 </td>
@@ -764,7 +822,7 @@ detecting valid edge crossings.</li>
 
 <dl class="function">
 <dt id="ripyl.decode.remove_transitional_states">
-<tt class="descclassname">ripyl.decode.</tt><tt class="descname">remove_transitional_states</tt><big>(</big><em>edges</em>, <em>min_state_period</em><big>)</big><a class="headerlink" href="#ripyl.decode.remove_transitional_states" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.decode.</code><code class="descname">remove_transitional_states</code><span class="sig-paren">(</span><em>edges</em>, <em>min_state_period</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.decode.remove_transitional_states" title="Permalink to this definition">¶</a></dt>
 <dd><p>Filter out brief transitional states from an edge stream</p>
 <p>This is a generator function that can be used in a pipeline of waveform
 procesing operations.</p>
@@ -773,9 +831,9 @@ procesing operations.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>edges</strong> (<em>iterable of (float, int) tuples</em>) &#8211; An iterable of 2-tuples representing each edge transition.
+<li><strong>edges</strong> (<em>iterable of</em><em> (</em><em>float</em><em>, </em><em>int</em><em>) </em><em>tuples</em>) – An iterable of 2-tuples representing each edge transition.
 The 2-tuples <em>must</em> be in the absolute time form (time, logic level).</li>
-<li><strong>min_state_period</strong> (<em>float</em>) &#8211; The threshold for transitional states. A transition lasting less than this
+<li><strong>min_state_period</strong> (<em>float</em>) – The threshold for transitional states. A transition lasting less than this
 threshold will be filtered out of the edge stream.</li>
 </ul>
 </td>
@@ -794,12 +852,113 @@ detected edges.</p>
 </dd></dl>
 
 </div>
+<div class="section" id="module-ripyl.manchester">
+<span id="ripyl-manchester-module"></span><h2>ripyl.manchester module<a class="headerlink" href="#module-ripyl.manchester" title="Permalink to this headline">¶</a></h2>
+<p>Manchester encoding utilities</p>
+<dl class="class">
+<dt id="ripyl.manchester.ManchesterStates">
+<em class="property">class </em><code class="descclassname">ripyl.manchester.</code><code class="descname">ManchesterStates</code><a class="headerlink" href="#ripyl.manchester.ManchesterStates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ripyl.util.html#ripyl.util.enum.Enum" title="ripyl.util.enum.Enum"><code class="xref py py-class docutils literal"><span class="pre">ripyl.util.enum.Enum</span></code></a></p>
+<p>Enumeration of manchester states</p>
+<dl class="attribute">
+<dt id="ripyl.manchester.ManchesterStates.High">
+<code class="descname">High</code><em class="property"> = 3</em><a class="headerlink" href="#ripyl.manchester.ManchesterStates.High" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.manchester.ManchesterStates.Idle">
+<code class="descname">Idle</code><em class="property"> = 4</em><a class="headerlink" href="#ripyl.manchester.ManchesterStates.Idle" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.manchester.ManchesterStates.Low">
+<code class="descname">Low</code><em class="property"> = 2</em><a class="headerlink" href="#ripyl.manchester.ManchesterStates.Low" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.manchester.ManchesterStates.One">
+<code class="descname">One</code><em class="property"> = 1</em><a class="headerlink" href="#ripyl.manchester.ManchesterStates.One" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="ripyl.manchester.ManchesterStates.Zero">
+<code class="descname">Zero</code><em class="property"> = 0</em><a class="headerlink" href="#ripyl.manchester.ManchesterStates.Zero" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.manchester.diff_encode">
+<code class="descclassname">ripyl.manchester.</code><code class="descname">diff_encode</code><span class="sig-paren">(</span><em>bits</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.manchester.diff_encode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert from unipolar Manchester states (0, Idle, 1) to differential (-1, 0, 1) encoding</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>bits</strong> (<em>iterable of</em><em> (</em><em>float</em><em>, </em><em>int</em><em>)</em>) – An edge stream to convert to differential form.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">An iterator yielding  an edge stream of differentially coded states.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.manchester.manchester_decode">
+<code class="descclassname">ripyl.manchester.</code><code class="descname">manchester_decode</code><span class="sig-paren">(</span><em>edges</em>, <em>bit_period</em>, <em>falling=0</em>, <em>combine_bits=False</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.manchester.manchester_decode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert differential coded edges to manchester states</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>edges</strong> (<em>iterable of</em><em> (</em><em>float</em><em>, </em><em>int</em><em>)</em>) – An edge stream of differential states (-1, 0, 1) representing Manchester
+coded bits.</li>
+<li><strong>bit_period</strong> (<em>float</em>) – The period of a single bit.</li>
+<li><strong>falling</strong> (<em>int</em>) – The bit encoding for a falling edge. Either 0 or 1.</li>
+<li><strong>combine_bits</strong> (<em>bool</em>) – When True, the output states will only be yielded when a different state
+occurs. When False, a state is yielded for each bit or half-bit.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  a stream of Manchester states in (float, int) form.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="ripyl.manchester.manchester_encode">
+<code class="descclassname">ripyl.manchester.</code><code class="descname">manchester_encode</code><span class="sig-paren">(</span><em>states</em>, <em>bit_period</em>, <em>falling=0</em>, <em>idle_start=0.0</em>, <em>idle_end=0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.manchester.manchester_encode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert Manchester states to a stream of unipolar (0, 1, Idle) states</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>states</strong> (<em>iterable of ManchesterState</em>) – A series of ManchesterStates to encode.</li>
+<li><strong>bit_period</strong> (<em>float</em>) – The period of a single bit.</li>
+<li><strong>falling</strong> (<em>int</em>) – The bit encoding for a falling edge. Either 0 or 1.</li>
+<li><strong>idle_start</strong> (<em>float</em>) – The amount of idle time before the transmission of states begins.</li>
+<li><strong>idle_end</strong> (<em>float</em>) – The amount of idle time after the last state.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An iterator yielding  an edge stream of encoded states including Idle.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
 <div class="section" id="module-ripyl.sigproc">
-<span id="sigproc-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">sigproc</span></tt> Module<a class="headerlink" href="#module-ripyl.sigproc" title="Permalink to this headline">¶</a></h2>
+<span id="ripyl-sigproc-module"></span><h2>ripyl.sigproc module<a class="headerlink" href="#module-ripyl.sigproc" title="Permalink to this headline">¶</a></h2>
 <p>General routines for signal processing of streaming waveforms</p>
 <dl class="function">
 <dt id="ripyl.sigproc.amplify">
-<tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">amplify</tt><big>(</big><em>samples</em>, <em>gain=1.0</em>, <em>offset=0.0</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.amplify" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.sigproc.</code><code class="descname">amplify</code><span class="sig-paren">(</span><em>samples</em>, <em>gain=1.0</em>, <em>offset=0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.sigproc.amplify" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply gain and offset to a sample stream</p>
 <p>This modifies samples such that output = input * gain + offset.</p>
 <p>This is a generator function.</p>
@@ -808,9 +967,9 @@ detected edges.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; An iterable sample stream to modify.</li>
-<li><strong>gain</strong> (<em>float</em>) &#8211; The gain multiplier for the samples</li>
-<li><strong>offset</strong> (<em>float</em>) &#8211; The additive offset for the samples</li>
+<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) – An iterable sample stream to modify.</li>
+<li><strong>gain</strong> (<em>float</em>) – The gain multiplier for the samples</li>
+<li><strong>offset</strong> (<em>float</em>) – The additive offset for the samples</li>
 </ul>
 </td>
 </tr>
@@ -823,13 +982,13 @@ detected edges.</p>
 
 <dl class="function">
 <dt id="ripyl.sigproc.approximate_bandwidth">
-<tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">approximate_bandwidth</tt><big>(</big><em>rise_time</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.approximate_bandwidth" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.sigproc.</code><code class="descname">approximate_bandwidth</code><span class="sig-paren">(</span><em>rise_time</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.sigproc.approximate_bandwidth" title="Permalink to this definition">¶</a></dt>
 <dd><p>Determine an approximate bandwidth for a signal with a known rise time</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>rise_time</strong> (<em>float</em>) &#8211; A rise time to compute bandwidth from</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>rise_time</strong> (<em>float</em>) – A rise time to compute bandwidth from</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The bandwidth for the rise time.</td>
 </tr>
@@ -839,12 +998,12 @@ detected edges.</p>
 
 <dl class="function">
 <dt id="ripyl.sigproc.capacify">
-<tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">capacify</tt><big>(</big><em>samples</em>, <em>capacitance</em>, <em>resistance=1.0</em>, <em>iterations=80</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.capacify" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.sigproc.</code><code class="descname">capacify</code><span class="sig-paren">(</span><em>samples</em>, <em>capacitance</em>, <em>resistance=1.0</em>, <em>iterations=80</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.sigproc.capacify" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simulate an RC filter on a waveform:</p>
-<div class="highlight-python"><div class="highlight"><pre>: samples &gt;--R--+--&gt; out
-:               |
-:               C
-:              _|_
+<div class="highlight-default"><div class="highlight"><pre><span class="p">:</span> <span class="n">samples</span> <span class="o">&gt;--</span><span class="n">R</span><span class="o">--+--&gt;</span> <span class="n">out</span>
+<span class="p">:</span>               <span class="o">|</span>
+<span class="p">:</span>               <span class="n">C</span>
+<span class="p">:</span>              <span class="n">_</span><span class="o">|</span><span class="n">_</span>
 </pre></div>
 </div>
 <p>Warning: This function becomes unstable for small time constants (C * R).
@@ -858,11 +1017,11 @@ dt but still largely representative of the expected behavior.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; An iterable sample stream to modify.</li>
-<li><strong>capacitance</strong> (<em>float</em>) &#8211; The capacitance value. If resistance is kept at the default value of 1.0 Ohms
+<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) – An iterable sample stream to modify.</li>
+<li><strong>capacitance</strong> (<em>float</em>) – The capacitance value. If resistance is kept at the default value of 1.0 Ohms
 this parameter is equivalent to the time constant tau (c = tau / r).</li>
-<li><strong>resistance</strong> (<em>float</em>) &#8211; The resistance value</li>
-<li><strong>iterations</strong> (<em>int</em>) &#8211; The number of iterations to calculate each sample. You can experience numeric
+<li><strong>resistance</strong> (<em>float</em>) – The resistance value</li>
+<li><strong>iterations</strong> (<em>int</em>) – The number of iterations to calculate each sample. You can experience numeric
 instability if this value is too low.</li>
 </ul>
 </td>
@@ -876,7 +1035,7 @@ instability if this value is too low.</li>
 
 <dl class="function">
 <dt id="ripyl.sigproc.chain">
-<tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">chain</tt><big>(</big><em>stream_gap_time</em>, <em>*streams</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.chain" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.sigproc.</code><code class="descname">chain</code><span class="sig-paren">(</span><em>stream_gap_time</em>, <em>*streams</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.sigproc.chain" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combine a sequence of sample streams together.</p>
 <p>A set of sample streams are concatenated together with updated time
 stamps to maintain monotonically increasing time.</p>
@@ -885,8 +1044,8 @@ stamps to maintain monotonically increasing time.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>stream_gap_time</strong> (<em>float</em>) &#8211; The time interval added between successive streams</li>
-<li><strong>streams</strong> (<em>sequence of iterables containing SampleChunk objects</em>) &#8211; A sequence of streams</li>
+<li><strong>stream_gap_time</strong> (<em>float</em>) – The time interval added between successive streams</li>
+<li><strong>streams</strong> (<em>sequence of iterables containing SampleChunk objects</em>) – A sequence of streams</li>
 </ul>
 </td>
 </tr>
@@ -899,7 +1058,7 @@ stamps to maintain monotonically increasing time.</p>
 
 <dl class="function">
 <dt id="ripyl.sigproc.chain_edges">
-<tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">chain_edges</tt><big>(</big><em>stream_gap_time</em>, <em>*streams</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.chain_edges" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.sigproc.</code><code class="descname">chain_edges</code><span class="sig-paren">(</span><em>stream_gap_time</em>, <em>*streams</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.sigproc.chain_edges" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combine a sequence of edge streams together.</p>
 <p>A set of edge streams are concatenated together with updated time
 stamps to maintain monotonically increasing time.</p>
@@ -908,8 +1067,8 @@ stamps to maintain monotonically increasing time.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>stream_gap_time</strong> (<em>float</em>) &#8211; The time interval added between successive streams</li>
-<li><strong>streams</strong> (<em>sequence of sequences containing (float, number) tuples</em>) &#8211; A sequence of streams</li>
+<li><strong>stream_gap_time</strong> (<em>float</em>) – The time interval added between successive streams</li>
+<li><strong>streams</strong> (<em>sequence of sequences containing</em><em> (</em><em>float</em><em>, </em><em>number</em><em>) </em><em>tuples</em>) – A sequence of streams</li>
 </ul>
 </td>
 </tr>
@@ -922,7 +1081,7 @@ stamps to maintain monotonically increasing time.</p>
 
 <dl class="function">
 <dt id="ripyl.sigproc.dropout">
-<tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">dropout</tt><big>(</big><em>samples</em>, <em>start_time</em>, <em>end_time</em>, <em>val=0.0</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.dropout" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.sigproc.</code><code class="descname">dropout</code><span class="sig-paren">(</span><em>samples</em>, <em>start_time</em>, <em>end_time</em>, <em>val=0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.sigproc.dropout" title="Permalink to this definition">¶</a></dt>
 <dd><p>Force a sample stream to a fixed level</p>
 <p>This simulates the effect of a dropout in data transmission by
 repacing samples with a fixed value.</p>
@@ -932,10 +1091,10 @@ repacing samples with a fixed value.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; An iterable sample stream to modify.</li>
-<li><strong>start_time</strong> (<em>float</em>) &#8211; Start of the dropout phase</li>
-<li><strong>end_time</strong> (<em>float</em>) &#8211; End of the dropout phase</li>
-<li><strong>val</strong> (<em>float</em>) &#8211; The sample value to substitute during the dropout phase</li>
+<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) – An iterable sample stream to modify.</li>
+<li><strong>start_time</strong> (<em>float</em>) – Start of the dropout phase</li>
+<li><strong>end_time</strong> (<em>float</em>) – End of the dropout phase</li>
+<li><strong>val</strong> (<em>float</em>) – The sample value to substitute during the dropout phase</li>
 </ul>
 </td>
 </tr>
@@ -948,14 +1107,14 @@ repacing samples with a fixed value.</p>
 
 <dl class="function">
 <dt id="ripyl.sigproc.edges_to_sample_stream">
-<tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">edges_to_sample_stream</tt><big>(</big><em>edges</em>, <em>sample_period</em>, <em>logic_states=(0</em>, <em>1)</em>, <em>end_extension=None</em>, <em>chunk_size=10000</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.edges_to_sample_stream" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.sigproc.</code><code class="descname">edges_to_sample_stream</code><span class="sig-paren">(</span><em>edges</em>, <em>sample_period</em>, <em>logic_states=(0</em>, <em>1)</em>, <em>end_extension=None</em>, <em>chunk_size=10000</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.sigproc.edges_to_sample_stream" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert an edge stream to a sample stream</p>
 <p>The output samples are scaled to the range of 0.0 to 1.0 regardless of the number of logic states.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>edges</strong> (<em>iterable of (float, int) tuples</em>) &#8211; An edge stream to sample</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>edges</strong> (<em>iterable of</em><em> (</em><em>float</em><em>, </em><em>int</em><em>) </em><em>tuples</em>) – An edge stream to sample</td>
 </tr>
 </tbody>
 </table>
@@ -968,7 +1127,7 @@ repacing samples with a fixed value.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>logic_states</strong> (<em>sequence of int</em>) &#8211; The coded state values for the lowest and highest state in the edge stream.
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>logic_states</strong> (<em>sequence of int</em>) – The coded state values for the lowest and highest state in the edge stream.
 For 2-level states these will be (0,1). For 3-level: (-1, 1). For 5-level: (-2, 2).</td>
 </tr>
 </tbody>
@@ -982,7 +1141,7 @@ For 2-level states these will be (0,1). For 3-level: (-1, 1). For 5-level: (-2, 
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>chunk_size</strong> (<em>int</em>) &#8211; Number of samples in each SampleChunk</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>chunk_size</strong> (<em>int</em>) – Number of samples in each SampleChunk</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">An iterator yielding  a stream of SampleChunk objects.</td>
 </tr>
@@ -992,7 +1151,7 @@ For 2-level states these will be (0,1). For 3-level: (-1, 1). For 5-level: (-2, 
 
 <dl class="function">
 <dt id="ripyl.sigproc.filter_waveform">
-<tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">filter_waveform</tt><big>(</big><em>samples</em>, <em>sample_rate</em>, <em>rise_time</em>, <em>ripple_db=60.0</em>, <em>chunk_size=10000</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.filter_waveform" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.sigproc.</code><code class="descname">filter_waveform</code><span class="sig-paren">(</span><em>samples</em>, <em>sample_rate</em>, <em>rise_time</em>, <em>ripple_db=60.0</em>, <em>chunk_size=10000</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.sigproc.filter_waveform" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply a bandwidth limiting low-pass filter to a sample stream</p>
 <p>This is a generator function.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1000,10 +1159,10 @@ For 2-level states these will be (0,1). For 3-level: (-1, 1). For 5-level: (-2, 
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; An iterable sample stream to be filtered.</li>
-<li><strong>sample_rate</strong> (<em>float</em>) &#8211; The sample rate for converting the sample stream.</li>
-<li><strong>rise_time</strong> (<em>float</em>) &#8211; Rise (and fall) time for the filtered samples.</li>
-<li><strong>ripple_db</strong> (<em>float</em>) &#8211; Noise suppression in dB for the bandwidth filter stop band. This should
+<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) – An iterable sample stream to be filtered.</li>
+<li><strong>sample_rate</strong> (<em>float</em>) – The sample rate for converting the sample stream.</li>
+<li><strong>rise_time</strong> (<em>float</em>) – Rise (and fall) time for the filtered samples.</li>
+<li><strong>ripple_db</strong> (<em>float</em>) – Noise suppression in dB for the bandwidth filter stop band. This should
 be a positive value.</li>
 </ul>
 </td>
@@ -1015,7 +1174,7 @@ be a positive value.</li>
 :param chunk_size:</p>
 <blockquote>
 <div>Internal FIR filter sample pool size. This can generally be ignored. To support
-streaming of samples, the FIR filter operation is done piecewise so we don&#8217;t have
+streaming of samples, the FIR filter operation is done piecewise so we don’t have
 to consume the entire input before producing filtered output. Larger values will
 reduce the number of filter operations performed. Excessively small values will
 waste time due to the reprocessing of overlapping samples between successive pools.</div></blockquote>
@@ -1031,14 +1190,14 @@ waste time due to the reprocessing of overlapping samples between successive poo
 
 <dl class="function">
 <dt id="ripyl.sigproc.invert">
-<tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">invert</tt><big>(</big><em>stream</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.invert" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.sigproc.</code><code class="descname">invert</code><span class="sig-paren">(</span><em>stream</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.sigproc.invert" title="Permalink to this definition">¶</a></dt>
 <dd><p>Invert the polarity of stream values</p>
 <p>This is a generator function.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; An iterable sample stream to modify.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) – An iterable sample stream to modify.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">An iterator yielding  a sample stream.</td>
 </tr>
@@ -1048,7 +1207,7 @@ waste time due to the reprocessing of overlapping samples between successive poo
 
 <dl class="function">
 <dt id="ripyl.sigproc.min_rise_time">
-<tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">min_rise_time</tt><big>(</big><em>sample_rate</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.min_rise_time" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.sigproc.</code><code class="descname">min_rise_time</code><span class="sig-paren">(</span><em>sample_rate</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.sigproc.min_rise_time" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the minimum rise time for a sample rate</p>
 <p>This function is useful to determine the minimum rise time acceptable as parameters
 to filter_waveform() and synth_wave(). You should use a scale factor to incease the rise
@@ -1058,7 +1217,7 @@ due to floating point inaccuracies.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sample_rate</strong> (<em>number</em>) &#8211; The sample rate to determine rise time from</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sample_rate</strong> (<em>number</em>) – The sample rate to determine rise time from</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A float for the minimum acceptable rise time.</td>
 </tr>
@@ -1068,7 +1227,7 @@ due to floating point inaccuracies.</p>
 
 <dl class="function">
 <dt id="ripyl.sigproc.noisify">
-<tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">noisify</tt><big>(</big><em>samples</em>, <em>snr_db=30.0</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.noisify" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.sigproc.</code><code class="descname">noisify</code><span class="sig-paren">(</span><em>samples</em>, <em>snr_db=30.0</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.sigproc.noisify" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add noise to a sample stream</p>
 <p>This modifies samples with additive, normally distributed noise</p>
 <p>This is a generator function.</p>
@@ -1077,8 +1236,8 @@ due to floating point inaccuracies.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; An iterable sample stream to modify.</li>
-<li><strong>snr_db</strong> (<em>float</em>) &#8211; The Signal to Noise Ratio in dB. This value is only accurate if the
+<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) – An iterable sample stream to modify.</li>
+<li><strong>snr_db</strong> (<em>float</em>) – The Signal to Noise Ratio in dB. This value is only accurate if the
 input samples are normalized to the range 0.0 to 1.0. Any amplification
 should be applied after noisify() for the SNR to be correct.</li>
 </ul>
@@ -1093,14 +1252,14 @@ should be applied after noisify() for the SNR to be correct.</li>
 
 <dl class="function">
 <dt id="ripyl.sigproc.quantize">
-<tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">quantize</tt><big>(</big><em>samples</em>, <em>full_scale</em>, <em>bits=8</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.quantize" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.sigproc.</code><code class="descname">quantize</code><span class="sig-paren">(</span><em>samples</em>, <em>full_scale</em>, <em>bits=8</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.sigproc.quantize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Quantize samples to simulate oscilloscope quantization error</p>
 <p>This should be applied to a noisy signal to have notable results.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; An iterable sample stream to modify.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) – An iterable sample stream to modify.</td>
 </tr>
 </tbody>
 </table>
@@ -1115,7 +1274,7 @@ full scale range of 2V*8 = 16V</div></blockquote>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>bits</strong> (<em>int</em>) &#8211; The number of bits to quantize to</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>bits</strong> (<em>int</em>) – The number of bits to quantize to</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">An iterator yielding  a sample stream.</td>
 </tr>
@@ -1125,7 +1284,7 @@ full scale range of 2V*8 = 16V</div></blockquote>
 
 <dl class="function">
 <dt id="ripyl.sigproc.remove_excess_edges">
-<tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">remove_excess_edges</tt><big>(</big><em>edges</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.remove_excess_edges" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.sigproc.</code><code class="descname">remove_excess_edges</code><span class="sig-paren">(</span><em>edges</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.sigproc.remove_excess_edges" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove incorrect edge transitions from an edge stream</p>
 <p>This is a generator function.</p>
 <p>This function is most useful for conditioning the outputs of the protocol
@@ -1137,7 +1296,7 @@ pairs with a non-changing value.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>edges</strong> (<em>iterable of (float, int) tuples</em>) &#8211; An edge stream to filter for extraneous non-edges</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>edges</strong> (<em>iterable of</em><em> (</em><em>float</em><em>, </em><em>int</em><em>) </em><em>tuples</em>) – An edge stream to filter for extraneous non-edges</td>
 </tr>
 </tbody>
 </table>
@@ -1147,7 +1306,7 @@ pairs with a non-changing value.</p>
 
 <dl class="function">
 <dt id="ripyl.sigproc.sum_streams">
-<tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">sum_streams</tt><big>(</big><em>stream1</em>, <em>stream2</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.sum_streams" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.sigproc.</code><code class="descname">sum_streams</code><span class="sig-paren">(</span><em>stream1</em>, <em>stream2</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.sigproc.sum_streams" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add two sample streams together</p>
 <p>The time elements of each stream will not be aligned if they do not match.
 Instead the time values from stream1 are used for the result. The iterator
@@ -1158,8 +1317,8 @@ terminates when either of the two streams ends.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>stream1</strong> (<em>iterable of SampleChunk objects</em>) &#8211; </li>
-<li><strong>stream2</strong> (<em>iterable of SampleChunk objects</em>) &#8211; The two sample streams to have their corresponding values added together.</li>
+<li><strong>stream1</strong> (<em>iterable of SampleChunk objects</em>) – </li>
+<li><strong>stream2</strong> (<em>iterable of SampleChunk objects</em>) – The two sample streams to have their corresponding values added together.</li>
 </ul>
 </td>
 </tr>
@@ -1171,7 +1330,7 @@ terminates when either of the two streams ends.</p>
 
 <dl class="function">
 <dt id="ripyl.sigproc.synth_wave">
-<tt class="descclassname">ripyl.sigproc.</tt><tt class="descname">synth_wave</tt><big>(</big><em>edges</em>, <em>sample_rate</em>, <em>rise_time</em>, <em>tau_factor=0.0</em>, <em>logic_states=(0</em>, <em>1)</em>, <em>ripple_db=60.0</em>, <em>chunk_size=10000</em><big>)</big><a class="headerlink" href="#ripyl.sigproc.synth_wave" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.sigproc.</code><code class="descname">synth_wave</code><span class="sig-paren">(</span><em>edges</em>, <em>sample_rate</em>, <em>rise_time</em>, <em>tau_factor=0.0</em>, <em>logic_states=(0</em>, <em>1)</em>, <em>ripple_db=60.0</em>, <em>chunk_size=10000</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.sigproc.synth_wave" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert an edge stream to a sampled waveform with band limited rise/fall times</p>
 <p>This is a convenience function combining edges_to_sample_stream(),
 filter_waveform(), and (optionally) capacify().</p>
@@ -1180,17 +1339,17 @@ filter_waveform(), and (optionally) capacify().</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>edges</strong> (<em>sequence of (float, int) tuples</em>) &#8211; An edge stream to be sampled</li>
-<li><strong>sample_rate</strong> (<em>float</em>) &#8211; The sample rate for converting the edge stream</li>
-<li><strong>rise_time</strong> (<em>float</em>) &#8211; Rise (and fall) time for the filtered samples</li>
-<li><strong>tau_factor</strong> (<em>float</em>) &#8211; The scale factor used to derive a capacify() time constant from the rise_time
+<li><strong>edges</strong> (<em>sequence of</em><em> (</em><em>float</em><em>, </em><em>int</em><em>) </em><em>tuples</em>) – An edge stream to be sampled</li>
+<li><strong>sample_rate</strong> (<em>float</em>) – The sample rate for converting the edge stream</li>
+<li><strong>rise_time</strong> (<em>float</em>) – Rise (and fall) time for the filtered samples</li>
+<li><strong>tau_factor</strong> (<em>float</em>) – The scale factor used to derive a capacify() time constant from the rise_time
 such that tau = rise_time * tau_factor. The capacify operation is skipped
 if tau_factor is &lt; 0.01.</li>
-<li><strong>logic_states</strong> (<em>sequence of int</em>) &#8211; The coded state values for the lowest and highest state in the edge stream.
+<li><strong>logic_states</strong> (<em>sequence of int</em>) – The coded state values for the lowest and highest state in the edge stream.
 For 2-level states these will be (0,1). For 3-level: (-1, 1). For 5-level: (-2, 2).</li>
-<li><strong>ripple_db</strong> (<em>float</em>) &#8211; Noise suppression in dB for the bandwidth filter stop band. This should
+<li><strong>ripple_db</strong> (<em>float</em>) – Noise suppression in dB for the bandwidth filter stop band. This should
 be a positive value.</li>
-<li><strong>chunk_size</strong> (<em>int</em>) &#8211; Number of samples in each SampleChunk</li>
+<li><strong>chunk_size</strong> (<em>int</em>) – Number of samples in each SampleChunk</li>
 </ul>
 </td>
 </tr>
@@ -1203,102 +1362,102 @@ be a positive value.</li>
 
 </div>
 <div class="section" id="module-ripyl.streaming">
-<span id="streaming-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">streaming</span></tt> Module<a class="headerlink" href="#module-ripyl.streaming" title="Permalink to this headline">¶</a></h2>
+<span id="ripyl-streaming-module"></span><h2>ripyl.streaming module<a class="headerlink" href="#module-ripyl.streaming" title="Permalink to this headline">¶</a></h2>
 <p>Data streaming common classes</p>
 <dl class="class">
 <dt id="ripyl.streaming.AnnotationFormat">
-<em class="property">class </em><tt class="descclassname">ripyl.streaming.</tt><tt class="descname">AnnotationFormat</tt><a class="headerlink" href="#ripyl.streaming.AnnotationFormat" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="ripyl.util.html#ripyl.util.enum.Enum" title="ripyl.util.enum.Enum"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.util.enum.Enum</span></tt></a></p>
+<em class="property">class </em><code class="descclassname">ripyl.streaming.</code><code class="descname">AnnotationFormat</code><a class="headerlink" href="#ripyl.streaming.AnnotationFormat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ripyl.util.html#ripyl.util.enum.Enum" title="ripyl.util.enum.Enum"><code class="xref py py-class docutils literal"><span class="pre">ripyl.util.enum.Enum</span></code></a></p>
 <p>Enumeration of annotation data formats</p>
 <dl class="attribute">
 <dt id="ripyl.streaming.AnnotationFormat.Bin">
-<tt class="descname">Bin</tt><em class="property"> = 7</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.Bin" title="Permalink to this definition">¶</a></dt>
+<code class="descname">Bin</code><em class="property"> = 7</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.Bin" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ripyl.streaming.AnnotationFormat.Enum">
-<tt class="descname">Enum</tt><em class="property"> = 8</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.Enum" title="Permalink to this definition">¶</a></dt>
+<code class="descname">Enum</code><em class="property"> = 8</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.Enum" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ripyl.streaming.AnnotationFormat.General">
-<tt class="descname">General</tt><em class="property"> = 2</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.General" title="Permalink to this definition">¶</a></dt>
+<code class="descname">General</code><em class="property"> = 2</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.General" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ripyl.streaming.AnnotationFormat.Hex">
-<tt class="descname">Hex</tt><em class="property"> = 6</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.Hex" title="Permalink to this definition">¶</a></dt>
+<code class="descname">Hex</code><em class="property"> = 6</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.Hex" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ripyl.streaming.AnnotationFormat.Hidden">
-<tt class="descname">Hidden</tt><em class="property"> = 0</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.Hidden" title="Permalink to this definition">¶</a></dt>
+<code class="descname">Hidden</code><em class="property"> = 0</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.Hidden" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ripyl.streaming.AnnotationFormat.Int">
-<tt class="descname">Int</tt><em class="property"> = 5</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.Int" title="Permalink to this definition">¶</a></dt>
+<code class="descname">Int</code><em class="property"> = 5</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.Int" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ripyl.streaming.AnnotationFormat.Invisible">
-<tt class="descname">Invisible</tt><em class="property"> = 1</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.Invisible" title="Permalink to this definition">¶</a></dt>
+<code class="descname">Invisible</code><em class="property"> = 1</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.Invisible" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ripyl.streaming.AnnotationFormat.Small">
-<tt class="descname">Small</tt><em class="property"> = 9</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.Small" title="Permalink to this definition">¶</a></dt>
+<code class="descname">Small</code><em class="property"> = 9</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.Small" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ripyl.streaming.AnnotationFormat.String">
-<tt class="descname">String</tt><em class="property"> = 3</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.String" title="Permalink to this definition">¶</a></dt>
+<code class="descname">String</code><em class="property"> = 3</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.String" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ripyl.streaming.AnnotationFormat.Text">
-<tt class="descname">Text</tt><em class="property"> = 4</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.Text" title="Permalink to this definition">¶</a></dt>
+<code class="descname">Text</code><em class="property"> = 4</em><a class="headerlink" href="#ripyl.streaming.AnnotationFormat.Text" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="exception">
 <dt id="ripyl.streaming.AutoLevelError">
-<em class="property">exception </em><tt class="descclassname">ripyl.streaming.</tt><tt class="descname">AutoLevelError</tt><big>(</big><em>msg='Unable to find avg. logic levels of waveform'</em><big>)</big><a class="headerlink" href="#ripyl.streaming.AutoLevelError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ripyl.streaming.StreamError" title="ripyl.streaming.StreamError"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamError</span></tt></a></p>
+<em class="property">exception </em><code class="descclassname">ripyl.streaming.</code><code class="descname">AutoLevelError</code><span class="sig-paren">(</span><em>msg='Unable to find avg. logic levels of waveform'</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.AutoLevelError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ripyl.streaming.StreamError" title="ripyl.streaming.StreamError"><code class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamError</span></code></a></p>
 <p>Custom exception class auto-level errors</p>
 <dl class="method">
 <dt id="ripyl.streaming.AutoLevelError.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>msg='Unable to find avg. logic levels of waveform'</em><big>)</big><a class="headerlink" href="#ripyl.streaming.AutoLevelError.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>msg='Unable to find avg. logic levels of waveform'</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.AutoLevelError.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="ripyl.streaming.ChunkExtractor">
-<em class="property">class </em><tt class="descclassname">ripyl.streaming.</tt><tt class="descname">ChunkExtractor</tt><big>(</big><em>stream</em><big>)</big><a class="headerlink" href="#ripyl.streaming.ChunkExtractor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<em class="property">class </em><code class="descclassname">ripyl.streaming.</code><code class="descname">ChunkExtractor</code><span class="sig-paren">(</span><em>stream</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.ChunkExtractor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Utility class that pulls arbitrarily sized chunks from a sample stream</p>
 <dl class="method">
 <dt id="ripyl.streaming.ChunkExtractor.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>stream</em><big>)</big><a class="headerlink" href="#ripyl.streaming.ChunkExtractor.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>stream</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.ChunkExtractor.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ripyl.streaming.ChunkExtractor.buffered_chunk">
-<tt class="descname">buffered_chunk</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.streaming.ChunkExtractor.buffered_chunk" title="Permalink to this definition">¶</a></dt>
+<code class="descname">buffered_chunk</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.ChunkExtractor.buffered_chunk" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get all remaining buffered samples</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="ripyl.streaming.ChunkExtractor.next_chunk">
-<tt class="descname">next_chunk</tt><big>(</big><em>chunk_size=10000</em><big>)</big><a class="headerlink" href="#ripyl.streaming.ChunkExtractor.next_chunk" title="Permalink to this definition">¶</a></dt>
+<code class="descname">next_chunk</code><span class="sig-paren">(</span><em>chunk_size=10000</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.ChunkExtractor.next_chunk" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a new chunk of samples from the stream</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>chunk_size</strong> (<em>int</em>) &#8211; The number of samples for this chunk.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>chunk_size</strong> (<em>int</em>) – The number of samples for this chunk.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A samplechunk object. if the stream had fewer than chunk_size samples
 remaining then the SampleChunk.samples array is sized to hold only those samples.</td>
@@ -1311,13 +1470,13 @@ remaining then the SampleChunk.samples array is sized to hold only those samples
 
 <dl class="method">
 <dt id="ripyl.streaming.ChunkExtractor.next_samples">
-<tt class="descname">next_samples</tt><big>(</big><em>sample_count=10000</em><big>)</big><a class="headerlink" href="#ripyl.streaming.ChunkExtractor.next_samples" title="Permalink to this definition">¶</a></dt>
+<code class="descname">next_samples</code><span class="sig-paren">(</span><em>sample_count=10000</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.ChunkExtractor.next_samples" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a new set of raw samples from the stream</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sample_count</strong> (<em>int</em>) &#8211; The number of samples for the array.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>sample_count</strong> (<em>int</em>) – The number of samples for the array.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A numpy array of float. if the stream had fewer than sample_count samples
 remaining then the array is sized to hold only those samples.</td>
@@ -1332,38 +1491,38 @@ remaining then the array is sized to hold only those samples.</td>
 
 <dl class="class">
 <dt id="ripyl.streaming.SampleChunk">
-<em class="property">class </em><tt class="descclassname">ripyl.streaming.</tt><tt class="descname">SampleChunk</tt><big>(</big><em>samples</em>, <em>start_time</em>, <em>sample_period</em><big>)</big><a class="headerlink" href="#ripyl.streaming.SampleChunk" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
-<p>&#8216;Sample stream object</p>
-<p>This represents a &#8220;chunk&#8221; of samples contained in a numpy array
+<em class="property">class </em><code class="descclassname">ripyl.streaming.</code><code class="descname">SampleChunk</code><span class="sig-paren">(</span><em>samples</em>, <em>start_time</em>, <em>sample_period</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.SampleChunk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>‘Sample stream object</p>
+<p>This represents a “chunk” of samples contained in a numpy array
 stored in the samples attribute.</p>
 <dl class="method">
 <dt id="ripyl.streaming.SampleChunk.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>samples</em>, <em>start_time</em>, <em>sample_period</em><big>)</big><a class="headerlink" href="#ripyl.streaming.SampleChunk.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>samples</em>, <em>start_time</em>, <em>sample_period</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.SampleChunk.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="exception">
 <dt id="ripyl.streaming.StreamError">
-<em class="property">exception </em><tt class="descclassname">ripyl.streaming.</tt><tt class="descname">StreamError</tt><a class="headerlink" href="#ripyl.streaming.StreamError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.RuntimeError</span></tt></p>
+<em class="property">exception </em><code class="descclassname">ripyl.streaming.</code><code class="descname">StreamError</code><a class="headerlink" href="#ripyl.streaming.StreamError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">exceptions.RuntimeError</span></code></p>
 <p>Custom exception class for edge and sample streams</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="ripyl.streaming.StreamEvent">
-<em class="property">class </em><tt class="descclassname">ripyl.streaming.</tt><tt class="descname">StreamEvent</tt><big>(</big><em>time</em>, <em>data=None</em>, <em>kind='unknown event'</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.streaming.StreamEvent" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ripyl.streaming.StreamRecord" title="ripyl.streaming.StreamRecord"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamRecord</span></tt></a></p>
+<em class="property">class </em><code class="descclassname">ripyl.streaming.</code><code class="descname">StreamEvent</code><span class="sig-paren">(</span><em>time</em>, <em>data=None</em>, <em>kind='unknown event'</em>, <em>status=0</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.StreamEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ripyl.streaming.StreamRecord" title="ripyl.streaming.StreamRecord"><code class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamRecord</span></code></a></p>
 <p>A stream element that occurs at a specific point in time</p>
 <dl class="method">
 <dt id="ripyl.streaming.StreamEvent.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>time</em>, <em>data=None</em>, <em>kind='unknown event'</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.streaming.StreamEvent.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>time</em>, <em>data=None</em>, <em>kind='unknown event'</em>, <em>status=0</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.StreamEvent.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ripyl.streaming.StreamEvent.summary">
-<tt class="descname">summary</tt><big>(</big><em>a=None</em>, <em>depth=0</em><big>)</big><a class="headerlink" href="#ripyl.streaming.StreamEvent.summary" title="Permalink to this definition">¶</a></dt>
+<code class="descname">summary</code><span class="sig-paren">(</span><em>a=None</em>, <em>depth=0</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.StreamEvent.summary" title="Permalink to this definition">¶</a></dt>
 <dd><p>Yield string(s) summarizing this segment and all of its subrecords
 :type a: StreamRecord or None
 :param a:</p>
@@ -1373,7 +1532,7 @@ stored in the samples attribute.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>depth</strong> (<em>int</em>) &#8211; Indentation level for this summary</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>depth</strong> (<em>int</em>) – Indentation level for this summary</td>
 </tr>
 </tbody>
 </table>
@@ -1383,18 +1542,18 @@ stored in the samples attribute.</p>
 
 <dl class="class">
 <dt id="ripyl.streaming.StreamRecord">
-<em class="property">class </em><tt class="descclassname">ripyl.streaming.</tt><tt class="descname">StreamRecord</tt><big>(</big><em>kind='unknown'</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.streaming.StreamRecord" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<em class="property">class </em><code class="descclassname">ripyl.streaming.</code><code class="descname">StreamRecord</code><span class="sig-paren">(</span><em>kind='unknown'</em>, <em>status=0</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.StreamRecord" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Base class for protocol decoder output stream objects</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
-<li><strong>kind</strong> &#8211; A string identifying the kind of record</li>
-<li><strong>status</strong> &#8211; An integer status code</li>
-<li><strong>stream_id</strong> &#8211; A unique numeric stream identifier</li>
-<li><strong>subrecords</strong> &#8211; A list of child StreamRecord objects</li>
+<li><strong>kind</strong> – A string identifying the kind of record</li>
+<li><strong>status</strong> – An integer status code</li>
+<li><strong>stream_id</strong> – A unique numeric stream identifier</li>
+<li><strong>subrecords</strong> – A list of child StreamRecord objects</li>
 </ul>
 </td>
 </tr>
@@ -1403,18 +1562,18 @@ stored in the samples attribute.</p>
 <p>:param  :</p>
 <dl class="method">
 <dt id="ripyl.streaming.StreamRecord.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>kind='unknown'</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.streaming.StreamRecord.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>kind='unknown'</em>, <em>status=0</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.StreamRecord.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ripyl.streaming.StreamRecord.annotate">
-<tt class="descname">annotate</tt><big>(</big><em>style=None</em>, <em>fields=None</em>, <em>data_format=2</em><big>)</big><a class="headerlink" href="#ripyl.streaming.StreamRecord.annotate" title="Permalink to this definition">¶</a></dt>
-<dd><p>&#8216;Set annotation attributes</p>
+<code class="descname">annotate</code><span class="sig-paren">(</span><em>style=None</em>, <em>fields=None</em>, <em>data_format=2</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.StreamRecord.annotate" title="Permalink to this definition">¶</a></dt>
+<dd><p>‘Set annotation attributes</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>style</strong> (<em>string or None</em>) &#8211; The name of a style to use for drawing a rectangle representing this record</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>style</strong> (<em>string</em><em> or </em><em>None</em>) – The name of a style to use for drawing a rectangle representing this record</td>
 </tr>
 </tbody>
 </table>
@@ -1425,11 +1584,11 @@ stored in the samples attribute.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>fields</strong> (<em>dict of string:value</em>) &#8211; A set of arbitrary info fields that may be displayed as attributes of this record.
-The special field &#8216;_bits&#8217; identifies the number of data bits in this record
-The special field &#8216;_enum&#8217; identifies an enumeration type for this record&#8217;s data attribute
-The special field &#8216;value&#8217; is a string that will override any other source of label text</li>
-<li><strong>data_format</strong> (<em>AnnotationFormat</em>) &#8211; The format for the text label</li>
+<li><strong>fields</strong> (<em>dict of string:value</em>) – A set of arbitrary info fields that may be displayed as attributes of this record.
+The special field ‘_bits’ identifies the number of data bits in this record
+The special field ‘_enum’ identifies an enumeration type for this record’s data attribute
+The special field ‘value’ is a string that will override any other source of label text</li>
+<li><strong>data_format</strong> (<a class="reference internal" href="#ripyl.streaming.AnnotationFormat" title="ripyl.streaming.AnnotationFormat"><em>AnnotationFormat</em></a>) – The format for the text label</li>
 </ul>
 </td>
 </tr>
@@ -1439,7 +1598,7 @@ The special field &#8216;value&#8217; is a string that will override any other s
 
 <dl class="method">
 <dt id="ripyl.streaming.StreamRecord.nested_status">
-<tt class="descname">nested_status</tt><big>(</big><big>)</big><a class="headerlink" href="#ripyl.streaming.StreamRecord.nested_status" title="Permalink to this definition">¶</a></dt>
+<code class="descname">nested_status</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.StreamRecord.nested_status" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1452,7 +1611,7 @@ The special field &#8216;value&#8217; is a string that will override any other s
 
 <dl class="classmethod">
 <dt id="ripyl.streaming.StreamRecord.status_text">
-<em class="property">classmethod </em><tt class="descname">status_text</tt><big>(</big><em>status</em><big>)</big><a class="headerlink" href="#ripyl.streaming.StreamRecord.status_text" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="descname">status_text</code><span class="sig-paren">(</span><em>status</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.StreamRecord.status_text" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1465,13 +1624,13 @@ The special field &#8216;value&#8217; is a string that will override any other s
 
 <dl class="method">
 <dt id="ripyl.streaming.StreamRecord.text">
-<tt class="descname">text</tt><big>(</big><em>default_format=3</em><big>)</big><a class="headerlink" href="#ripyl.streaming.StreamRecord.text" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate a string representation of this segment&#8217;s data</p>
+<code class="descname">text</code><span class="sig-paren">(</span><em>default_format=3</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.StreamRecord.text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a string representation of this segment’s data</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>default_format</strong> (<em>AnnotationFormat</em>) &#8211; Set the format to use when the data_format attribute is General</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>default_format</strong> (<a class="reference internal" href="#ripyl.streaming.AnnotationFormat" title="ripyl.streaming.AnnotationFormat"><em>AnnotationFormat</em></a>) – Set the format to use when the data_format attribute is General</td>
 </tr>
 </tbody>
 </table>
@@ -1481,27 +1640,27 @@ The special field &#8216;value&#8217; is a string that will override any other s
 
 <dl class="class">
 <dt id="ripyl.streaming.StreamSegment">
-<em class="property">class </em><tt class="descclassname">ripyl.streaming.</tt><tt class="descname">StreamSegment</tt><big>(</big><em>time_bounds</em>, <em>data=None</em>, <em>kind='unknown segment'</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.streaming.StreamSegment" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#ripyl.streaming.StreamRecord" title="ripyl.streaming.StreamRecord"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamRecord</span></tt></a></p>
+<em class="property">class </em><code class="descclassname">ripyl.streaming.</code><code class="descname">StreamSegment</code><span class="sig-paren">(</span><em>time_bounds</em>, <em>data=None</em>, <em>kind='unknown segment'</em>, <em>status=0</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.StreamSegment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ripyl.streaming.StreamRecord" title="ripyl.streaming.StreamRecord"><code class="xref py py-class docutils literal"><span class="pre">ripyl.streaming.StreamRecord</span></code></a></p>
 <p>A stream element that spans two points in time</p>
 <dl class="method">
 <dt id="ripyl.streaming.StreamSegment.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>time_bounds</em>, <em>data=None</em>, <em>kind='unknown segment'</em>, <em>status=0</em><big>)</big><a class="headerlink" href="#ripyl.streaming.StreamSegment.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>time_bounds</em>, <em>data=None</em>, <em>kind='unknown segment'</em>, <em>status=0</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.StreamSegment.__init__" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ripyl.streaming.StreamSegment.end_time">
-<tt class="descname">end_time</tt><a class="headerlink" href="#ripyl.streaming.StreamSegment.end_time" title="Permalink to this definition">¶</a></dt>
+<code class="descname">end_time</code><a class="headerlink" href="#ripyl.streaming.StreamSegment.end_time" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ripyl.streaming.StreamSegment.start_time">
-<tt class="descname">start_time</tt><a class="headerlink" href="#ripyl.streaming.StreamSegment.start_time" title="Permalink to this definition">¶</a></dt>
+<code class="descname">start_time</code><a class="headerlink" href="#ripyl.streaming.StreamSegment.start_time" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="ripyl.streaming.StreamSegment.summary">
-<tt class="descname">summary</tt><big>(</big><em>a=None</em>, <em>depth=0</em><big>)</big><a class="headerlink" href="#ripyl.streaming.StreamSegment.summary" title="Permalink to this definition">¶</a></dt>
+<code class="descname">summary</code><span class="sig-paren">(</span><em>a=None</em>, <em>depth=0</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.StreamSegment.summary" title="Permalink to this definition">¶</a></dt>
 <dd><p>Yield string(s) summarizing this segment and all of its subrecords
 :type a: StreamRecord or None
 :param a:</p>
@@ -1511,7 +1670,7 @@ The special field &#8216;value&#8217; is a string that will override any other s
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>depth</strong> (<em>int</em>) &#8211; Indentation level for this summary</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>depth</strong> (<em>int</em>) – Indentation level for this summary</td>
 </tr>
 </tbody>
 </table>
@@ -1521,52 +1680,52 @@ The special field &#8216;value&#8217; is a string that will override any other s
 
 <dl class="class">
 <dt id="ripyl.streaming.StreamStatus">
-<em class="property">class </em><tt class="descclassname">ripyl.streaming.</tt><tt class="descname">StreamStatus</tt><a class="headerlink" href="#ripyl.streaming.StreamStatus" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="ripyl.util.html#ripyl.util.enum.Enum" title="ripyl.util.enum.Enum"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.util.enum.Enum</span></tt></a></p>
+<em class="property">class </em><code class="descclassname">ripyl.streaming.</code><code class="descname">StreamStatus</code><a class="headerlink" href="#ripyl.streaming.StreamStatus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ripyl.util.html#ripyl.util.enum.Enum" title="ripyl.util.enum.Enum"><code class="xref py py-class docutils literal"><span class="pre">ripyl.util.enum.Enum</span></code></a></p>
 <p>Enumeration for standard stream status codes</p>
 <dl class="attribute">
 <dt id="ripyl.streaming.StreamStatus.Error">
-<tt class="descname">Error</tt><em class="property"> = 200</em><a class="headerlink" href="#ripyl.streaming.StreamStatus.Error" title="Permalink to this definition">¶</a></dt>
+<code class="descname">Error</code><em class="property"> = 200</em><a class="headerlink" href="#ripyl.streaming.StreamStatus.Error" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ripyl.streaming.StreamStatus.Ok">
-<tt class="descname">Ok</tt><em class="property"> = 0</em><a class="headerlink" href="#ripyl.streaming.StreamStatus.Ok" title="Permalink to this definition">¶</a></dt>
+<code class="descname">Ok</code><em class="property"> = 0</em><a class="headerlink" href="#ripyl.streaming.StreamStatus.Ok" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ripyl.streaming.StreamStatus.Warning">
-<tt class="descname">Warning</tt><em class="property"> = 100</em><a class="headerlink" href="#ripyl.streaming.StreamStatus.Warning" title="Permalink to this definition">¶</a></dt>
+<code class="descname">Warning</code><em class="property"> = 100</em><a class="headerlink" href="#ripyl.streaming.StreamStatus.Warning" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="ripyl.streaming.StreamType">
-<em class="property">class </em><tt class="descclassname">ripyl.streaming.</tt><tt class="descname">StreamType</tt><a class="headerlink" href="#ripyl.streaming.StreamType" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="ripyl.util.html#ripyl.util.enum.Enum" title="ripyl.util.enum.Enum"><tt class="xref py py-class docutils literal"><span class="pre">ripyl.util.enum.Enum</span></tt></a></p>
+<em class="property">class </em><code class="descclassname">ripyl.streaming.</code><code class="descname">StreamType</code><a class="headerlink" href="#ripyl.streaming.StreamType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ripyl.util.html#ripyl.util.enum.Enum" title="ripyl.util.enum.Enum"><code class="xref py py-class docutils literal"><span class="pre">ripyl.util.enum.Enum</span></code></a></p>
 <p>Enumeration for stream types</p>
 <dl class="attribute">
 <dt id="ripyl.streaming.StreamType.Edges">
-<tt class="descname">Edges</tt><em class="property"> = 0</em><a class="headerlink" href="#ripyl.streaming.StreamType.Edges" title="Permalink to this definition">¶</a></dt>
+<code class="descname">Edges</code><em class="property"> = 0</em><a class="headerlink" href="#ripyl.streaming.StreamType.Edges" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="ripyl.streaming.StreamType.Samples">
-<tt class="descname">Samples</tt><em class="property"> = 1</em><a class="headerlink" href="#ripyl.streaming.StreamType.Samples" title="Permalink to this definition">¶</a></dt>
+<code class="descname">Samples</code><em class="property"> = 1</em><a class="headerlink" href="#ripyl.streaming.StreamType.Samples" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="function">
 <dt id="ripyl.streaming.extract_all_samples">
-<tt class="descclassname">ripyl.streaming.</tt><tt class="descname">extract_all_samples</tt><big>(</big><em>samples</em><big>)</big><a class="headerlink" href="#ripyl.streaming.extract_all_samples" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.streaming.</code><code class="descname">extract_all_samples</code><span class="sig-paren">(</span><em>samples</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.extract_all_samples" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get all samples from a sample stream along with parameter information.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; The sample stream to extract samples from.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) – The sample stream to extract samples from.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A tuple containing a numpy sample array of float, the start time,
 and the sample period.</td>
@@ -1577,7 +1736,7 @@ and the sample period.</td>
 
 <dl class="function">
 <dt id="ripyl.streaming.extract_samples">
-<tt class="descclassname">ripyl.streaming.</tt><tt class="descname">extract_samples</tt><big>(</big><em>samples</em>, <em>sample_count=10000</em><big>)</big><a class="headerlink" href="#ripyl.streaming.extract_samples" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.streaming.</code><code class="descname">extract_samples</code><span class="sig-paren">(</span><em>samples</em>, <em>sample_count=10000</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.extract_samples" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a new gerator that yields sample arrays of the desired size</p>
 <p>This is a generator function. Its send() method can be used to change the
 value of sample_count mid-stream.</p>
@@ -1586,8 +1745,8 @@ value of sample_count mid-stream.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; The sample stream to extract samples from.</li>
-<li><strong>sample_count</strong> (<em>int</em>) &#8211; The number of samples for the arrays.</li>
+<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) – The sample stream to extract samples from.</li>
+<li><strong>sample_count</strong> (<em>int</em>) – The number of samples for the arrays.</li>
 </ul>
 </td>
 </tr>
@@ -1601,14 +1760,14 @@ remaining then the array is sized to hold only those samples.</p>
 
 <dl class="function">
 <dt id="ripyl.streaming.load_stream">
-<tt class="descclassname">ripyl.streaming.</tt><tt class="descname">load_stream</tt><big>(</big><em>fh</em><big>)</big><a class="headerlink" href="#ripyl.streaming.load_stream" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.streaming.</code><code class="descname">load_stream</code><span class="sig-paren">(</span><em>fh</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.load_stream" title="Permalink to this definition">¶</a></dt>
 <dd><p>Restore a stream of StreamRecord objects from a file</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fh</strong> (<em>file-like object or a string</em>) &#8211; File to load records from. If a file handle is passed it should have been opened
-in &#8216;rb&#8217; mode. If a string is passed it is the name of a file to read from.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>fh</strong> (<em>file-like object</em><em> or </em><em>a string</em>) – File to load records from. If a file handle is passed it should have been opened
+in ‘rb’ mode. If a string is passed it is the name of a file to read from.</td>
 </tr>
 </tbody>
 </table>
@@ -1618,7 +1777,7 @@ in &#8216;rb&#8217; mode. If a string is passed it is the name of a file to read
 
 <dl class="function">
 <dt id="ripyl.streaming.merge_streams">
-<tt class="descclassname">ripyl.streaming.</tt><tt class="descname">merge_streams</tt><big>(</big><em>records_a</em>, <em>records_b</em>, <em>id_a=0</em>, <em>id_b=1</em><big>)</big><a class="headerlink" href="#ripyl.streaming.merge_streams" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.streaming.</code><code class="descname">merge_streams</code><span class="sig-paren">(</span><em>records_a</em>, <em>records_b</em>, <em>id_a=0</em>, <em>id_b=1</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.merge_streams" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combine two streams of StreamRecord objects.
 Records with time signatures from each input stream are kept in chronological order.
 :param  :
@@ -1647,7 +1806,7 @@ Records with time signatures from each input stream are kept in chronological or
 
 <dl class="function">
 <dt id="ripyl.streaming.rechunkify">
-<tt class="descclassname">ripyl.streaming.</tt><tt class="descname">rechunkify</tt><big>(</big><em>samples</em>, <em>chunk_size=10000</em><big>)</big><a class="headerlink" href="#ripyl.streaming.rechunkify" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.streaming.</code><code class="descname">rechunkify</code><span class="sig-paren">(</span><em>samples</em>, <em>chunk_size=10000</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.rechunkify" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a new gerator that yields SampleChunk objects of the desired size</p>
 <p>This is a generator function. Its send() method can be used to change the
 value of chunk_size mid-stream.</p>
@@ -1656,8 +1815,8 @@ value of chunk_size mid-stream.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; The sample stream to extract SampleChunk objects from.</li>
-<li><strong>chunk_size</strong> (<em>int</em>) &#8211; The number of samples for the SampleChunk objects.</li>
+<li><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) – The sample stream to extract SampleChunk objects from.</li>
+<li><strong>chunk_size</strong> (<em>int</em>) – The number of samples for the SampleChunk objects.</li>
 </ul>
 </td>
 </tr>
@@ -1671,13 +1830,13 @@ remaining then the SampleChunk.samples array is sized to hold only those samples
 
 <dl class="function">
 <dt id="ripyl.streaming.sample_stream_to_samples">
-<tt class="descclassname">ripyl.streaming.</tt><tt class="descname">sample_stream_to_samples</tt><big>(</big><em>samples</em><big>)</big><a class="headerlink" href="#ripyl.streaming.sample_stream_to_samples" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.streaming.</code><code class="descname">sample_stream_to_samples</code><span class="sig-paren">(</span><em>samples</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.sample_stream_to_samples" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get all samples from a sample stream as an array</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) &#8211; The sample stream to extract samples from.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>samples</strong> (<em>iterable of SampleChunk objects</em>) – The sample stream to extract samples from.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A numpy array of float.</td>
 </tr>
@@ -1687,7 +1846,7 @@ remaining then the SampleChunk.samples array is sized to hold only those samples
 
 <dl class="function">
 <dt id="ripyl.streaming.samples_to_sample_stream">
-<tt class="descclassname">ripyl.streaming.</tt><tt class="descname">samples_to_sample_stream</tt><big>(</big><em>raw_samples</em>, <em>sample_period</em>, <em>start_time=0.0</em>, <em>chunk_size=10000</em><big>)</big><a class="headerlink" href="#ripyl.streaming.samples_to_sample_stream" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.streaming.</code><code class="descname">samples_to_sample_stream</code><span class="sig-paren">(</span><em>raw_samples</em>, <em>sample_period</em>, <em>start_time=0.0</em>, <em>chunk_size=10000</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.samples_to_sample_stream" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert raw samples to a chunked sample stream</p>
 <p>This is a generator function that can be used in a pipeline of waveform
 procesing operations</p>
@@ -1696,10 +1855,10 @@ procesing operations</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>raw_samples</strong> (<em>iterable of numbers</em>) &#8211; The samples to convert to a sample stream.</li>
-<li><strong>sample_period</strong> (<em>float</em>) &#8211; The time interval between samples</li>
-<li><strong>start_time</strong> (<em>float</em>) &#8211; The time for the first sample</li>
-<li><strong>chunk_size</strong> (<em>int</em>) &#8211; The maximum number of samples for each chunk</li>
+<li><strong>raw_samples</strong> (<em>iterable of numbers</em>) – The samples to convert to a sample stream.</li>
+<li><strong>sample_period</strong> (<em>float</em>) – The time interval between samples</li>
+<li><strong>start_time</strong> (<em>float</em>) – The time for the first sample</li>
+<li><strong>chunk_size</strong> (<em>int</em>) – The maximum number of samples for each chunk</li>
 </ul>
 </td>
 </tr>
@@ -1714,16 +1873,16 @@ that expect a chunked sample stream as input.</p>
 
 <dl class="function">
 <dt id="ripyl.streaming.save_stream">
-<tt class="descclassname">ripyl.streaming.</tt><tt class="descname">save_stream</tt><big>(</big><em>records</em>, <em>fh</em><big>)</big><a class="headerlink" href="#ripyl.streaming.save_stream" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.streaming.</code><code class="descname">save_stream</code><span class="sig-paren">(</span><em>records</em>, <em>fh</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.streaming.save_stream" title="Permalink to this definition">¶</a></dt>
 <dd><p>Save a stream of StreamRecord objects to a file</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>records</strong> (<em>StreamRecord sequence</em>) &#8211; The StreamRecord objects to save.</li>
-<li><strong>fh</strong> (<em>file-like object or a string</em>) &#8211; File to save records to. If a file handle is passed it should have been
-opened in &#8216;wb&#8217; mode. If a string is passed it is the name of a file to write to.</li>
+<li><strong>records</strong> (<em>StreamRecord sequence</em>) – The StreamRecord objects to save.</li>
+<li><strong>fh</strong> (<em>file-like object</em><em> or </em><em>a string</em>) – File to save records to. If a file handle is passed it should have been
+opened in ‘wb’ mode. If a string is passed it is the name of a file to write to.</li>
 </ul>
 </td>
 </tr>
@@ -1736,11 +1895,11 @@ opened in &#8216;wb&#8217; mode. If a string is passed it is the name of a file 
 
 </div>
 <div class="section" id="module-ripyl.wave_synth">
-<span id="wave-synth-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">wave_synth</span></tt> Module<a class="headerlink" href="#module-ripyl.wave_synth" title="Permalink to this headline">¶</a></h2>
+<span id="ripyl-wave-synth-module"></span><h2>ripyl.wave_synth module<a class="headerlink" href="#module-ripyl.wave_synth" title="Permalink to this headline">¶</a></h2>
 <p>General routines for synthesizing basic waveforms</p>
 <dl class="function">
 <dt id="ripyl.wave_synth.sine_synth">
-<tt class="descclassname">ripyl.wave_synth.</tt><tt class="descname">sine_synth</tt><big>(</big><em>frequency=1000000.0</em>, <em>phase=0.0</em>, <em>sample_period=5e-08</em>, <em>samples=None</em><big>)</big><a class="headerlink" href="#ripyl.wave_synth.sine_synth" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.wave_synth.</code><code class="descname">sine_synth</code><span class="sig-paren">(</span><em>frequency=1000000.0</em>, <em>phase=0.0</em>, <em>sample_period=5e-08</em>, <em>samples=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.wave_synth.sine_synth" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sine generator</p>
 <p>Will generate a continuous stream of samples from a sine wave.
 This generator will terminate if the number of output samples is specified.
@@ -1754,9 +1913,9 @@ This generator will terminate if the number of output samples is specified.
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>phase</strong> (<em>float</em>) &#8211; Phase in radians of the sine wave</li>
-<li><strong>sample_period</strong> (<em>float</em>) &#8211; Time interval between samples</li>
-<li><strong>samples</strong> (<em>int</em>) &#8211; Optional number of samples to generate</li>
+<li><strong>phase</strong> (<em>float</em>) – Phase in radians of the sine wave</li>
+<li><strong>sample_period</strong> (<em>float</em>) – Time interval between samples</li>
+<li><strong>samples</strong> (<em>int</em>) – Optional number of samples to generate</li>
 </ul>
 </td>
 </tr>
@@ -1768,7 +1927,7 @@ This generator will terminate if the number of output samples is specified.
 
 <dl class="function">
 <dt id="ripyl.wave_synth.square_synth">
-<tt class="descclassname">ripyl.wave_synth.</tt><tt class="descname">square_synth</tt><big>(</big><em>frequency=1000000.0</em>, <em>duty=0.5</em>, <em>phase=0.0</em>, <em>sample_period=5e-08</em>, <em>samples=None</em><big>)</big><a class="headerlink" href="#ripyl.wave_synth.square_synth" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">ripyl.wave_synth.</code><code class="descname">square_synth</code><span class="sig-paren">(</span><em>frequency=1000000.0</em>, <em>duty=0.5</em>, <em>phase=0.0</em>, <em>sample_period=5e-08</em>, <em>samples=None</em><span class="sig-paren">)</span><a class="headerlink" href="#ripyl.wave_synth.square_synth" title="Permalink to this definition">¶</a></dt>
 <dd><p>Square wave generator</p>
 <p>Will generate a continuous stream of samples from a square wave.
 This generator will terminate if the number of output samples is specified.
@@ -1787,9 +1946,9 @@ This generator will terminate if the number of output samples is specified.
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>phase</strong> (<em>float</em>) &#8211; Phase of the square wave in fractions of a period. Should be between 0.0 and 1.0.</li>
-<li><strong>sample_period</strong> (<em>float</em>) &#8211; Time interval between samples</li>
-<li><strong>samples</strong> (<em>int</em>) &#8211; Optional number of samples to generate</li>
+<li><strong>phase</strong> (<em>float</em>) – Phase of the square wave in fractions of a period. Should be between 0.0 and 1.0.</li>
+<li><strong>sample_period</strong> (<em>float</em>) – Time interval between samples</li>
+<li><strong>samples</strong> (<em>int</em>) – Optional number of samples to generate</li>
 </ul>
 </td>
 </tr>
@@ -1800,50 +1959,9 @@ This generator will terminate if the number of output samples is specified.
 </dd></dl>
 
 </div>
-<div class="section" id="subpackages">
-<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="ripyl.protocol.html">protocol Package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#id1"><tt class="docutils literal"><span class="pre">protocol</span></tt> Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.can"><tt class="docutils literal"><span class="pre">can</span></tt> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.i2c"><tt class="docutils literal"><span class="pre">i2c</span></tt> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.iso_k_line"><tt class="docutils literal"><span class="pre">iso_k_line</span></tt> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.lin"><tt class="docutils literal"><span class="pre">lin</span></tt> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.lm73"><tt class="docutils literal"><span class="pre">lm73</span></tt> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.obd2"><tt class="docutils literal"><span class="pre">obd2</span></tt> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.ps2"><tt class="docutils literal"><span class="pre">ps2</span></tt> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.sagem_ecu"><tt class="docutils literal"><span class="pre">sagem_ecu</span></tt> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.spi"><tt class="docutils literal"><span class="pre">spi</span></tt> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.uart"><tt class="docutils literal"><span class="pre">uart</span></tt> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.usb"><tt class="docutils literal"><span class="pre">usb</span></tt> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.usb_transact"><tt class="docutils literal"><span class="pre">usb_transact</span></tt> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.protocol.html#subpackages">Subpackages</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="ripyl.protocol.infrared.html">infrared Package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.infrared.html#id1"><tt class="docutils literal"><span class="pre">infrared</span></tt> Package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.infrared.html#module-ripyl.protocol.infrared.ir_common"><tt class="docutils literal"><span class="pre">ir_common</span></tt> Module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.infrared.html#module-ripyl.protocol.infrared.nec"><tt class="docutils literal"><span class="pre">nec</span></tt> Module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.infrared.html#module-ripyl.protocol.infrared.rc5"><tt class="docutils literal"><span class="pre">rc5</span></tt> Module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.infrared.html#module-ripyl.protocol.infrared.rc6"><tt class="docutils literal"><span class="pre">rc6</span></tt> Module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.infrared.html#module-ripyl.protocol.infrared.sirc"><tt class="docutils literal"><span class="pre">sirc</span></tt> Module</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="ripyl.util.html">util Package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.util.html#id1"><tt class="docutils literal"><span class="pre">util</span></tt> Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.bitops"><tt class="docutils literal"><span class="pre">bitops</span></tt> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.eng"><tt class="docutils literal"><span class="pre">eng</span></tt> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.enum"><tt class="docutils literal"><span class="pre">enum</span></tt> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.equality"><tt class="docutils literal"><span class="pre">equality</span></tt> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.util.html#plot-module"><tt class="docutils literal"><span class="pre">plot</span></tt> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.stats"><tt class="docutils literal"><span class="pre">stats</span></tt> Module</a></li>
-</ul>
-</li>
-</ul>
-</div>
+<div class="section" id="module-ripyl">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ripyl" title="Permalink to this headline">¶</a></h2>
+<p>Ripyl protocol decode library</p>
 </div>
 </div>
 
@@ -1851,7 +1969,7 @@ This generator will terminate if the number of output samples is specified.
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="../index.html">
               <img class="logo" src="../_static/Ripyl_logo_100px.png" alt="Logo"/>
@@ -1870,23 +1988,29 @@ This generator will terminate if the number of output samples is specified.
 </p>
 
 
-
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="modules.html"
-                        title="previous chapter">ripyl</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="ripyl.protocol.html"
-                        title="next chapter">protocol Package</a></p>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">ripyl</a><ul>
+      <li>Previous: <a href="modules.html" title="previous chapter">ripyl</a></li>
+      <li>Next: <a href="ripyl.cython.html" title="next chapter">ripyl.cython package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">ripyl Package</a><ul>
-<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">ripyl</span></tt> Package</a></li>
-<li><a class="reference internal" href="#module-ripyl.config"><tt class="docutils literal"><span class="pre">config</span></tt> Module</a></li>
-<li><a class="reference internal" href="#module-ripyl.decode"><tt class="docutils literal"><span class="pre">decode</span></tt> Module</a></li>
-<li><a class="reference internal" href="#module-ripyl.sigproc"><tt class="docutils literal"><span class="pre">sigproc</span></tt> Module</a></li>
-<li><a class="reference internal" href="#module-ripyl.streaming"><tt class="docutils literal"><span class="pre">streaming</span></tt> Module</a></li>
-<li><a class="reference internal" href="#module-ripyl.wave_synth"><tt class="docutils literal"><span class="pre">wave_synth</span></tt> Module</a></li>
+<li><a class="reference internal" href="#">ripyl package</a><ul>
 <li><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-ripyl.config">ripyl.config module</a></li>
+<li><a class="reference internal" href="#module-ripyl.decode">ripyl.decode module</a></li>
+<li><a class="reference internal" href="#module-ripyl.manchester">ripyl.manchester module</a></li>
+<li><a class="reference internal" href="#module-ripyl.sigproc">ripyl.sigproc module</a></li>
+<li><a class="reference internal" href="#module-ripyl.streaming">ripyl.streaming module</a></li>
+<li><a class="reference internal" href="#module-ripyl.wave_synth">ripyl.wave_synth module</a></li>
+<li><a class="reference internal" href="#module-ripyl">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -1953,17 +2077,14 @@ if(sessionStorage.KTcacheTime && now - sessionStorage.KTcacheTime < 5*60*1000 ) 
 
 });
 </script>
-<div id="searchbox" style="display: none">
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -1975,8 +2096,8 @@ if(sessionStorage.KTcacheTime && now - sessionStorage.KTcacheTime < 5*60*1000 ) 
       &copy;2015, Kevin Thibedeau.
       
       |
-      <a href="../_sources/apidoc/ripyl.txt"
-          rel="nofollow">Page source</a></li>
+      <a href="../_sources/apidoc/ripyl.rst.txt"
+          rel="nofollow">Page source</a>
     </div>
 
     

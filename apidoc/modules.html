@@ -1,30 +1,28 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>ripyl &mdash; Ripyl 1.2.1 documentation</title>
-    
+    <title>ripyl &#8212; Ripyl 1.2.1 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="https://kevinpt.github.io/opbasm/_static/project.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
         VERSION:     '1.2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link href='http://fonts.googleapis.com/css?family=Kreon:400,300,700' rel='stylesheet' type='text/css'>
 
    
@@ -32,72 +30,76 @@
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
 
   </head>
-  <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="ripyl.html" title="ripyl Package"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="../rst/simulation.html" title="Simulation"
-             accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">Ripyl 1.2.1 documentation</a> &raquo;</li> 
-      </ul>
-    </div>  
+  <body>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="ripyl">
 <h1>ripyl<a class="headerlink" href="#ripyl" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="ripyl.html">ripyl Package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.html#id1"><tt class="docutils literal"><span class="pre">ripyl</span></tt> Package</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.html#module-ripyl.config"><tt class="docutils literal"><span class="pre">config</span></tt> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.html#module-ripyl.decode"><tt class="docutils literal"><span class="pre">decode</span></tt> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.html#module-ripyl.sigproc"><tt class="docutils literal"><span class="pre">sigproc</span></tt> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.html#module-ripyl.streaming"><tt class="docutils literal"><span class="pre">streaming</span></tt> Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="ripyl.html#module-ripyl.wave_synth"><tt class="docutils literal"><span class="pre">wave_synth</span></tt> Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ripyl.html">ripyl package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="ripyl.html#subpackages">Subpackages</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="ripyl.protocol.html">protocol Package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#id1"><tt class="docutils literal"><span class="pre">protocol</span></tt> Package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.can"><tt class="docutils literal"><span class="pre">can</span></tt> Module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.i2c"><tt class="docutils literal"><span class="pre">i2c</span></tt> Module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.iso_k_line"><tt class="docutils literal"><span class="pre">iso_k_line</span></tt> Module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.lin"><tt class="docutils literal"><span class="pre">lin</span></tt> Module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.lm73"><tt class="docutils literal"><span class="pre">lm73</span></tt> Module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.obd2"><tt class="docutils literal"><span class="pre">obd2</span></tt> Module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.ps2"><tt class="docutils literal"><span class="pre">ps2</span></tt> Module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.sagem_ecu"><tt class="docutils literal"><span class="pre">sagem_ecu</span></tt> Module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.spi"><tt class="docutils literal"><span class="pre">spi</span></tt> Module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.uart"><tt class="docutils literal"><span class="pre">uart</span></tt> Module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.usb"><tt class="docutils literal"><span class="pre">usb</span></tt> Module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.usb_transact"><tt class="docutils literal"><span class="pre">usb_transact</span></tt> Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ripyl.cython.html">ripyl.cython package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.cython.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.cython.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.cython.html#module-ripyl.cython.decode">ripyl.cython.decode module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.cython.html#module-ripyl.cython.sigproc">ripyl.cython.sigproc module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.cython.html#module-ripyl.cython">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ripyl.io.html">ripyl.io package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.io.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.io.html#module-ripyl.io.vcd">ripyl.io.vcd module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.io.html#module-ripyl.io">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="ripyl.protocol.html">ripyl.protocol package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.can">ripyl.protocol.can module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.ethernet">ripyl.protocol.ethernet module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.i2c">ripyl.protocol.i2c module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.i2s">ripyl.protocol.i2s module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.iso_k_line">ripyl.protocol.iso_k_line module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.j1850">ripyl.protocol.j1850 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.lin">ripyl.protocol.lin module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.lm73">ripyl.protocol.lm73 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.obd2">ripyl.protocol.obd2 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.ps2">ripyl.protocol.ps2 module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.sagem_ecu">ripyl.protocol.sagem_ecu module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.spi">ripyl.protocol.spi module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.uart">ripyl.protocol.uart module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.usb">ripyl.protocol.usb module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol.usb_transact">ripyl.protocol.usb_transact module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.protocol.html#module-ripyl.protocol">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="ripyl.util.html">util Package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="ripyl.util.html#id1"><tt class="docutils literal"><span class="pre">util</span></tt> Package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.bitops"><tt class="docutils literal"><span class="pre">bitops</span></tt> Module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.eng"><tt class="docutils literal"><span class="pre">eng</span></tt> Module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.enum"><tt class="docutils literal"><span class="pre">enum</span></tt> Module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.equality"><tt class="docutils literal"><span class="pre">equality</span></tt> Module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ripyl.util.html#plot-module"><tt class="docutils literal"><span class="pre">plot</span></tt> Module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.stats"><tt class="docutils literal"><span class="pre">stats</span></tt> Module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="ripyl.util.html">ripyl.util package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.util.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.bitops">ripyl.util.bitops module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.color">ripyl.util.color module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.eng">ripyl.util.eng module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.enum">ripyl.util.enum module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.equality">ripyl.util.equality module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.plot">ripyl.util.plot module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.util.html#module-ripyl.util.stats">ripyl.util.stats module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="ripyl.util.html#module-ripyl.util">Module contents</a></li>
 </ul>
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.html#module-ripyl.config">ripyl.config module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.html#module-ripyl.decode">ripyl.decode module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.html#module-ripyl.manchester">ripyl.manchester module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.html#module-ripyl.sigproc">ripyl.sigproc module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.html#module-ripyl.streaming">ripyl.streaming module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.html#module-ripyl.wave_synth">ripyl.wave_synth module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ripyl.html#module-ripyl">Module contents</a></li>
 </ul>
 </li>
 </ul>
@@ -108,7 +110,7 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="../index.html">
               <img class="logo" src="../_static/Ripyl_logo_100px.png" alt="Logo"/>
@@ -127,13 +129,15 @@
 </p>
 
 
-
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="../rst/simulation.html"
-                        title="previous chapter">Simulation</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="ripyl.html"
-                        title="next chapter">ripyl Package</a></p><h3>Other projects</h3>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../rst/simulation.html" title="previous chapter">Simulation</a></li>
+      <li>Next: <a href="ripyl.html" title="next chapter">ripyl package</a></li>
+  </ul></li>
+</ul>
+</div><h3>Other projects</h3>
 
 <div id="proj_list">
 <p>
@@ -196,17 +200,14 @@ if(sessionStorage.KTcacheTime && now - sessionStorage.KTcacheTime < 5*60*1000 ) 
 
 });
 </script>
-<div id="searchbox" style="display: none">
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -218,8 +219,8 @@ if(sessionStorage.KTcacheTime && now - sessionStorage.KTcacheTime < 5*60*1000 ) 
       &copy;2015, Kevin Thibedeau.
       
       |
-      <a href="../_sources/apidoc/modules.txt"
-          rel="nofollow">Page source</a></li>
+      <a href="../_sources/apidoc/modules.rst.txt"
+          rel="nofollow">Page source</a>
     </div>
 
     

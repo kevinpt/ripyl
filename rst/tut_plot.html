@@ -1,30 +1,28 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Ripyl plotting tutorial &mdash; Ripyl 1.2.1 documentation</title>
-    
+    <title>Ripyl plotting tutorial &#8212; Ripyl 1.2.1 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="https://kevinpt.github.io/opbasm/_static/project.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
         VERSION:     '1.2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link href='http://fonts.googleapis.com/css?family=Kreon:400,300,700' rel='stylesheet' type='text/css'>
 
    
@@ -32,24 +30,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
 
   </head>
-  <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../index.html">Ripyl 1.2.1 documentation</a> &raquo;</li> 
-      </ul>
-    </div>  
+  <body>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="ripyl-plotting-tutorial">
 <h1>Ripyl plotting tutorial<a class="headerlink" href="#ripyl-plotting-tutorial" title="Permalink to this headline">¶</a></h1>
@@ -94,7 +80,7 @@
     <span class="k">return</span> <span class="p">(</span><span class="n">noisy_scl</span><span class="p">,</span> <span class="n">noisy_sda</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The Ripyl Plotter object needs sample streams as the waveform source(s). If you are getting samples from an external source you must convert them to a <a class="reference internal" href="data_structures.html#streams"><em>sample stream</em></a> with the <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.samples_to_sample_stream" title="ripyl.streaming.samples_to_sample_stream"><tt class="xref py py-func docutils literal"><span class="pre">samples_to_sample_stream()</span></tt></a> function.</p>
+<p>The Ripyl Plotter object needs sample streams as the waveform source(s). If you are getting samples from an external source you must convert them to a <a class="reference internal" href="data_structures.html#streams"><span class="std std-ref">sample stream</span></a> with the <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.samples_to_sample_stream" title="ripyl.streaming.samples_to_sample_stream"><code class="xref py py-func docutils literal"><span class="pre">samples_to_sample_stream()</span></code></a> function.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="c"># Get scl_samples and sda_samples from external source</span>
 <span class="n">noisy_scl</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">samples_to_sample_stream</span><span class="p">(</span><span class="n">scl_samples</span><span class="p">,</span> <span class="n">sample_period</span><span class="p">)</span>
 <span class="n">noisy_sda</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">samples_to_sample_stream</span><span class="p">(</span><span class="n">sda_samples</span><span class="p">,</span> <span class="n">sample_period</span><span class="p">)</span>
@@ -103,7 +89,7 @@
 </div>
 <div class="section" id="plot-waveforms">
 <h2>Plot waveforms<a class="headerlink" href="#plot-waveforms" title="Permalink to this headline">¶</a></h2>
-<p>Once the sample streams are prepared you are ready to plot. The StreamRecords produced by the protocol decoders contain annotation information useful for plotting. Ripyl provides a <tt class="xref py py-class docutils literal"><span class="pre">Plotter</span></tt> class that encapsulates a matplotlib figure and handles layout and annotation formatting. You prepare a plot with the <tt class="xref py py-meth docutils literal"><span class="pre">plot()</span></tt> method, providing a dict of channel definitions with the waveform samples, any decoded records for annotation, and the title for the plot. Once the <tt class="docutils literal"><span class="pre">Plotter</span></tt> object is prepared you can either show the result in a matplotlib window or save it to a file.</p>
+<p>Once the sample streams are prepared you are ready to plot. The StreamRecords produced by the protocol decoders contain annotation information useful for plotting. Ripyl provides a <a class="reference internal" href="../apidoc/ripyl.util.html#ripyl.util.plot.Plotter" title="ripyl.util.plot.Plotter"><code class="xref py py-class docutils literal"><span class="pre">Plotter</span></code></a> class that encapsulates a matplotlib figure and handles layout and annotation formatting. You prepare a plot with the <a class="reference internal" href="../apidoc/ripyl.util.html#ripyl.util.plot.Plotter.plot" title="ripyl.util.plot.Plotter.plot"><code class="xref py py-meth docutils literal"><span class="pre">plot()</span></code></a> method, providing a dict of channel definitions with the waveform samples, any decoded records for annotation, and the title for the plot. Once the <code class="docutils literal"><span class="pre">Plotter</span></code> object is prepared you can either show the result in a matplotlib window or save it to a file.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">matplotlib</span>
 <span class="kn">import</span> <span class="nn">ripyl.util.plot</span> <span class="kn">as</span> <span class="nn">rplot</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
@@ -131,7 +117,7 @@
 </pre></div>
 </div>
 <a class="reference internal image-reference" href="../_images/plotting_tut2.png"><img alt="../_images/plotting_tut2.png" src="../_images/plotting_tut2.png" style="width: 480.0px; height: 240.0px;" /></a>
-<p>The <tt class="xref py py-meth docutils literal"><span class="pre">plot()</span></tt> method has a <tt class="docutils literal"><span class="pre">label_format</span></tt> parameter that controls the default format for the annotation text labels. The available formats are defined in the <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.AnnotationFormat" title="ripyl.streaming.AnnotationFormat"><tt class="xref py py-class docutils literal"><span class="pre">AnnotationFormat</span></tt></a> enum:</p>
+<p>The <a class="reference internal" href="../apidoc/ripyl.util.html#ripyl.util.plot.Plotter.plot" title="ripyl.util.plot.Plotter.plot"><code class="xref py py-meth docutils literal"><span class="pre">plot()</span></code></a> method has a <code class="docutils literal"><span class="pre">label_format</span></code> parameter that controls the default format for the annotation text labels. The available formats are defined in the <a class="reference internal" href="../apidoc/ripyl.html#ripyl.streaming.AnnotationFormat" title="ripyl.streaming.AnnotationFormat"><code class="xref py py-class docutils literal"><span class="pre">AnnotationFormat</span></code></a> enum:</p>
 <dl class="docutils">
 <dt>Hidden</dt>
 <dd>Invisible text label. Only the colored rectangle is drawn</dd>
@@ -150,7 +136,7 @@
 <dt>Small</dt>
 <dd>Same as String but with smaller text</dd>
 </dl>
-<p>The <tt class="docutils literal"><span class="pre">label_format</span></tt> parameter only affects fields that have been annotated to have a general purpose format. Changing the format to Hex produces the following result. Note that the address portion and the ack bits retain their formatting as String and Hidden.</p>
+<p>The <code class="docutils literal"><span class="pre">label_format</span></code> parameter only affects fields that have been annotated to have a general purpose format. Changing the format to Hex produces the following result. Note that the address portion and the ack bits retain their formatting as String and Hidden.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">plotter</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span> <span class="n">records</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">label_format</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">AnnotationFormat</span><span class="o">.</span><span class="n">Hex</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -162,7 +148,7 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="../index.html">
               <img class="logo" src="../_static/Ripyl_logo_100px.png" alt="Logo"/>
@@ -181,7 +167,13 @@
 </p>
 
 
-
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
   <h3><a href="../index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Ripyl plotting tutorial</a><ul>
@@ -253,17 +245,14 @@ if(sessionStorage.KTcacheTime && now - sessionStorage.KTcacheTime < 5*60*1000 ) 
 
 });
 </script>
-<div id="searchbox" style="display: none">
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -275,8 +264,8 @@ if(sessionStorage.KTcacheTime && now - sessionStorage.KTcacheTime < 5*60*1000 ) 
       &copy;2015, Kevin Thibedeau.
       
       |
-      <a href="../_sources/rst/tut_plot.txt"
-          rel="nofollow">Page source</a></li>
+      <a href="../_sources/rst/tut_plot.rst.txt"
+          rel="nofollow">Page source</a>
     </div>
 
     

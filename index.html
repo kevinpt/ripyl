@@ -1,30 +1,28 @@
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Ripyl library documentation &mdash; Ripyl 1.2.1 documentation</title>
-    
+    <title>Ripyl library documentation &#8212; Ripyl 1.2.1 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="stylesheet" href="https://kevinpt.github.io/opbasm/_static/project.css" type="text/css" />
-    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
         VERSION:     '1.2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link href='http://fonts.googleapis.com/css?family=Kreon:400,300,700' rel='stylesheet' type='text/css'>
 
    
@@ -32,27 +30,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
 
   </head>
-  <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="rst/installation.html" title="Installing Ripyl"
-             accesskey="N">next</a> |</li>
-        <li><a href="#">Ripyl 1.2.1 documentation</a> &raquo;</li> 
-      </ul>
-    </div>  
+  <body>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="ripyl-library-documentation">
 <h1>Ripyl library documentation<a class="headerlink" href="#ripyl-library-documentation" title="Permalink to this headline">¶</a></h1>
@@ -63,7 +46,7 @@ instruments with no built in support for decoding or lacking support for more
 advanced protocols.</p>
 <p>It can process a waveform like this:</p>
 <img alt="_images/uart_plain.png" src="_images/uart_plain.png" />
-<p>... and produce an annotated result like this:</p>
+<p>… and produce an annotated result like this:</p>
 <img alt="_images/uart_hello_small.png" src="_images/uart_hello_small.png" />
 <p>Using Ripyl is as simple as follows:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">ripyl</span>
@@ -88,25 +71,25 @@ advanced protocols.</p>
 <col width="25%" />
 </colgroup>
 <tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="rst/protocols.html#can"><em>CAN</em></a></td>
-<td><a class="reference internal" href="rst/protocols.html#ethernet"><em>Ethernet</em></a></td>
-<td><a class="reference internal" href="rst/protocols.html#hsic"><em>HSIC</em></a></td>
-<td><a class="reference internal" href="rst/protocols.html#i2c"><em>I2C</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="rst/protocols.html#can"><span class="std std-ref">CAN</span></a></td>
+<td><a class="reference internal" href="rst/protocols.html#ethernet"><span class="std std-ref">Ethernet</span></a></td>
+<td><a class="reference internal" href="rst/protocols.html#hsic"><span class="std std-ref">HSIC</span></a></td>
+<td><a class="reference internal" href="rst/protocols.html#i2c"><span class="std std-ref">I2C</span></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="rst/protocols.html#j1850"><em>J1850</em></a></td>
-<td><a class="reference internal" href="rst/protocols.html#lin"><em>LIN</em></a></td>
-<td><a class="reference internal" href="rst/protocols.html#kline"><em>ISO 9141</em></a></td>
-<td><a class="reference internal" href="rst/protocols.html#kline"><em>ISO 14230</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="rst/protocols.html#j1850"><span class="std std-ref">J1850</span></a></td>
+<td><a class="reference internal" href="rst/protocols.html#lin"><span class="std std-ref">LIN</span></a></td>
+<td><a class="reference internal" href="rst/protocols.html#kline"><span class="std std-ref">ISO 9141</span></a></td>
+<td><a class="reference internal" href="rst/protocols.html#kline"><span class="std std-ref">ISO 14230</span></a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="rst/protocols.html#nec"><em>NEC</em></a></td>
-<td><a class="reference internal" href="rst/protocols.html#ps2"><em>PS/2</em></a></td>
-<td><a class="reference internal" href="rst/protocols.html#rc5"><em>RC5</em></a></td>
-<td><a class="reference internal" href="rst/protocols.html#rc6"><em>RC6</em></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="rst/protocols.html#nec"><span class="std std-ref">NEC</span></a></td>
+<td><a class="reference internal" href="rst/protocols.html#ps2"><span class="std std-ref">PS/2</span></a></td>
+<td><a class="reference internal" href="rst/protocols.html#rc5"><span class="std std-ref">RC5</span></a></td>
+<td><a class="reference internal" href="rst/protocols.html#rc6"><span class="std std-ref">RC6</span></a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="rst/protocols.html#sirc"><em>SIRC</em></a></td>
-<td><a class="reference internal" href="rst/protocols.html#spi"><em>SPI</em></a></td>
-<td><a class="reference internal" href="rst/protocols.html#uart"><em>UART</em></a></td>
-<td><a class="reference internal" href="rst/protocols.html#usb"><em>USB 2.0</em></a></td>
+<tr class="row-even"><td><a class="reference internal" href="rst/protocols.html#sirc"><span class="std std-ref">SIRC</span></a></td>
+<td><a class="reference internal" href="rst/protocols.html#spi"><span class="std std-ref">SPI</span></a></td>
+<td><a class="reference internal" href="rst/protocols.html#uart"><span class="std std-ref">UART</span></a></td>
+<td><a class="reference internal" href="rst/protocols.html#usb"><span class="std std-ref">USB 2.0</span></a></td>
 </tr>
 </tbody>
 </table>
@@ -127,7 +110,7 @@ advanced protocols.</p>
 </div>
 <div class="section" id="getting-started">
 <h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
-<p>If you are new to Ripyl you can get started by reviewing the <a class="reference internal" href="rst/intro.html"><em>introductory guide</em></a> and following the <a class="reference internal" href="rst/tut_beginner.html"><em>beginner&#8217;s tutorial</em></a>.</p>
+<p>If you are new to Ripyl you can get started by reviewing the <a class="reference internal" href="rst/intro.html"><span class="doc">introductory guide</span></a> and following the <a class="reference internal" href="rst/tut_beginner.html"><span class="doc">beginner’s tutorial</span></a>.</p>
 </div>
 <div class="section" id="contents">
 <h1>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h1>
@@ -181,7 +164,7 @@ advanced protocols.</p>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="apidoc/modules.html">ripyl</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="apidoc/ripyl.html">ripyl Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidoc/ripyl.html">ripyl package</a></li>
 </ul>
 </li>
 </ul>
@@ -190,9 +173,9 @@ advanced protocols.</p>
 <div class="section" id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
-<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
-<li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
-<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
 </ul>
 </div>
 
@@ -200,7 +183,7 @@ advanced protocols.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
             <p class="logo"><a href="#">
               <img class="logo" src="_static/Ripyl_logo_100px.png" alt="Logo"/>
@@ -219,10 +202,14 @@ advanced protocols.</p>
 </p>
 
 
-
-  <h4>Next topic</h4>
-  <p class="topless"><a href="rst/installation.html"
-                        title="next chapter">Installing Ripyl</a></p>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="rst/installation.html" title="next chapter">Installing Ripyl</a></li>
+  </ul></li>
+</ul>
+</div>
   <h3><a href="#">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Ripyl library documentation</a></li>
@@ -293,17 +280,14 @@ if(sessionStorage.KTcacheTime && now - sessionStorage.KTcacheTime < 5*60*1000 ) 
 
 });
 </script>
-<div id="searchbox" style="display: none">
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -315,8 +299,8 @@ if(sessionStorage.KTcacheTime && now - sessionStorage.KTcacheTime < 5*60*1000 ) 
       &copy;2015, Kevin Thibedeau.
       
       |
-      <a href="_sources/index.txt"
-          rel="nofollow">Page source</a></li>
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
     </div>
 
     
