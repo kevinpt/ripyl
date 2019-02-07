@@ -104,6 +104,7 @@ class USBStreamStatus(Enum):
     MissingEOPError  = stream.StreamStatus.Error + 2
     BitStuffingError = stream.StreamStatus.Error + 3
     CRCError         = stream.StreamStatus.Error + 4
+    InvalidPIDError  = stream.StreamStatus.Error + 5
 
     
 class USBStreamPacket(stream.StreamSegment):
